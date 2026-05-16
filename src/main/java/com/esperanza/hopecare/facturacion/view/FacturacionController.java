@@ -19,6 +19,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import java.util.List;
 
 public class FacturacionController {
     @FXML private TableView<FacturaResumenDTO> tablaFacturas;
@@ -48,6 +49,16 @@ public class FacturacionController {
     @FXML private TableColumn<PendienteDTO, Double> colFarmMonto;
     @FXML private TableColumn<PendienteDTO, String> colFarmFecha;
 
+    @FXML private TextField txtBuscarTodos;
+    @FXML private Button btnGenTodos;
+    @FXML private TableView<PendienteDTO> tablaTodosPendientes;
+    @FXML private TableColumn<PendienteDTO, Integer> colTodosIdRef;
+    @FXML private TableColumn<PendienteDTO, String> colTodosPaciente;
+    @FXML private TableColumn<PendienteDTO, String> colTodosConcepto;
+    @FXML private TableColumn<PendienteDTO, Double> colTodosMonto;
+    @FXML private TableColumn<PendienteDTO, String> colTodosFecha;
+    @FXML private TableColumn<PendienteDTO, String> colTodosTipo;
+
     @FXML private TextField txtBuscarLab;
     @FXML private Button btnGenLab;
     @FXML private TableView<PendienteDTO> tablaLabPendientes;
@@ -64,9 +75,11 @@ public class FacturacionController {
     private ObservableList<PendienteDTO> citasPendientes;
     private ObservableList<PendienteDTO> farmPendientes;
     private ObservableList<PendienteDTO> labPendientes;
+    private ObservableList<PendienteDTO> todosPendientes;
     private FilteredList<PendienteDTO> citasFiltradas;
     private FilteredList<PendienteDTO> farmFiltradas;
     private FilteredList<PendienteDTO> labFiltradas;
+    private FilteredList<PendienteDTO> todosFiltrados;
 
     private ConsultaDAO consultaDAO;
     private EntregaMedicamentoDAO entregaDAO;
@@ -83,18 +96,22 @@ public class FacturacionController {
         configurarTablaPendientes(colCitaIdRef, colCitaPaciente, colCitaConcepto, colCitaMonto, colCitaFecha);
         configurarTablaPendientes(colFarmIdRef, colFarmPaciente, colFarmConcepto, colFarmMonto, colFarmFecha);
         configurarTablaPendientes(colLabIdRef, colLabPaciente, colLabConcepto, colLabMonto, colLabFecha);
+        configurarTablaTodos(colTodosIdRef, colTodosPaciente, colTodosConcepto, colTodosMonto, colTodosFecha, colTodosTipo);
 
         citasPendientes = FXCollections.observableArrayList();
         farmPendientes = FXCollections.observableArrayList();
         labPendientes = FXCollections.observableArrayList();
+        todosPendientes = FXCollections.observableArrayList();
 
         citasFiltradas = new FilteredList<>(citasPendientes, p -> true);
         farmFiltradas = new FilteredList<>(farmPendientes, p -> true);
         labFiltradas = new FilteredList<>(labPendientes, p -> true);
+        todosFiltrados = new FilteredList<>(todosPendientes, p -> true);
 
         tablaCitasPendientes.setItems(citasFiltradas);
         tablaFarmPendientes.setItems(farmFiltradas);
         tablaLabPendientes.setItems(labFiltradas);
+        tablaTodosPendientes.setItems(todosFiltrados);
 
         txtBuscarCita.textProperty().addListener((obs, o, n) ->
             citasFiltradas.setPredicate(p -> filtrar(p, n)));
@@ -102,10 +119,13 @@ public class FacturacionController {
             farmFiltradas.setPredicate(p -> filtrar(p, n)));
         txtBuscarLab.textProperty().addListener((obs, o, n) ->
             labFiltradas.setPredicate(p -> filtrar(p, n)));
+        txtBuscarTodos.textProperty().addListener((obs, o, n) ->
+            todosFiltrados.setPredicate(p -> filtrar(p, n)));
 
         btnGenCita.setOnAction(e -> generarFactura(tablaCitasPendientes, "CONSULTA"));
         btnGenFarm.setOnAction(e -> generarFactura(tablaFarmPendientes, "MEDICAMENTO"));
         btnGenLab.setOnAction(e -> generarFactura(tablaLabPendientes, "EXAMEN"));
+        btnGenTodos.setOnAction(e -> generarFactura(tablaTodosPendientes, null));
 
         configurarTablaFacturas();
         try {
@@ -253,6 +273,45 @@ public class FacturacionController {
         citasPendientes.setAll(consultaDAO.listarPendientesConPaciente());
         farmPendientes.setAll(entregaDAO.listarPendientesConPaciente());
         labPendientes.setAll(solicitudExamenDAO.listarPendientesConPaciente());
+        List<PendienteDTO> todos = new java.util.ArrayList<>();
+        todos.addAll(citasPendientes);
+        todos.addAll(farmPendientes);
+        todos.addAll(labPendientes);
+        todos.sort((a, b) -> b.getFecha().compareTo(a.getFecha()));
+        todosPendientes.setAll(todos);
+    }
+
+    private void configurarTablaTodos(TableColumn<PendienteDTO, Integer> colId,
+                                      TableColumn<PendienteDTO, String> colPac,
+                                      TableColumn<PendienteDTO, String> colConc,
+                                      TableColumn<PendienteDTO, Double> colMont,
+                                      TableColumn<PendienteDTO, String> colFec,
+                                      TableColumn<PendienteDTO, String> colTipo) {
+        colId.setCellValueFactory(new PropertyValueFactory<>("idReferencia"));
+        colPac.setCellValueFactory(new PropertyValueFactory<>("pacienteNombre"));
+        colConc.setCellValueFactory(new PropertyValueFactory<>("concepto"));
+        colMont.setCellValueFactory(new PropertyValueFactory<>("monto"));
+        colFec.setCellValueFactory(new PropertyValueFactory<>("fecha"));
+        colTipo.setCellValueFactory(new PropertyValueFactory<>("tipoReferencia"));
+
+        colMont.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : String.format("$%.2f", item));
+            }
+        });
+        colTipo.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); return; }
+                setText(item);
+                if ("CONSULTA".equals(item)) setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
+                else if ("EXAMEN".equals(item)) setStyle("-fx-text-fill: #7c3aed; -fx-font-weight: 600;");
+                else setStyle("-fx-text-fill: #d97706; -fx-font-weight: 600;");
+            }
+        });
     }
 
     private void cargarFacturas() {
