@@ -51,22 +51,25 @@
 - **DAOs**: `CitaDAO.java` (CRUD + filtrar por médico/fecha/estado + `obtenerCitasPorEstadoConNombres()`), `HorarioAtencionDAO.java` (obtener por médico+día), `PacienteDAO.listarTodos()`, `MedicoDAO.listarTodos()` (JOIN con persona y especialidad)
 
 ### Consultas (MVP - IConsultaView + ConsultaPresenter)
-- **ICP**: `IConsultaView.java` - interfaz con métodos para cargar citas, formulario, solicitar examen/receta. Incluye inner class `RecetaRequest`
-- **Presenter**: `ConsultaPresenter.java` - carga citas PROGRAMADA, registra consulta (transacción INSERT consulta + UPDATE cita), solicita examen, receta medicamento (transacción INSERT receta + detalle_receta)
-- **JavaFX**: `ConsultaController.java` - standalone con ComboBox de citas pendientes (muestra nombres de paciente/médico gracias a `CitaDAO.obtenerCitasPorEstadoConNombres()`), TextArea para síntomas/diagnóstico/tratamiento, diálogos modales para seleccionar examen y recetar medicamento
+- **ICP**: `IConsultaView.java` - interfaz con métodos para cargar citas, formulario, solicitar examen (sin recetas - médicos escriben externamente)
+- **Presenter**: `ConsultaPresenter.java` - carga citas PROGRAMADA, registra consulta (transacción INSERT consulta + UPDATE cita), solicita examen
+- **JavaFX**: `ConsultaController.java` - standalone con ComboBox de citas pendientes (muestra nombres de paciente/médico), TextArea para síntomas/diagnóstico/tratamiento, diálogo modal para seleccionar examen
 - **DAO**: `ConsultaDAO.java` - insertarConsultaYActualizarEstado() con commit/rollback explícito
 
 ### Farmacia (testeable 100%)
-- **FXML**: `farmacia.fxml` - 3 cards (Inventario, Recetas Activas, Entregas Recientes) + form de entrega
-- **Controller**: `FarmaciaController.java` - TableViews con CellFactory, diálogos para agregar/actualizar/eliminar
+- **FXML**: `farmacia.fxml` - 2 cards (Inventario, Entregas Recientes) + form de entrega directa a paciente
+- **Controller**: `FarmaciaController.java` - TableViews con CellFactory, ComboBoxes para seleccionar paciente y medicamento, diálogos para agregar/actualizar/eliminar
 - **Service**: `InventarioService.java` - agregarMedicamento(), actualizarStock()
-- **DAOs**: `EntregaMedicamentoDAO.java` (listarTodas, listarPorReceta, eliminar), `MedicamentoDAO.java` (eliminar)
+- **DAOs**: `EntregaMedicamentoDAO.java` (listarTodas, listarPorPaciente, listarPorMedicamento, eliminar), `MedicamentoDAO.java` (eliminar)
+- **Modelo**: `EntregaMedicamento.java` - con campos pacienteNombre, medicamentoNombre para display en tabla
+- **Cambios recientes**: Entregas vinculadas directamente a paciente (sin recetas), ComboBoxes con CellFactory para mostrar nombres completos, columna "Receta" muestra SÍ/NO según presente_receta
 
 ### Laboratorio (testeable 100%)
 - **FXML**: `laboratorio.fxml` - 3 cards (Catálogo Exámenes, Solicitudes, Resultados) + form de registro
-- **Controller**: `LaboratorioController.java` - TableViews, filtros por estado, diálogos para agregar/cancelar
+- **Controller**: `LaboratorioController.java` - TableViews con CellFactory, filtros por estado, diálogos para agregar/cancelar, nuevo formulario para crear solicitudes con ComboBoxes
 - **Service**: `ExamenService.java` - agregarExamen(), listarSolicitudesPorEstado(), listarTodasSolicitudes()
 - **DAOs**: `SolicitudExamenDAO.java` - listarTodas(), listarPorEstado(), cancelar()
+- **Cambios recientes**: Solicitudes vinculadas directamente a paciente (sin consultas), muestra nombres de pacientes y exámenes en las tablas
 
 ### Funcionalidades de Cancelación
 - **Farmacia**: Eliminar medicamento del inventario; Cancelar entrega (revierte stock)
@@ -100,13 +103,11 @@ CITAS Y CONSULTAS:
 
 FARMACIA:
   - medicamento (id_medicamento, nombre_comercial, principio_activo, presentacion, concentracion, precio_unitario, stock_actual, stock_minimo, requiere_receta)
-  - receta (id_receta, id_consulta, fecha_emision, instrucciones, activa)
-  - detalle_receta (id_detalle, id_receta, id_medicamento, cantidad, dosis_indicacion)
-  - entrega_medicamento (id_entrega, id_detalle_receta, cantidad_entregada, fecha_entrega, entregado_por, facturado)
+  - entrega_medicamento (id_entrega, id_paciente, id_medicamento, cantidad_entregada, presente_receta, fecha_entrega, entregado_por, facturado)
 
 LABORATORIO:
   - examen_laboratorio (id_examen, nombre_examen, descripcion, precio, tiempo_resultado_horas, resultado_archivo)
-  - solicitud_examen (id_solicitud, id_consulta, id_examen, fecha_solicitud, estado, resultado_texto, resultado_archivo, realizado_por, facturado)
+  - solicitud_examen (id_solicitud, id_paciente, id_examen, fecha_solicitud, estado, resultado_texto, resultado_archivo, realizado_por, facturado)
 
 FACTURACIÓN:
   - factura (id_factura, id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago, forma_pago)
@@ -116,9 +117,10 @@ AUDITORÍA:
   - bitacora_eventos (id_evento, id_usuario, tabla_afectada, id_registro, accion, fecha_hora, datos_antes, datos_despues)
 ```
 
-### Columnas de Compatibilidad (stock_minimo, facturado)
+### Columnas de Compatibilidad (stock_minimo, facturado, presente_receta)
 - `medicamento.stock_minimo`: Mantenido para alertas de stock bajo en DashboardDAO, FarmaciaController, InventarioService
 - `entrega_medicamento.facturado`: Mantenido para compatibilidad con módulo de facturación
+- `entrega_medicamento.presente_receta`: Indica si el paciente presentó receta al recibir el medicamento
 - `solicitud_examen.facturado`: Mantenido para compatibilidad con módulo de facturación
 
 ## Inicialización Automática de BD
@@ -173,11 +175,32 @@ La navegación se maneja desde `MainController.java`:
 - Pruebas unitarias JUnit 5
 - JAR ejecutable con Maven Assembly Plugin
 
+## Notas de la Versión Actual
+- Schema modificado: tablas `receta` y `detalle_receta` eliminadas
+- `entrega_medicamento` ahora referencia directamente `id_paciente` e `id_medicamento` (antes dependía de detalle_receta)
+- `solicitud_examen` ahora referencia directamente `id_paciente` (antes dependía de id_consulta)
+- Columna `presente_receta` agregada a `entrega_medicamento` para indicar si el paciente presentó receta
+- Modelos `EntregaMedicamento` y `SolicitudExamen` ahora incluyen campos de nombres (`pacienteNombreCompleto`, `medicamentoNombre`, `examenNombre`)
+- DAOs reescritos con JOINs a persona/medicamento/examen_laboratorio para obtener nombres
+- FarmaciaController ahora usa ComboBoxes con CellFactory para seleccionar paciente y medicamento
+- Columna "Receta" en tabla de entregas muestra SÍ (verde) / NO (rojo) según presente_receta
+- LaboratorioController muestra nombres de pacientes y exámenes, nuevo formulario para crear solicitudes
+- IMPORTANTE: Al actualizar, eliminar `sisgeho.db` para recrear con el nuevo esquema
+
 ## Estructura de Archivos Modificados
 - `main.fxml` / `MainController.java` - Nueva navegación header
 - `hopecare.css` - Paleta teal/slate completa
-- `farmacia.fxml` / `FarmaciaController.java` - Completo + botones eliminar/cancelar
-- `laboratorio.fxml` / `LaboratorioController.java` - Completo + botón cancelar
+- `farmacia.fxml` / `FarmaciaController.java` - Completo + ComboBoxes con CellFactory + columna Receta SÍ/NO
+- `laboratorio.fxml` / `LaboratorioController.java` - Completo + nombres de pacientes + nuevo form crear solicitudes
 - `dashboard.fxml` - Estilo visual actualizado (lógica existente)
 - `Auth/` - Login/Signup con autenticación SHA-256 y flujo completo
 - `module-info.java` - opens para Auth.view
+- `sisgeho_schema.sql` - Schema actualizado (entrega_medicamento ahora referencia id_paciente e id_medicamento directamente, eliminadas tablas receta y detalle_receta)
+- `EntregaMedicamento.java` - Modelo actualizado con campos pacienteNombre, medicamentoNombre, presente_receta
+- `EntregaMedicamentoDAO.java` - DAO reescrito para nuevo esquema con JOIN a persona para obtener nombres
+- `SolicitudExamen.java` - Modelo con idPaciente (eliminado idConsulta)
+- `SolicitudExamenDAO.java` - DAO reescrito con JOIN a persona/examen para nombres
+- `ExamenService.java` - solicitadoExamen(int idPaciente, int idExamen)
+- `GestionClinicaFacade.java` - procesarEntregaMedicamento(idPaciente, idMedicamento, cantidad, presenteReceta, rol)
+- `ConsultaPresenter.java` / `IConsultaView.java` / `ConsultaController.java` - Sin funcionalidad de recetas
+- `Persona.java` - Agregado getNombreCompleto()

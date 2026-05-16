@@ -2,6 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -14,7 +16,6 @@
         <Insets top="24" right="24" bottom="24" left="24" />
     </padding>
 
-    <!-- Card: Inventario de Medicamentos -->
     <VBox styleClass="card">
         <HBox styleClass="toolbar" spacing="12" alignment="CENTER_LEFT">
             <Label text="INVENTARIO DE MEDICAMENTOS" styleClass="section-title"/>
@@ -24,33 +25,18 @@
             <Button fx:id="btnEliminarMedicamento" text="Eliminar" styleClass="button-danger button-small" onAction="#eliminarMedicamentoClick"/>
         </HBox>
 
-        <TableView fx:id="tblInventario" styleClass="inventory-table" prefHeight="200">
+        <TableView fx:id="tblInventario" styleClass="inventory-table" prefHeight="180">
             <columns>
-                <TableColumn fx:id="colMedicamentoId" text="ID" prefWidth="60"/>
+                <TableColumn fx:id="colMedicamentoId" text="ID" prefWidth="50"/>
                 <TableColumn fx:id="colMedicamentoNombre" text="Medicamento" prefWidth="200"/>
-                <TableColumn fx:id="colStockActual" text="Stock Actual" prefWidth="100"/>
-                <TableColumn fx:id="colStockMinimo" text="Stock Mínimo" prefWidth="100"/>
-                <TableColumn fx:id="colEstado" text="Estado" prefWidth="120"/>
+                <TableColumn fx:id="colStockActual" text="Stock" prefWidth="80"/>
+                <TableColumn fx:id="colStockMinimo" text="Stock Mín" prefWidth="80"/>
+                <TableColumn fx:id="colEstado" text="Estado" prefWidth="80"/>
             </columns>
         </TableView>
     </VBox>
 
-    <!-- Segunda fila: Recetas y Entregas -->
     <HBox spacing="20" alignment="TOP_CENTER">
-        <!-- Card: Recetas Activas -->
-        <VBox styleClass="card" HBox.hgrow="ALWAYS">
-            <Label text="RECETAS ACTIVAS" styleClass="section-title"/>
-            <TableView fx:id="tblRecetas" prefHeight="250">
-                <columns>
-                    <TableColumn fx:id="colRecetaId" text="ID" prefWidth="60"/>
-                    <TableColumn fx:id="colRecetaConsulta" text="Consulta" prefWidth="80"/>
-                    <TableColumn fx:id="colRecetaFecha" text="Fecha" prefWidth="100"/>
-                    <TableColumn fx:id="colRecetaInstrucciones" text="Instrucciones" prefWidth="200"/>
-                </columns>
-            </TableView>
-        </VBox>
-
-        <!-- Card: Entregas Recientes -->
         <VBox styleClass="card" HBox.hgrow="ALWAYS">
             <HBox spacing="12" alignment="CENTER_LEFT">
                 <Label text="ENTREGAS RECIENTES" styleClass="section-title"/>
@@ -58,27 +44,28 @@
             </HBox>
             <TableView fx:id="tblEntregas" prefHeight="250">
                 <columns>
-                    <TableColumn fx:id="colEntregaId" text="ID" prefWidth="50"/>
-                    <TableColumn fx:id="colEntregaReceta" text="Receta" prefWidth="60"/>
+                    <TableColumn fx:id="colEntregaId" text="ID" prefWidth="40"/>
+                    <TableColumn fx:id="colEntregaPaciente" text="Paciente" prefWidth="150"/>
                     <TableColumn fx:id="colEntregaMedicamento" text="Medicamento" prefWidth="150"/>
-                    <TableColumn fx:id="colEntregaCantidad" text="Cant." prefWidth="50"/>
-                    <TableColumn fx:id="colEntregaFecha" text="Fecha" prefWidth="100"/>
-                    <TableColumn fx:id="colEntregaFacturado" text="Fact." prefWidth="50"/>
+                    <TableColumn fx:id="colEntregaCantidad" text="Cant" prefWidth="50"/>
+                    <TableColumn fx:id="colEntregaReceta" text="Receta" prefWidth="60"/>
+                    <TableColumn fx:id="colEntregaFecha" text="Fecha" prefWidth="120"/>
+                    <TableColumn fx:id="colEntregaFacturado" text="Fact" prefWidth="50"/>
                 </columns>
             </TableView>
         </VBox>
     </HBox>
 
-    <!-- Card: Nueva Entrega -->
     <VBox styleClass="card">
         <Label text="REGISTRAR NUEVA ENTREGA" styleClass="section-title"/>
         <HBox spacing="16" alignment="CENTER_LEFT">
-            <Label text="Receta:" styleClass="label-title"/>
-            <TextField fx:id="txtIdReceta" promptText="ID Receta" prefWidth="120"/>
+            <Label text="Paciente:" styleClass="label-title"/>
+            <ComboBox fx:id="cbPaciente" prefWidth="180"/>
             <Label text="Medicamento:" styleClass="label-title"/>
-            <TextField fx:id="txtIdMedicamento" promptText="ID Medicamento" prefWidth="120"/>
+            <ComboBox fx:id="cbMedicamento" prefWidth="180"/>
             <Label text="Cantidad:" styleClass="label-title"/>
             <TextField fx:id="txtCantidad" promptText="Cantidad" prefWidth="80"/>
+            <CheckBox fx:id="chkPresentoReceta" text="Presentó receta"/>
             <Button fx:id="btnEntregar" text="Registrar Entrega" styleClass="button" onAction="#btnEntregarClick"/>
         </HBox>
     </VBox>

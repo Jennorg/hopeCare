@@ -23,8 +23,8 @@ public class ExamenService {
         return examenDAO.listarTodos();
     }
 
-    public boolean solicitarExamen(int idConsulta, int idExamen) {
-        SolicitudExamen solicitud = new SolicitudExamen(idConsulta, idExamen);
+    public boolean solicitarExamen(int idPaciente, int idExamen) {
+        SolicitudExamen solicitud = new SolicitudExamen(idPaciente, idExamen);
         try (Connection conn = DatabaseConnection.getConnection()) {
             return solicitudDAO.insertar(solicitud, conn);
         } catch (SQLException e) {

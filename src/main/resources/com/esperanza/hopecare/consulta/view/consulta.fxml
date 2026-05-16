@@ -33,6 +33,5 @@
         
         <Button fx:id="btnGuardar" text="Guardar consulta" GridPane.columnIndex="0" GridPane.rowIndex="5" />
         <Button fx:id="btnSolicitarExamen" text="Solicitar examen" GridPane.columnIndex="1" GridPane.rowIndex="5" />
-        <Button fx:id="btnRecetar" text="Recetar medicamento" GridPane.columnIndex="2" GridPane.rowIndex="5" />
     </GridPane>
 </VBox>

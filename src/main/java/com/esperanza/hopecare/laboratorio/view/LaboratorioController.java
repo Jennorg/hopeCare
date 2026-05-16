@@ -6,6 +6,8 @@ import com.esperanza.hopecare.modules.medicamentos_lab.dao.SolicitudExamenDAO;
 import com.esperanza.hopecare.modules.medicamentos_lab.model.ExamenLaboratorio;
 import com.esperanza.hopecare.modules.medicamentos_lab.model.SolicitudExamen;
 import com.esperanza.hopecare.modules.medicamentos_lab.service.ExamenService;
+import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
+import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
 import com.esperanza.hopecare.common.db.DatabaseConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,14 +32,15 @@ public class LaboratorioController {
     @FXML private ComboBox<String> cbFiltroEstado;
     @FXML private TableView<SolicitudExamen> tblSolicitudes;
     @FXML private TableColumn<SolicitudExamen, Integer> colSolicitudId;
-    @FXML private TableColumn<SolicitudExamen, Integer> colSolicitudConsulta;
-    @FXML private TableColumn<SolicitudExamen, Integer> colSolicitudExamen;
+    @FXML private TableColumn<SolicitudExamen, String> colSolicitudPaciente;
+    @FXML private TableColumn<SolicitudExamen, String> colSolicitudExamen;
     @FXML private TableColumn<SolicitudExamen, String> colSolicitudFecha;
     @FXML private TableColumn<SolicitudExamen, String> colSolicitudEstado;
 
     @FXML private TableView<SolicitudExamen> tblResultados;
     @FXML private TableColumn<SolicitudExamen, Integer> colResultadoId;
-    @FXML private TableColumn<SolicitudExamen, Integer> colResultadoExamen;
+    @FXML private TableColumn<SolicitudExamen, String> colResultadoPaciente;
+    @FXML private TableColumn<SolicitudExamen, String> colResultadoExamen;
     @FXML private TableColumn<SolicitudExamen, String> colResultadoTexto;
     @FXML private TableColumn<SolicitudExamen, String> colResultadoFecha;
     @FXML private TableColumn<SolicitudExamen, String> colResultadoFacturado;
@@ -47,14 +50,21 @@ public class LaboratorioController {
     @FXML private Button btnRegistrar;
     @FXML private Button btnCancelarSolicitud;
 
+    @FXML private ComboBox<Paciente> cbNuevoPaciente;
+    @FXML private ComboBox<ExamenLaboratorio> cbNuevoExamen;
+    @FXML private Button btnCrearSolicitud;
+
     private GestionClinicaFacade facade;
     private ExamenLaboratorioDAO examenDAO;
     private SolicitudExamenDAO solicitudDAO;
+    private PacienteDAO pacienteDAO;
     private ExamenService examenService;
 
     private ObservableList<ExamenLaboratorio> examenesData = FXCollections.observableArrayList();
     private ObservableList<SolicitudExamen> solicitudesData = FXCollections.observableArrayList();
     private ObservableList<SolicitudExamen> resultadosData = FXCollections.observableArrayList();
+    private ObservableList<Paciente> pacientesData = FXCollections.observableArrayList();
+    private ObservableList<ExamenLaboratorio> examenesDisponiblesData = FXCollections.observableArrayList();
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -63,11 +73,13 @@ public class LaboratorioController {
         facade = new GestionClinicaFacade();
         examenDAO = new ExamenLaboratorioDAO();
         solicitudDAO = new SolicitudExamenDAO();
+        pacienteDAO = new PacienteDAO();
         examenService = new ExamenService();
 
         configurarColumnasExamenes();
         configurarColumnasSolicitudes();
         configurarColumnasResultados();
+        configurarComboBoxes();
 
         tblExamenes.setItems(examenesData);
         tblSolicitudes.setItems(solicitudesData);
@@ -97,8 +109,8 @@ public class LaboratorioController {
 
     private void configurarColumnasSolicitudes() {
         colSolicitudId.setCellValueFactory(new PropertyValueFactory<>("idSolicitud"));
-        colSolicitudConsulta.setCellValueFactory(new PropertyValueFactory<>("idConsulta"));
-        colSolicitudExamen.setCellValueFactory(new PropertyValueFactory<>("idExamen"));
+        colSolicitudPaciente.setCellValueFactory(new PropertyValueFactory<>("pacienteNombreCompleto"));
+        colSolicitudExamen.setCellValueFactory(new PropertyValueFactory<>("examenNombre"));
         colSolicitudFecha.setCellFactory(column -> new TableCell<SolicitudExamen, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -117,6 +129,7 @@ public class LaboratorioController {
                 super.updateItem(item, empty);
                 if (empty || getTableRow().getItem() == null) {
                     setText(null);
+                    setStyle(null);
                 } else {
                     String estado = getTableRow().getItem().getEstado();
                     setText(estado);
@@ -134,7 +147,8 @@ public class LaboratorioController {
 
     private void configurarColumnasResultados() {
         colResultadoId.setCellValueFactory(new PropertyValueFactory<>("idSolicitud"));
-        colResultadoExamen.setCellValueFactory(new PropertyValueFactory<>("idExamen"));
+        colResultadoPaciente.setCellValueFactory(new PropertyValueFactory<>("pacienteNombreCompleto"));
+        colResultadoExamen.setCellValueFactory(new PropertyValueFactory<>("examenNombre"));
         colResultadoTexto.setCellValueFactory(new PropertyValueFactory<>("resultadoTexto"));
         colResultadoFecha.setCellFactory(column -> new TableCell<SolicitudExamen, String>() {
             @Override
@@ -163,8 +177,43 @@ public class LaboratorioController {
         });
     }
 
+    private void configurarComboBoxes() {
+        cbNuevoPaciente.setItems(pacientesData);
+        cbNuevoPaciente.setCellFactory(lv -> new ListCell<Paciente>() {
+            @Override
+            protected void updateItem(Paciente item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreCompleto() : null);
+            }
+        });
+        cbNuevoPaciente.setButtonCell(new ListCell<Paciente>() {
+            @Override
+            protected void updateItem(Paciente item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreCompleto() : "Seleccionar paciente...");
+            }
+        });
+
+        cbNuevoExamen.setItems(examenesDisponiblesData);
+        cbNuevoExamen.setCellFactory(lv -> new ListCell<ExamenLaboratorio>() {
+            @Override
+            protected void updateItem(ExamenLaboratorio item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreExamen() : null);
+            }
+        });
+        cbNuevoExamen.setButtonCell(new ListCell<ExamenLaboratorio>() {
+            @Override
+            protected void updateItem(ExamenLaboratorio item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreExamen() : "Seleccionar examen...");
+            }
+        });
+    }
+
     private void cargarDatos() {
         cargarExamenes();
+        cargarPacientes();
         cargarSolicitudes();
         cargarResultados();
     }
@@ -172,6 +221,13 @@ public class LaboratorioController {
     private void cargarExamenes() {
         examenesData.clear();
         examenesData.addAll(examenDAO.listarTodos());
+        examenesDisponiblesData.clear();
+        examenesDisponiblesData.addAll(examenDAO.listarTodos());
+    }
+
+    private void cargarPacientes() {
+        pacientesData.clear();
+        pacientesData.addAll(pacienteDAO.listarTodos());
     }
 
     private void cargarSolicitudes() {
@@ -226,6 +282,27 @@ public class LaboratorioController {
     }
 
     @FXML
+    private void btnCrearSolicitudClick() {
+        Paciente paciente = cbNuevoPaciente.getValue();
+        ExamenLaboratorio examen = cbNuevoExamen.getValue();
+
+        if (paciente == null || examen == null) {
+            mostrarAlerta("Error", "Seleccione paciente y examen", Alert.AlertType.ERROR);
+            return;
+        }
+
+        boolean ok = examenService.solicitarExamen(paciente.getIdPaciente(), examen.getIdExamen());
+        if (ok) {
+            mostrarAlerta("Éxito", "Solicitud creada correctamente", Alert.AlertType.INFORMATION);
+            cargarSolicitudes();
+            cbNuevoPaciente.getSelectionModel().clearSelection();
+            cbNuevoExamen.getSelectionModel().clearSelection();
+        } else {
+            mostrarAlerta("Error", "No se pudo crear la solicitud", Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
     private void agregarExamenClick() {
         Dialog<ExamenLaboratorio> dialog = new Dialog<>();
         dialog.setTitle("Agregar Examen de Laboratorio");
@@ -238,21 +315,16 @@ public class LaboratorioController {
         TextField txtPrecio = new TextField();
         txtPrecio.setPromptText("Precio");
         TextField txtTiempo = new TextField();
-        txtTiempo.setPromptText("Tiempo de resultado (horas)");
         txtTiempo.setText("24");
 
         javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setStyle("-fx-padding: 20;");
-        grid.add(new Label("Nombre:"), 0, 0);
-        grid.add(txtNombre, 1, 0);
-        grid.add(new Label("Descripción:"), 0, 1);
-        grid.add(txtDescripcion, 1, 1);
-        grid.add(new Label("Precio:"), 0, 2);
-        grid.add(txtPrecio, 1, 2);
-        grid.add(new Label("Tiempo (hrs):"), 0, 3);
-        grid.add(txtTiempo, 1, 3);
+        grid.add(new Label("Nombre:"), 0, 0); grid.add(txtNombre, 1, 0);
+        grid.add(new Label("Descripción:"), 0, 1); grid.add(txtDescripcion, 1, 1);
+        grid.add(new Label("Precio:"), 0, 2); grid.add(txtPrecio, 1, 2);
+        grid.add(new Label("Tiempo (hrs):"), 0, 3); grid.add(txtTiempo, 1, 3);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);

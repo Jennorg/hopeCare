@@ -112,16 +112,18 @@ public class SisgehoConsoleApp {
 
     private static void procesarEntregaMedicamento() {
         System.out.println("\n--- Entrega de Medicamento (Farmacia) ---");
-        System.out.print("ID de receta: ");
-        int idReceta = Integer.parseInt(scanner.nextLine());
+        System.out.print("ID del paciente: ");
+        int idPaciente = Integer.parseInt(scanner.nextLine());
         System.out.print("ID del medicamento: ");
         int idMedicamento = Integer.parseInt(scanner.nextLine());
         System.out.print("Cantidad: ");
         int cantidad = Integer.parseInt(scanner.nextLine());
+        System.out.print("Presentó receta (S/N): ");
+        boolean presenteReceta = scanner.nextLine().equalsIgnoreCase("S");
         System.out.print("Rol del usuario (ADMIN / FARMACIA): ");
         String rol = scanner.nextLine();
 
-        boolean ok = facade.procesarEntregaMedicamento(idReceta, idMedicamento, cantidad, rol);
+        boolean ok = facade.procesarEntregaMedicamento(idPaciente, idMedicamento, cantidad, presenteReceta, rol);
         if (ok) {
             System.out.println("Entrega registrada y stock actualizado.");
         } else {

@@ -8,15 +8,10 @@ import com.esperanza.hopecare.modules.citas_consultas.dao.ConsultaDAO;
 import com.esperanza.hopecare.modules.citas_consultas.model.Cita;
 import com.esperanza.hopecare.modules.citas_consultas.model.Consulta;
 import com.esperanza.hopecare.modules.citas_consultas.view.IConsultaView;
-import com.esperanza.hopecare.modules.medicamentos_lab.dao.DetalleRecetaDAO;
 import com.esperanza.hopecare.modules.medicamentos_lab.dao.ExamenLaboratorioDAO;
 import com.esperanza.hopecare.modules.medicamentos_lab.dao.MedicamentoDAO;
-import com.esperanza.hopecare.modules.medicamentos_lab.dao.RecetaDAO;
 import com.esperanza.hopecare.modules.medicamentos_lab.dao.SolicitudExamenDAO;
-import com.esperanza.hopecare.modules.medicamentos_lab.model.DetalleReceta;
 import com.esperanza.hopecare.modules.medicamentos_lab.model.ExamenLaboratorio;
-import com.esperanza.hopecare.modules.medicamentos_lab.model.Medicamento;
-import com.esperanza.hopecare.modules.medicamentos_lab.model.Receta;
 import com.esperanza.hopecare.modules.medicamentos_lab.model.SolicitudExamen;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,9 +23,6 @@ public class ConsultaPresenter {
     private final CitaDAO citaDAO;
     private final ExamenLaboratorioDAO examenLaboratorioDAO;
     private final SolicitudExamenDAO solicitudExamenDAO;
-    private final MedicamentoDAO medicamentoDAO;
-    private final RecetaDAO recetaDAO;
-    private final DetalleRecetaDAO detalleRecetaDAO;
     private int idConsultaActual = -1;
 
     public ConsultaPresenter(IConsultaView view) {
@@ -39,9 +31,6 @@ public class ConsultaPresenter {
         this.citaDAO = new CitaDAO();
         this.examenLaboratorioDAO = new ExamenLaboratorioDAO();
         this.solicitudExamenDAO = new SolicitudExamenDAO();
-        this.medicamentoDAO = new MedicamentoDAO();
-        this.recetaDAO = new RecetaDAO();
-        this.detalleRecetaDAO = new DetalleRecetaDAO();
     }
 
     public void cargarCitasPendientes() {
@@ -136,78 +125,6 @@ public class ConsultaPresenter {
                     conn.setAutoCommit(true);
                     conn.close();
                 } catch (SQLException e) { e.printStackTrace(); }
-            }
-        }
-    }
-
-    public void recetarMedicamento() {
-        if (idConsultaActual <= 0) {
-            view.mostrarError("Primero guarde la consulta.");
-            return;
-        }
-
-        List<Medicamento> medicamentos = medicamentoDAO.listarTodos();
-        if (medicamentos.isEmpty()) {
-            view.mostrarError("No hay medicamentos disponibles.");
-            return;
-        }
-
-        IConsultaView.RecetaRequest recetaRequest = view.solicitarReceta(medicamentos);
-        if (recetaRequest == null) {
-            return;
-        }
-        if (recetaRequest.getIdMedicamento() <= 0 || recetaRequest.getCantidad() <= 0) {
-            view.mostrarError("Datos de receta inválidos.");
-            return;
-        }
-
-        String dosis = limpiarTexto(recetaRequest.getDosisIndicacion());
-        Connection conn = null;
-        try {
-            conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false);
-
-            Receta receta = new Receta(idConsultaActual, dosis);
-            int idReceta = recetaDAO.insertar(receta, conn);
-            if (idReceta <= 0) {
-                conn.rollback();
-                view.mostrarError("No se pudo crear la receta.");
-                return;
-            }
-
-            DetalleReceta detalle = new DetalleReceta(
-                idReceta,
-                recetaRequest.getIdMedicamento(),
-                recetaRequest.getCantidad(),
-                dosis
-            );
-            boolean detalleGuardado = detalleRecetaDAO.insertar(detalle, conn);
-            if (!detalleGuardado) {
-                conn.rollback();
-                view.mostrarError("No se pudo registrar el detalle de receta.");
-                return;
-            }
-
-            conn.commit();
-            view.mostrarExito("Medicamento recetado correctamente.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
-            view.mostrarError("Error de base de datos al recetar medicamento.");
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }

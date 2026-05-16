@@ -66,4 +66,11 @@ public class Persona {
 
     public int getIdUsuario() { return idUsuario; }
     public void setIdUsuario(int idUsuario) { this.idUsuario = idUsuario; }
+
+    public String getNombreCompleto() {
+        if (nombre != null && apellido != null) {
+            return nombre + " " + apellido;
+        }
+        return nombre != null ? nombre : "";
+    }
 }

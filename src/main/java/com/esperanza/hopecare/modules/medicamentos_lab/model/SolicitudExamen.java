@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class SolicitudExamen {
     private int idSolicitud;
-    private int idConsulta;
+    private int idPaciente;
     private int idExamen;
     private LocalDateTime fechaSolicitud;
     private String estado;
@@ -13,23 +13,14 @@ public class SolicitudExamen {
     private int realizadoPor;
     private boolean facturado;
 
+    private String pacienteNombre;
+    private String pacienteApellido;
+    private String examenNombre;
+
     public SolicitudExamen() {}
 
-    public SolicitudExamen(int idSolicitud, int idConsulta, int idExamen, LocalDateTime fechaSolicitud,
-                           String estado, String resultadoTexto, byte[] resultadoArchivo, int realizadoPor, boolean facturado) {
-        this.idSolicitud = idSolicitud;
-        this.idConsulta = idConsulta;
-        this.idExamen = idExamen;
-        this.fechaSolicitud = fechaSolicitud;
-        this.estado = estado;
-        this.resultadoTexto = resultadoTexto;
-        this.resultadoArchivo = resultadoArchivo;
-        this.realizadoPor = realizadoPor;
-        this.facturado = facturado;
-    }
-
-    public SolicitudExamen(int idConsulta, int idExamen) {
-        this.idConsulta = idConsulta;
+    public SolicitudExamen(int idPaciente, int idExamen) {
+        this.idPaciente = idPaciente;
         this.idExamen = idExamen;
         this.fechaSolicitud = LocalDateTime.now();
         this.estado = "PENDIENTE";
@@ -38,8 +29,8 @@ public class SolicitudExamen {
 
     public int getIdSolicitud() { return idSolicitud; }
     public void setIdSolicitud(int idSolicitud) { this.idSolicitud = idSolicitud; }
-    public int getIdConsulta() { return idConsulta; }
-    public void setIdConsulta(int idConsulta) { this.idConsulta = idConsulta; }
+    public int getIdPaciente() { return idPaciente; }
+    public void setIdPaciente(int idPaciente) { this.idPaciente = idPaciente; }
     public int getIdExamen() { return idExamen; }
     public void setIdExamen(int idExamen) { this.idExamen = idExamen; }
     public LocalDateTime getFechaSolicitud() { return fechaSolicitud; }
@@ -54,4 +45,17 @@ public class SolicitudExamen {
     public void setRealizadoPor(int realizadoPor) { this.realizadoPor = realizadoPor; }
     public boolean isFacturado() { return facturado; }
     public void setFacturado(boolean facturado) { this.facturado = facturado; }
+
+    public String getPacienteNombre() { return pacienteNombre; }
+    public void setPacienteNombre(String pacienteNombre) { this.pacienteNombre = pacienteNombre; }
+    public String getPacienteApellido() { return pacienteApellido; }
+    public void setPacienteApellido(String pacienteApellido) { this.pacienteApellido = pacienteApellido; }
+    public String getPacienteNombreCompleto() {
+        if (pacienteNombre != null && pacienteApellido != null) {
+            return pacienteNombre + " " + pacienteApellido;
+        }
+        return pacienteNombre != null ? pacienteNombre : "";
+    }
+    public String getExamenNombre() { return examenNombre; }
+    public void setExamenNombre(String examenNombre) { this.examenNombre = examenNombre; }
 }

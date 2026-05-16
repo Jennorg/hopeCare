@@ -16,60 +16,69 @@
         <Insets top="24" right="24" bottom="24" left="24" />
     </padding>
 
-    <!-- Card: Catálogo de Exámenes -->
     <VBox styleClass="card">
         <HBox styleClass="toolbar" spacing="12" alignment="CENTER_LEFT">
             <Label text="CATÁLOGO DE EXÁMENES" styleClass="section-title"/>
             <Button fx:id="btnAgregarExamen" text="+ Agregar Examen" styleClass="button button-small" onAction="#agregarExamenClick"/>
         </HBox>
 
-        <TableView fx:id="tblExamenes" prefHeight="180">
+        <TableView fx:id="tblExamenes" prefHeight="150">
             <columns>
-                <TableColumn fx:id="colExamenId" text="ID" prefWidth="60"/>
-                <TableColumn fx:id="colExamenNombre" text="Nombre" prefWidth="200"/>
-                <TableColumn fx:id="colExamenDescripcion" text="Descripción" prefWidth="250"/>
+                <TableColumn fx:id="colExamenId" text="ID" prefWidth="50"/>
+                <TableColumn fx:id="colExamenNombre" text="Nombre" prefWidth="180"/>
+                <TableColumn fx:id="colExamenDescripcion" text="Descripción" prefWidth="200"/>
                 <TableColumn fx:id="colExamenPrecio" text="Precio" prefWidth="100"/>
-                <TableColumn fx:id="colExamenTiempo" text="Tiempo (hrs)" prefWidth="100"/>
+                <TableColumn fx:id="colExamenTiempo" text="Tiempo (hrs)" prefWidth="80"/>
             </columns>
         </TableView>
     </VBox>
 
-    <!-- Segunda fila: Solicitudes y Resultados -->
     <HBox spacing="20" alignment="TOP_CENTER">
-        <!-- Card: Solicitudes Pendientes -->
         <VBox styleClass="card" HBox.hgrow="ALWAYS">
             <HBox styleClass="toolbar" spacing="12" alignment="CENTER_LEFT">
                 <Label text="SOLICITUDES" styleClass="section-title"/>
                 <ComboBox fx:id="cbFiltroEstado" promptText="Filtrar por estado" prefWidth="150" onAction="#filtroEstadoChange"/>
                 <Button fx:id="btnCancelarSolicitud" text="Cancelar Solicitud" styleClass="button-danger button-small" onAction="#cancelarSolicitudClick"/>
             </HBox>
-            <TableView fx:id="tblSolicitudes" prefHeight="250">
+            <TableView fx:id="tblSolicitudes" prefHeight="220">
                 <columns>
-                    <TableColumn fx:id="colSolicitudId" text="ID" prefWidth="60"/>
-                    <TableColumn fx:id="colSolicitudConsulta" text="Consulta" prefWidth="80"/>
-                    <TableColumn fx:id="colSolicitudExamen" text="Examen" prefWidth="80"/>
+                    <TableColumn fx:id="colSolicitudId" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="colSolicitudPaciente" text="Paciente" prefWidth="150"/>
+                    <TableColumn fx:id="colSolicitudExamen" text="Examen" prefWidth="150"/>
                     <TableColumn fx:id="colSolicitudFecha" text="Fecha" prefWidth="120"/>
-                    <TableColumn fx:id="colSolicitudEstado" text="Estado" prefWidth="100"/>
+                    <TableColumn fx:id="colSolicitudEstado" text="Estado" prefWidth="90"/>
                 </columns>
             </TableView>
         </VBox>
 
-        <!-- Card: Resultados Completados -->
         <VBox styleClass="card" HBox.hgrow="ALWAYS">
             <Label text="RESULTADOS COMPLETADOS" styleClass="section-title"/>
-            <TableView fx:id="tblResultados" prefHeight="250">
+            <TableView fx:id="tblResultados" prefHeight="220">
                 <columns>
-                    <TableColumn fx:id="colResultadoId" text="ID" prefWidth="60"/>
+                    <TableColumn fx:id="colResultadoId" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="colResultadoPaciente" text="Paciente" prefWidth="120"/>
                     <TableColumn fx:id="colResultadoExamen" text="Examen" prefWidth="120"/>
-                    <TableColumn fx:id="colResultadoTexto" text="Resultado" prefWidth="200"/>
+                    <TableColumn fx:id="colResultadoTexto" text="Resultado" prefWidth="150"/>
                     <TableColumn fx:id="colResultadoFecha" text="Fecha" prefWidth="120"/>
-                    <TableColumn fx:id="colResultadoFacturado" text="Fact." prefWidth="50"/>
+                    <TableColumn fx:id="colResultadoFacturado" text="Fact" prefWidth="50"/>
                 </columns>
             </TableView>
         </VBox>
     </HBox>
 
-    <!-- Card: Registrar Resultado -->
+    <HBox spacing="20" alignment="CENTER_LEFT">
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="NUEVA SOLICITUD" styleClass="section-title"/>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="Paciente:" styleClass="label-title"/>
+                <ComboBox fx:id="cbNuevoPaciente" prefWidth="180"/>
+                <Label text="Examen:" styleClass="label-title"/>
+                <ComboBox fx:id="cbNuevoExamen" prefWidth="200"/>
+                <Button fx:id="btnCrearSolicitud" text="Crear Solicitud" styleClass="button" onAction="#btnCrearSolicitudClick"/>
+            </HBox>
+        </VBox>
+    </HBox>
+
     <VBox styleClass="card">
         <Label text="REGISTRAR RESULTADO DE EXAMEN" styleClass="section-title"/>
         <HBox spacing="16" alignment="CENTER_LEFT">

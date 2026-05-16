@@ -1,7 +1,6 @@
 -- ======================================================
 -- Sistema de Gestión Hospitalaria (Sisgeho)
 -- Base de datos para SQLite
--- Generado a partir de DBML
 -- ======================================================
 
 -- Tabla: rol
@@ -25,7 +24,7 @@ CREATE TABLE usuario (
 -- Tabla: persona (tabla base para pacientes y médicos)
 CREATE TABLE persona (
     id_persona INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo_persona TEXT NOT NULL, -- 'PACIENTE' o 'MEDICO'
+    tipo_persona TEXT NOT NULL,
     nombre TEXT NOT NULL,
     apellido TEXT NOT NULL,
     documento_identidad TEXT UNIQUE,
@@ -33,7 +32,7 @@ CREATE TABLE persona (
     telefono TEXT,
     email TEXT,
     direccion TEXT,
-    genero TEXT, -- 'M', 'F', 'O'
+    genero TEXT,
     id_usuario INTEGER,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
@@ -72,8 +71,8 @@ CREATE TABLE medico (
 CREATE TABLE horario_atencion (
     id_horario INTEGER PRIMARY KEY AUTOINCREMENT,
     id_medico INTEGER NOT NULL,
-    dia_semana INTEGER NOT NULL, -- 1=Lunes..7=Domingo
-    hora_inicio TEXT NOT NULL, -- HH:MM
+    dia_semana INTEGER NOT NULL,
+    hora_inicio TEXT NOT NULL,
     hora_fin TEXT NOT NULL,
     intervalo_minutos INTEGER DEFAULT 30,
     activo INTEGER DEFAULT 1,
@@ -86,7 +85,7 @@ CREATE TABLE cita (
     id_paciente INTEGER NOT NULL,
     id_medico INTEGER NOT NULL,
     fecha_hora DATETIME NOT NULL,
-    estado TEXT NOT NULL, -- PROGRAMADA, CONFIRMADA, ATENDIDA, CANCELADA, NO_ASISTIO
+    estado TEXT NOT NULL,
     motivo TEXT,
     creada_por INTEGER NOT NULL,
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -122,36 +121,18 @@ CREATE TABLE medicamento (
     requiere_receta INTEGER DEFAULT 1
 );
 
--- Tabla: receta
-CREATE TABLE receta (
-    id_receta INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_consulta INTEGER NOT NULL,
-    fecha_emision DATETIME DEFAULT CURRENT_TIMESTAMP,
-    instrucciones TEXT,
-    activa INTEGER DEFAULT 1,
-    FOREIGN KEY (id_consulta) REFERENCES consulta(id_consulta)
-);
-
--- Tabla: detalle_receta
-CREATE TABLE detalle_receta (
-    id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_receta INTEGER NOT NULL,
-    id_medicamento INTEGER NOT NULL,
-    cantidad INTEGER NOT NULL,
-    dosis_indicacion TEXT,
-    FOREIGN KEY (id_receta) REFERENCES receta(id_receta),
-    FOREIGN KEY (id_medicamento) REFERENCES medicamento(id_medicamento)
-);
-
--- Tabla: entrega_medicamento
+-- Tabla: entrega_medicamento (sin recetas, referencia directa a paciente)
 CREATE TABLE entrega_medicamento (
     id_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_detalle_receta INTEGER NOT NULL,
+    id_paciente INTEGER NOT NULL,
+    id_medicamento INTEGER NOT NULL,
     cantidad_entregada INTEGER NOT NULL,
+    presente_receta INTEGER DEFAULT 0,
     fecha_entrega DATETIME DEFAULT CURRENT_TIMESTAMP,
     entregado_por INTEGER NOT NULL,
     facturado INTEGER DEFAULT 0,
-    FOREIGN KEY (id_detalle_receta) REFERENCES detalle_receta(id_detalle),
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
+    FOREIGN KEY (id_medicamento) REFERENCES medicamento(id_medicamento),
     FOREIGN KEY (entregado_por) REFERENCES usuario(id_usuario)
 );
 
@@ -165,10 +146,10 @@ CREATE TABLE examen_laboratorio (
     resultado_archivo BLOB
 );
 
--- Tabla: solicitud_examen
+-- Tabla: solicitud_examen (sin consulta, referencia directa a paciente)
 CREATE TABLE solicitud_examen (
     id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_consulta INTEGER NOT NULL,
+    id_paciente INTEGER NOT NULL,
     id_examen INTEGER NOT NULL,
     fecha_solicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
     estado TEXT NOT NULL DEFAULT 'PENDIENTE',
@@ -176,7 +157,7 @@ CREATE TABLE solicitud_examen (
     resultado_archivo BLOB,
     realizado_por INTEGER,
     facturado INTEGER DEFAULT 0,
-    FOREIGN KEY (id_consulta) REFERENCES consulta(id_consulta),
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
     FOREIGN KEY (id_examen) REFERENCES examen_laboratorio(id_examen),
     FOREIGN KEY (realizado_por) REFERENCES usuario(id_usuario)
 );
@@ -189,7 +170,7 @@ CREATE TABLE factura (
     subtotal REAL NOT NULL,
     impuesto REAL DEFAULT 0,
     total REAL NOT NULL,
-    estado_pago TEXT NOT NULL, -- PENDIENTE, PAGADO, ANULADO
+    estado_pago TEXT NOT NULL,
     forma_pago TEXT,
     FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
 );
@@ -205,163 +186,15 @@ CREATE TABLE detalle_factura (
     FOREIGN KEY (id_factura) REFERENCES factura(id_factura)
 );
 
--- Tabla: bitacora_eventos (opcional)
+-- Tabla: bitacora_eventos
 CREATE TABLE bitacora_eventos (
     id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
     id_usuario INTEGER NOT NULL,
     tabla_afectada TEXT,
     id_registro INTEGER,
-    accion TEXT, -- INSERT, UPDATE, DELETE
+    accion TEXT,
     fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
     datos_antes TEXT,
     datos_despues TEXT,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
-);
-
-CREATE TABLE IF NOT EXISTS especialidad (
-    id_especialidad INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS usuario (
-    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    id_rol INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS rol (
-    id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL UNIQUE
-);
-
--- 2. MÓDULO DE REGISTRO
-CREATE TABLE IF NOT EXISTS medico (
-    id_medico INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_persona INTEGER NOT NULL,
-    id_especialidad INTEGER NOT NULL,
-    registro_medico TEXT UNIQUE NOT NULL,
-    activo INTEGER DEFAULT 1,
-    FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
-    FOREIGN KEY (id_especialidad) REFERENCES especialidad(id_especialidad)
-);
-
-CREATE TABLE IF NOT EXISTS paciente (
-    id_paciente INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_persona INTEGER NOT NULL,
-    historia_clinica TEXT UNIQUE NOT NULL,
-    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
-);
-
--- 3. MÓDULO DE CITAS Y CONSULTAS
-CREATE TABLE IF NOT EXISTS horario_atencion (
-    id_horario INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_medico INTEGER NOT NULL,
-    dia_semana INTEGER NOT NULL,
-    hora_inicio TEXT NOT NULL,
-    hora_fin TEXT NOT NULL,
-    intervalo_minutos INTEGER NOT NULL,
-    FOREIGN KEY (id_medico) REFERENCES medico(id_medico)
-);
-
-CREATE TABLE IF NOT EXISTS cita (
-    id_cita INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_paciente INTEGER NOT NULL,
-    id_medico INTEGER NOT NULL,
-    fecha_hora TEXT NOT NULL,
-    estado TEXT DEFAULT 'PROGRAMADA',
-    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
-    FOREIGN KEY (id_medico) REFERENCES medico(id_medico)
-);
-
-CREATE TABLE IF NOT EXISTS consulta (
-    id_consulta INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_cita INTEGER NOT NULL,
-    diagnostico TEXT,
-    sintomas TEXT,
-    tratamiento TEXT,
-    facturado INTEGER DEFAULT 0,
-    precio REAL NOT NULL DEFAULT 0.0,
-    FOREIGN KEY (id_cita) REFERENCES cita(id_cita)
-);
-
--- 4. MÓDULO DE MEDICAMENTOS Y LABORATORIO
-CREATE TABLE IF NOT EXISTS medicamento (
-    id_medicamento INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    stock_actual INTEGER DEFAULT 0,
-    stock_minimo INTEGER DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS receta (
-    id_receta INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_consulta INTEGER NOT NULL,
-    fecha_emision TEXT DEFAULT CURRENT_TIMESTAMP,
-    instrucciones TEXT,
-    activa INTEGER DEFAULT 1,
-    FOREIGN KEY (id_consulta) REFERENCES consulta(id_consulta)
-);
-
-CREATE TABLE IF NOT EXISTS detalle_receta (
-    id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_receta INTEGER NOT NULL,
-    id_medicamento INTEGER NOT NULL,
-    cantidad INTEGER NOT NULL,
-    dosis_indicacion TEXT,
-    FOREIGN KEY (id_receta) REFERENCES receta(id_receta),
-    FOREIGN KEY (id_medicamento) REFERENCES medicamento(id_medicamento)
-);
-
-CREATE TABLE IF NOT EXISTS entrega_medicamento (
-    id_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_receta INTEGER NOT NULL,
-    id_medicamento INTEGER NOT NULL,
-    cantidad INTEGER NOT NULL,
-    fecha_entrega TEXT DEFAULT CURRENT_TIMESTAMP,
-    facturado INTEGER DEFAULT 0,
-    FOREIGN KEY (id_receta) REFERENCES receta(id_receta),
-    FOREIGN KEY (id_medicamento) REFERENCES medicamento(id_medicamento)
-);
-
-CREATE TABLE IF NOT EXISTS examen_laboratorio (
-    id_examen INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    descripcion TEXT,
-    precio REAL NOT NULL,
-    tiempo_resultado_horas INTEGER DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS solicitud_examen (
-    id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_consulta INTEGER NOT NULL,
-    id_examen INTEGER NOT NULL,
-    fecha_solicitud TEXT DEFAULT CURRENT_TIMESTAMP,
-    estado TEXT DEFAULT 'PENDIENTE',
-    resultado_texto TEXT,
-    realizado_por INTEGER,
-    facturado INTEGER DEFAULT 0,
-    FOREIGN KEY (id_consulta) REFERENCES consulta(id_consulta),
-    FOREIGN KEY (id_examen) REFERENCES examen_laboratorio(id_examen)
-);
-
--- 5. MÓDULO DE FACTURACIÓN
-CREATE TABLE IF NOT EXISTS factura (
-    id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_paciente INTEGER NOT NULL,
-    fecha_emision TEXT DEFAULT CURRENT_TIMESTAMP,
-    subtotal REAL NOT NULL,
-    impuesto REAL NOT NULL,
-    total REAL NOT NULL,
-    estado_pago TEXT DEFAULT 'PENDIENTE',
-    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
-);
-
-CREATE TABLE IF NOT EXISTS detalle_factura (
-    id_detalle_factura INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_factura INTEGER NOT NULL,
-    concepto TEXT NOT NULL,
-    id_referencia INTEGER NOT NULL,
-    tipo_referencia TEXT NOT NULL,
-    monto REAL NOT NULL,
-    FOREIGN KEY (id_factura) REFERENCES factura(id_factura)
 );

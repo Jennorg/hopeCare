@@ -2,12 +2,12 @@ package com.esperanza.hopecare.farmacia.view;
 
 import com.esperanza.hopecare.modules.medicamentos_lab.facade.GestionClinicaFacade;
 import com.esperanza.hopecare.modules.medicamentos_lab.dao.MedicamentoDAO;
-import com.esperanza.hopecare.modules.medicamentos_lab.dao.RecetaDAO;
 import com.esperanza.hopecare.modules.medicamentos_lab.dao.EntregaMedicamentoDAO;
 import com.esperanza.hopecare.modules.medicamentos_lab.model.Medicamento;
-import com.esperanza.hopecare.modules.medicamentos_lab.model.Receta;
 import com.esperanza.hopecare.modules.medicamentos_lab.model.EntregaMedicamento;
 import com.esperanza.hopecare.modules.medicamentos_lab.service.InventarioService;
+import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
+import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
 import com.esperanza.hopecare.common.db.DatabaseConnection;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,36 +29,33 @@ public class FarmaciaController {
     @FXML private TableColumn<Medicamento, Integer> colStockMinimo;
     @FXML private TableColumn<Medicamento, String> colEstado;
 
-    @FXML private TableView<Receta> tblRecetas;
-    @FXML private TableColumn<Receta, Integer> colRecetaId;
-    @FXML private TableColumn<Receta, Integer> colRecetaConsulta;
-    @FXML private TableColumn<Receta, String> colRecetaFecha;
-    @FXML private TableColumn<Receta, String> colRecetaInstrucciones;
-
     @FXML private TableView<EntregaMedicamento> tblEntregas;
     @FXML private TableColumn<EntregaMedicamento, Integer> colEntregaId;
-    @FXML private TableColumn<EntregaMedicamento, Integer> colEntregaReceta;
-    @FXML private TableColumn<EntregaMedicamento, Integer> colEntregaMedicamento;
+    @FXML private TableColumn<EntregaMedicamento, String> colEntregaPaciente;
+    @FXML private TableColumn<EntregaMedicamento, String> colEntregaMedicamento;
     @FXML private TableColumn<EntregaMedicamento, Integer> colEntregaCantidad;
+    @FXML private TableColumn<EntregaMedicamento, String> colEntregaReceta;
     @FXML private TableColumn<EntregaMedicamento, String> colEntregaFecha;
     @FXML private TableColumn<EntregaMedicamento, String> colEntregaFacturado;
 
-    @FXML private TextField txtIdReceta;
-    @FXML private TextField txtIdMedicamento;
+    @FXML private ComboBox<Paciente> cbPaciente;
+    @FXML private ComboBox<Medicamento> cbMedicamento;
     @FXML private TextField txtCantidad;
+    @FXML private CheckBox chkPresentoReceta;
     @FXML private Button btnEntregar;
     @FXML private Button btnEliminarMedicamento;
     @FXML private Button btnCancelarEntrega;
 
     private GestionClinicaFacade facade;
     private MedicamentoDAO medicamentoDAO;
-    private RecetaDAO recetaDAO;
     private EntregaMedicamentoDAO entregaDAO;
+    private PacienteDAO pacienteDAO;
     private InventarioService inventarioService;
 
     private ObservableList<Medicamento> inventarioData = FXCollections.observableArrayList();
-    private ObservableList<Receta> recetasData = FXCollections.observableArrayList();
     private ObservableList<EntregaMedicamento> entregasData = FXCollections.observableArrayList();
+    private ObservableList<Paciente> pacientesData = FXCollections.observableArrayList();
+    private ObservableList<Medicamento> medicamentosData = FXCollections.observableArrayList();
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -66,16 +63,15 @@ public class FarmaciaController {
     public void initialize() {
         facade = new GestionClinicaFacade();
         medicamentoDAO = new MedicamentoDAO();
-        recetaDAO = new RecetaDAO();
         entregaDAO = new EntregaMedicamentoDAO();
+        pacienteDAO = new PacienteDAO();
         inventarioService = new InventarioService();
 
         configurarColumnasInventario();
-        configurarColumnasRecetas();
         configurarColumnasEntregas();
+        configurarComboBoxes();
 
         tblInventario.setItems(inventarioData);
-        tblRecetas.setItems(recetasData);
         tblEntregas.setItems(entregasData);
 
         txtBuscarMedicamento.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -112,29 +108,30 @@ public class FarmaciaController {
         });
     }
 
-    private void configurarColumnasRecetas() {
-        colRecetaId.setCellValueFactory(new PropertyValueFactory<>("idReceta"));
-        colRecetaConsulta.setCellValueFactory(new PropertyValueFactory<>("idConsulta"));
-        colRecetaFecha.setCellFactory(column -> new TableCell<Receta, String>() {
+    private void configurarColumnasEntregas() {
+        colEntregaId.setCellValueFactory(new PropertyValueFactory<>("idEntrega"));
+        colEntregaPaciente.setCellValueFactory(new PropertyValueFactory<>("pacienteNombreCompleto"));
+        colEntregaMedicamento.setCellValueFactory(new PropertyValueFactory<>("medicamentoNombre"));
+        colEntregaCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidadEntregada"));
+        colEntregaReceta.setCellFactory(column -> new TableCell<EntregaMedicamento, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || getTableRow().getItem() == null) {
                     setText(null);
+                    setStyle(null);
                 } else {
-                    setText(getTableRow().getItem().getFechaEmision() != null ?
-                        getTableRow().getItem().getFechaEmision().format(dateFormatter) : "");
+                    EntregaMedicamento ent = getTableRow().getItem();
+                    if (ent.isPresenteReceta()) {
+                        setText("SÍ");
+                        setStyle("-fx-text-fill: #16a34a; -fx-font-weight: 600;");
+                    } else {
+                        setText("NO");
+                        setStyle("-fx-text-fill: #dc2626; -fx-font-weight: 600;");
+                    }
                 }
             }
         });
-        colRecetaInstrucciones.setCellValueFactory(new PropertyValueFactory<>("instrucciones"));
-    }
-
-    private void configurarColumnasEntregas() {
-        colEntregaId.setCellValueFactory(new PropertyValueFactory<>("idEntrega"));
-        colEntregaReceta.setCellValueFactory(new PropertyValueFactory<>("idReceta"));
-        colEntregaMedicamento.setCellValueFactory(new PropertyValueFactory<>("idMedicamento"));
-        colEntregaCantidad.setCellValueFactory(new PropertyValueFactory<>("cantidad"));
         colEntregaFecha.setCellFactory(column -> new TableCell<EntregaMedicamento, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -162,9 +159,44 @@ public class FarmaciaController {
         });
     }
 
+    private void configurarComboBoxes() {
+        cbPaciente.setItems(pacientesData);
+        cbPaciente.setCellFactory(lv -> new ListCell<Paciente>() {
+            @Override
+            protected void updateItem(Paciente item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreCompleto() : null);
+            }
+        });
+        cbPaciente.setButtonCell(new ListCell<Paciente>() {
+            @Override
+            protected void updateItem(Paciente item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreCompleto() : "Seleccionar paciente...");
+            }
+        });
+
+        cbMedicamento.setItems(medicamentosData);
+        cbMedicamento.setCellFactory(lv -> new ListCell<Medicamento>() {
+            @Override
+            protected void updateItem(Medicamento item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreComercial() : null);
+            }
+        });
+        cbMedicamento.setButtonCell(new ListCell<Medicamento>() {
+            @Override
+            protected void updateItem(Medicamento item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item != null ? item.getNombreComercial() : "Seleccionar medicamento...");
+            }
+        });
+    }
+
     private void cargarDatos() {
         cargarInventario();
-        cargarRecetas();
+        cargarPacientes();
+        cargarMedicamentos();
         cargarEntregas();
     }
 
@@ -173,9 +205,14 @@ public class FarmaciaController {
         inventarioData.addAll(medicamentoDAO.listarTodos());
     }
 
-    private void cargarRecetas() {
-        recetasData.clear();
-        recetasData.addAll(recetaDAO.listarActivas());
+    private void cargarPacientes() {
+        pacientesData.clear();
+        pacientesData.addAll(pacienteDAO.listarTodos());
+    }
+
+    private void cargarMedicamentos() {
+        medicamentosData.clear();
+        medicamentosData.addAll(medicamentoDAO.listarTodos());
     }
 
     private void cargarEntregas() {
@@ -197,26 +234,24 @@ public class FarmaciaController {
 
     @FXML
     private void btnEntregarClick() {
-        String strIdReceta = txtIdReceta.getText().trim();
-        String strIdMedicamento = txtIdMedicamento.getText().trim();
+        Paciente paciente = cbPaciente.getValue();
+        Medicamento medicamento = cbMedicamento.getValue();
         String strCantidad = txtCantidad.getText().trim();
 
-        if (strIdReceta.isEmpty() || strIdMedicamento.isEmpty() || strCantidad.isEmpty()) {
+        if (paciente == null || medicamento == null || strCantidad.isEmpty()) {
             mostrarAlerta("Error", "Complete todos los campos para la entrega", Alert.AlertType.ERROR);
             return;
         }
 
         try {
-            int idReceta = Integer.parseInt(strIdReceta);
-            int idMedicamento = Integer.parseInt(strIdMedicamento);
             int cantidad = Integer.parseInt(strCantidad);
-
             if (cantidad <= 0) {
                 mostrarAlerta("Error", "La cantidad debe ser mayor a 0", Alert.AlertType.ERROR);
                 return;
             }
 
-            boolean ok = facade.procesarEntregaMedicamento(idReceta, idMedicamento, cantidad, "FARMACIA");
+            boolean presenteReceta = chkPresentoReceta.isSelected();
+            boolean ok = facade.procesarEntregaMedicamento(paciente.getIdPaciente(), medicamento.getIdMedicamento(), cantidad, presenteReceta, "FARMACIA");
             if (ok) {
                 mostrarAlerta("Éxito", "Entrega registrada y stock actualizado", Alert.AlertType.INFORMATION);
                 cargarDatos();
@@ -225,8 +260,15 @@ public class FarmaciaController {
                 mostrarAlerta("Error", "Stock insuficiente o datos inválidos", Alert.AlertType.ERROR);
             }
         } catch (NumberFormatException e) {
-            mostrarAlerta("Error", "Los campos deben ser numéricos", Alert.AlertType.ERROR);
+            mostrarAlerta("Error", "La cantidad debe ser numérica", Alert.AlertType.ERROR);
         }
+    }
+
+    private void limpiarCamposEntrega() {
+        cbPaciente.getSelectionModel().clearSelection();
+        cbMedicamento.getSelectionModel().clearSelection();
+        txtCantidad.clear();
+        chkPresentoReceta.setSelected(false);
     }
 
     @FXML
@@ -237,24 +279,30 @@ public class FarmaciaController {
 
         TextField txtNombre = new TextField();
         txtNombre.setPromptText("Nombre del medicamento");
+        TextField txtPrincipio = new TextField();
+        txtPrincipio.setPromptText("Principio activo");
+        TextField txtPresentacion = new TextField();
+        txtPresentacion.setPromptText("Presentación");
+        TextField txtConcentracion = new TextField();
+        txtConcentracion.setPromptText("Concentración");
+        TextField txtPrecio = new TextField();
+        txtPrecio.setPromptText("Precio unitario");
         TextField txtStock = new TextField();
-        txtStock.setPromptText("Stock inicial");
-        TextField txtStockMin = new TextField();
-        txtStockMin.setPromptText("Stock mínimo");
-
         txtStock.setText("0");
+        TextField txtStockMin = new TextField();
         txtStockMin.setText("0");
 
         javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setStyle("-fx-padding: 20;");
-        grid.add(new Label("Nombre:"), 0, 0);
-        grid.add(txtNombre, 1, 0);
-        grid.add(new Label("Stock Inicial:"), 0, 1);
-        grid.add(txtStock, 1, 1);
-        grid.add(new Label("Stock Mínimo:"), 0, 2);
-        grid.add(txtStockMin, 1, 2);
+        grid.add(new Label("Nombre:"), 0, 0); grid.add(txtNombre, 1, 0);
+        grid.add(new Label("Principio:"), 0, 1); grid.add(txtPrincipio, 1, 1);
+        grid.add(new Label("Presentación:"), 0, 2); grid.add(txtPresentacion, 1, 2);
+        grid.add(new Label("Concentración:"), 0, 3); grid.add(txtConcentracion, 1, 3);
+        grid.add(new Label("Precio:"), 0, 4); grid.add(txtPrecio, 1, 4);
+        grid.add(new Label("Stock:"), 0, 5); grid.add(txtStock, 1, 5);
+        grid.add(new Label("Stock Mín:"), 0, 6); grid.add(txtStockMin, 1, 6);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -262,20 +310,17 @@ public class FarmaciaController {
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
                 String nombre = txtNombre.getText().trim();
-                String stockStr = txtStock.getText().trim();
-                String stockMinStr = txtStockMin.getText().trim();
-
                 if (nombre.isEmpty()) {
                     mostrarAlerta("Error", "El nombre es obligatorio", Alert.AlertType.ERROR);
                     return null;
                 }
-
                 try {
-                    int stock = Integer.parseInt(stockStr);
-                    int stockMin = Integer.parseInt(stockMinStr);
-                    return new Medicamento(0, nombre, nombre, "Tabletas", "N/A", 0.0, stock, stockMin, false);
+                    double precio = Double.parseDouble(txtPrecio.getText().trim());
+                    int stock = Integer.parseInt(txtStock.getText().trim());
+                    int stockMin = Integer.parseInt(txtStockMin.getText().trim());
+                    return new Medicamento(0, nombre, txtPrincipio.getText().trim(), txtPresentacion.getText().trim(), txtConcentracion.getText().trim(), precio, stock, stockMin, true);
                 } catch (NumberFormatException e) {
-                    mostrarAlerta("Error", "Los valores de stock deben ser numéricos", Alert.AlertType.ERROR);
+                    mostrarAlerta("Error", "Valores numéricos inválidos", Alert.AlertType.ERROR);
                     return null;
                 }
             }
@@ -286,6 +331,7 @@ public class FarmaciaController {
             if (inventarioService.agregarMedicamento(medicamento)) {
                 mostrarAlerta("Éxito", "Medicamento agregado correctamente", Alert.AlertType.INFORMATION);
                 cargarInventario();
+                cargarMedicamentos();
             } else {
                 mostrarAlerta("Error", "No se pudo agregar el medicamento", Alert.AlertType.ERROR);
             }
@@ -341,12 +387,6 @@ public class FarmaciaController {
         });
     }
 
-    private void limpiarCamposEntrega() {
-        txtIdReceta.clear();
-        txtIdMedicamento.clear();
-        txtCantidad.clear();
-    }
-
     private void mostrarAlerta(String titulo, String mensaje, Alert.AlertType tipo) {
         Alert alert = new Alert(tipo);
         alert.setTitle(titulo);
@@ -376,6 +416,7 @@ public class FarmaciaController {
                         conn.commit();
                         mostrarAlerta("Éxito", "Medicamento eliminado correctamente", Alert.AlertType.INFORMATION);
                         cargarInventario();
+                        cargarMedicamentos();
                     } else {
                         conn.rollback();
                         mostrarAlerta("Error", "No se pudo eliminar el medicamento", Alert.AlertType.ERROR);
