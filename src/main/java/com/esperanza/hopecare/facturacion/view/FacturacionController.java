@@ -108,8 +108,12 @@ public class FacturacionController {
         btnGenLab.setOnAction(e -> generarFactura(tablaLabPendientes, "EXAMEN"));
 
         configurarTablaFacturas();
-        cargarFacturas();
-        cargarPendientes();
+        try {
+            cargarFacturas();
+            cargarPendientes();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         EventBus.getInstance().register(DatosFacturablesActualizadosEvent.class, e -> refrescar());
     }

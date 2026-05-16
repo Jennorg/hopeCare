@@ -18,7 +18,8 @@
 
     <TabPane prefHeight="280">
         <Tab text="Citas" closable="false">
-            <VBox spacing="10" padding="10">
+            <VBox spacing="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Label text="Buscar paciente:" />
                     <TextField fx:id="txtBuscarCita" prefWidth="250" promptText="Filtrar por nombre..." />
@@ -36,7 +37,8 @@
             </VBox>
         </Tab>
         <Tab text="Farmacia" closable="false">
-            <VBox spacing="10" padding="10">
+            <VBox spacing="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Label text="Buscar paciente:" />
                     <TextField fx:id="txtBuscarFarm" prefWidth="250" promptText="Filtrar por nombre..." />
@@ -54,7 +56,8 @@
             </VBox>
         </Tab>
         <Tab text="Laboratorio" closable="false">
-            <VBox spacing="10" padding="10">
+            <VBox spacing="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10" /></padding>
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <Label text="Buscar paciente:" />
                     <TextField fx:id="txtBuscarLab" prefWidth="250" promptText="Filtrar por nombre..." />
