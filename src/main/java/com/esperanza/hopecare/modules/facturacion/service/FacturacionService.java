@@ -34,10 +34,14 @@ public class FacturacionService {
     }
 
     public FacturaDTO previsualizarFactura(int idPaciente) {
+        return previsualizarFactura(idPaciente, null);
+    }
+
+    public FacturaDTO previsualizarFactura(int idPaciente, String tipo) {
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
-            List<DetalleFacturaDTO> detallesPendientes = obtenerDetallesPendientes(idPaciente, conn);
+            List<DetalleFacturaDTO> detallesPendientes = obtenerDetallesPendientes(idPaciente, tipo, conn);
 
             if (detallesPendientes.isEmpty()) {
                 return null;
@@ -68,12 +72,16 @@ public class FacturacionService {
      * @return FacturaDTO con los detalles generados, o null si no hay pendientes o error
      */
     public FacturaDTO generarFactura(int idPaciente) {
+        return generarFactura(idPaciente, null);
+    }
+
+    public FacturaDTO generarFactura(int idPaciente, String tipo) {
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            List<DetalleFacturaDTO> detallesPendientes = obtenerDetallesPendientes(idPaciente, conn);
+            List<DetalleFacturaDTO> detallesPendientes = obtenerDetallesPendientes(idPaciente, tipo, conn);
 
             if (detallesPendientes.isEmpty()) {
                 conn.rollback();
@@ -136,28 +144,34 @@ public class FacturacionService {
         }
     }
 
-    private List<DetalleFacturaDTO> obtenerDetallesPendientes(int idPaciente, Connection conn) throws SQLException {
+    private List<DetalleFacturaDTO> obtenerDetallesPendientes(int idPaciente, String tipo, Connection conn) throws SQLException {
         List<DetalleFacturaDTO> detalles = new ArrayList<>();
 
-        List<Object[]> consultas = consultaDAO.listarNoFacturadasPorPaciente(idPaciente, conn);
-        for (Object[] c : consultas) {
-            int idConsulta = (int) c[0];
-            double monto = (double) c[1];
-            detalles.add(new DetalleFacturaDTO("Consulta médica #" + idConsulta, idConsulta, "CONSULTA", monto));
+        if (tipo == null || tipo.equals("CONSULTA")) {
+            List<Object[]> consultas = consultaDAO.listarNoFacturadasPorPaciente(idPaciente, conn);
+            for (Object[] c : consultas) {
+                int idConsulta = (int) c[0];
+                double monto = (double) c[1];
+                detalles.add(new DetalleFacturaDTO("Consulta médica #" + idConsulta, idConsulta, "CONSULTA", monto));
+            }
         }
 
-        List<Object[]> examenes = solicitudExamenDAO.listarNoFacturadasPorPaciente(idPaciente, conn);
-        for (Object[] e : examenes) {
-            int idExamen = (int) e[0];
-            double monto = (double) e[1];
-            detalles.add(new DetalleFacturaDTO("Examen de laboratorio #" + idExamen, idExamen, "EXAMEN", monto));
+        if (tipo == null || tipo.equals("EXAMEN")) {
+            List<Object[]> examenes = solicitudExamenDAO.listarNoFacturadasPorPaciente(idPaciente, conn);
+            for (Object[] e : examenes) {
+                int idExamen = (int) e[0];
+                double monto = (double) e[1];
+                detalles.add(new DetalleFacturaDTO("Examen de laboratorio #" + idExamen, idExamen, "EXAMEN", monto));
+            }
         }
 
-        List<Object[]> medicamentos = entregaDAO.listarNoFacturadosPorPaciente(idPaciente, conn);
-        for (Object[] m : medicamentos) {
-            int idEntrega = (int) m[0];
-            double monto = (double) m[1];
-            detalles.add(new DetalleFacturaDTO("Medicamento entregado #" + idEntrega, idEntrega, "MEDICAMENTO", monto));
+        if (tipo == null || tipo.equals("MEDICAMENTO")) {
+            List<Object[]> medicamentos = entregaDAO.listarNoFacturadosPorPaciente(idPaciente, conn);
+            for (Object[] m : medicamentos) {
+                int idEntrega = (int) m[0];
+                double monto = (double) m[1];
+                detalles.add(new DetalleFacturaDTO("Medicamento entregado #" + idEntrega, idEntrega, "MEDICAMENTO", monto));
+            }
         }
 
         return detalles;
