@@ -21,7 +21,7 @@ public class LoginController {
 
     @FXML private VBox          formContainer;
     @FXML private VBox          loadingContainer;
-    @FXML private ProgressBar   progressCarga;
+    @FXML private ProgressIndicator progressCarga;
 
     private final AuthService authService = new AuthService();
 

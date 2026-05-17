@@ -19,7 +19,7 @@
     <VBox styleClass="card" VBox.vgrow="ALWAYS">
         <HBox styleClass="toolbar" spacing="12" alignment="CENTER_LEFT">
             <Label text="LISTADO DE PACIENTES" styleClass="section-title"/>
-            <TextField fx:id="txtBuscarPaciente" promptText="Buscar por nombre o documento..." styleClass="search-field" prefWidth="280"/>
+            <TextField fx:id="txtBuscarPaciente" promptText="Buscar por nombre o cédula..." styleClass="search-field" prefWidth="280"/>
             <Button fx:id="btnAgregar" text="Nuevo" styleClass="button button-small" onAction="#agregarPacienteClick">
                 <graphic>
                     <SVGPath content="M8 2v12M2 8h12" styleClass="svg-icon" />
@@ -32,7 +32,7 @@
             <columns>
                 <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
                 <TableColumn fx:id="colNombre" text="Paciente" prefWidth="180"/>
-                <TableColumn fx:id="colDocumento" text="Documento" prefWidth="100"/>
+                <TableColumn fx:id="colDocumento" text="Cédula" prefWidth="100"/>
                 <TableColumn fx:id="colFechaNac" text="F. Nacimiento" prefWidth="100"/>
                 <TableColumn fx:id="colTelefono" text="Teléfono" prefWidth="90"/>
                 <TableColumn fx:id="colEmail" text="Email" prefWidth="140"/>

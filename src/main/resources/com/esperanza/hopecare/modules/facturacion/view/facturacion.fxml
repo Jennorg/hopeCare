@@ -20,13 +20,13 @@
     <!-- Left side: Patient list -->
     <VBox spacing="10" prefWidth="350" minWidth="280">
         <Label text="Pacientes" style="-fx-font-weight: bold; -fx-font-size: 14;" />
-        <TextField fx:id="txtBuscarPaciente" promptText="Buscar paciente por nombre o documento..." />
+        <TextField fx:id="txtBuscarPaciente" promptText="Buscar paciente por nombre o cédula..." />
         <TableView fx:id="tablaPacientes" VBox.vgrow="ALWAYS">
             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             <columns>
                 <TableColumn fx:id="colPacId" text="ID" prefWidth="50" />
                 <TableColumn fx:id="colPacNombre" text="Nombre" prefWidth="180" />
-                <TableColumn fx:id="colPacDoc" text="Documento" prefWidth="100" />
+                <TableColumn fx:id="colPacDoc" text="Cédula" prefWidth="100" />
             </columns>
         </TableView>
     </VBox>

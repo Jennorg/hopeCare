@@ -32,7 +32,7 @@
             <columns>
                 <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
                 <TableColumn fx:id="colNombre" text="Médico" prefWidth="180"/>
-                <TableColumn fx:id="colDocumento" text="Documento" prefWidth="100"/>
+                <TableColumn fx:id="colDocumento" text="Cédula" prefWidth="100"/>
                 <TableColumn fx:id="colEspecialidad" text="Especialidad" prefWidth="140"/>
                 <TableColumn fx:id="colRegistro" text="Registro Médico" prefWidth="110"/>
                 <TableColumn fx:id="colPrecio" text="Precio Consulta" prefWidth="100"/>

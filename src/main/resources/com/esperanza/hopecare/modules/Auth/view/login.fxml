@@ -70,7 +70,7 @@
                     <Region minHeight="10"/>
                     <Label text="Iniciando sesión..." style="-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #0f766e;"/>
                     <Label text="Cargando tu espacio de trabajo..." style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
-                    <ProgressBar fx:id="progressCarga" progress="0.0" maxWidth="Infinity" styleClass="loading-bar"/>
+                    <ProgressIndicator fx:id="progressCarga" progress="0.0" prefWidth="50" prefHeight="50" styleClass="loading-spinner"/>
                     <Region minHeight="10"/>
                 </VBox>
 

@@ -124,9 +124,9 @@
 
                     <HBox spacing="12">
                         <VBox HBox.hgrow="ALWAYS" spacing="4">
-                            <Label text="Cédula / Documento" styleClass="field-label"/>
+                            <Label text="Cédula" styleClass="field-label"/>
                             <TextField fx:id="txtDocumento"
-                                       promptText="Nro. de documento"
+                                       promptText="Número de Cédula"
                                        styleClass="auth-field"/>
                         </VBox>
                         <VBox HBox.hgrow="ALWAYS" spacing="4">

@@ -234,7 +234,7 @@ public class MedicosController {
 
                 Medico m = formController.obtenerMedicoModificado();
                 if (medicoDAO.existeDocumento(m.getDocumentoIdentidad(), m.getIdPersona())) {
-                    mostrarAlerta("Validación", "Ya existe una persona registrada con este documento de identidad.", Alert.AlertType.ERROR);
+                    mostrarAlerta("Validación", "Ya existe una persona registrada con esta cédula.", Alert.AlertType.ERROR);
                     event.consume();
                     return;
                 }

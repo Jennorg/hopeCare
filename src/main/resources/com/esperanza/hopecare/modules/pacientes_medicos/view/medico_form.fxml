@@ -42,7 +42,7 @@
                     <Label text="Apellido:" styleClass="form-label-bold" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                     <TextField fx:id="txtApellido" promptText="Ingrese apellido" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-                    <Label text="Documento Identidad *:" styleClass="form-label-bold" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <Label text="Cédula *:" styleClass="form-label-bold" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                     <TextField fx:id="txtDocumento" promptText="Ej: 12345678" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
 
                     <Label text="Fecha Nacimiento:" styleClass="form-label-bold" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
