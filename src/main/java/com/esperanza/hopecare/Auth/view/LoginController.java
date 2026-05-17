@@ -1,5 +1,6 @@
 package com.esperanza.hopecare.Auth.view;
 
+import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.modules.Auth.DTO.LoginDTO;
 import com.esperanza.hopecare.modules.Auth.services.AuthService;
 import javafx.fxml.FXML;
@@ -27,6 +28,7 @@ public class LoginController {
         LoginDTO result = authService.login(usuario, contrasena);
 
         if (result.isExitoso()) {
+            SesionManager.getInstance().iniciarSesion(usuario, result.getNombreRol());
             abrirPrincipal();
         } else {
             showError(result.getMensaje());
