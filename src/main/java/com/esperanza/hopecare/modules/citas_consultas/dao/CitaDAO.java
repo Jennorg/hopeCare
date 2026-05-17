@@ -156,7 +156,7 @@ public class CitaDAO {
     public List<Cita> listarTodasConNombres() {
         List<Cita> citas = new ArrayList<>();
         String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
-                   + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, "
+                   + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, pp.documento_identidad AS p_documento, "
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
                    + "COALESCE(cs.precio, 0.0) AS precio "
                    + "FROM cita c "
@@ -183,6 +183,7 @@ public class CitaDAO {
                     c.setFechaCreacion(ts.toLocalDateTime());
                 }
                 c.setPacienteNombre(rs.getString("p_nombre") + " " + rs.getString("p_apellido"));
+                c.setPacienteDocumento(rs.getString("p_documento"));
                 c.setMedicoNombre(rs.getString("m_nombre") + " " + rs.getString("m_apellido"));
                 c.setPrecio(rs.getDouble("precio"));
                 citas.add(c);

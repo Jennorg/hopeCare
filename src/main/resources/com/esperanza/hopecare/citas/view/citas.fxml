@@ -18,7 +18,7 @@
     <Button fx:id="btnNuevaCita" text="+ Agendar nueva cita" maxWidth="220" />
 
     <HBox spacing="10" alignment="CENTER_LEFT">
-        <TextField fx:id="txtBuscarCita" promptText="Buscar por paciente o médico..." HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtBuscarCita" promptText="Buscar por paciente, médico o cédula..." HBox.hgrow="ALWAYS" />
         <DatePicker fx:id="dpFechaDesde" promptText="Desde fecha" />
         <DatePicker fx:id="dpFechaHasta" promptText="Hasta fecha" />
         <Button text="Limpiar filtros" onAction="#limpiarFiltros" />
@@ -28,7 +28,7 @@
     <TableView fx:id="tvCitas" VBox.vgrow="ALWAYS">
         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
         <columns>
-            <TableColumn text="ID" prefWidth="-1" />
+            <TableColumn text="Cédula" prefWidth="-1" />
             <TableColumn text="Paciente" prefWidth="-1" />
             <TableColumn text="Médico" prefWidth="-1" />
             <TableColumn text="Fecha / Hora" prefWidth="-1" />

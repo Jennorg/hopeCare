@@ -54,11 +54,11 @@ public class CargarDatosPrueba {
                 insertarPaciente(conn, pp5, "HC005", "Ninguna", "O-", "Laura Díaz - 543210987");
 
                 int pm1 = insertarPersona(conn, "MEDICO", "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F", u1);
-                insertarMedico(conn, pm1, 1, "RM12345");
+                insertarMedico(conn, pm1, 1, "RM12345", 50000.0);
                 int pm2 = insertarPersona(conn, "MEDICO", "Pedro", "Ramírez", "98765432", "1972-11-22", "789012345", "pedro.ramirez@email.com", "Carrera 123 #45-67", "M", u2);
-                insertarMedico(conn, pm2, 2, "RM12346");
+                insertarMedico(conn, pm2, 2, "RM12346", 60000.0);
                 int pm3 = insertarPersona(conn, "MEDICO", "Sofía", "Torres", "11111111", "1980-04-30", "890123456", "sofia.torres@email.com", "Avenida 456 #78-90", "F", u3);
-                insertarMedico(conn, pm3, 4, "RM12347");
+                insertarMedico(conn, pm3, 4, "RM12347", 80000.0);
 
                 insertarHorario(conn, 1, 1, "08:00", "12:00", 30, true);
                 insertarHorario(conn, 1, 2, "08:00", "12:00", 30, true);
@@ -228,13 +228,14 @@ public class CargarDatosPrueba {
         }
     }
 
-    private static void insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico) throws SQLException {
-        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, activo) VALUES (?, ?, ?, ?)";
+    private static void insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico, double precioConsulta) throws SQLException {
+        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
             ps.setInt(2, idEspecialidad);
             ps.setString(3, registroMedico);
-            ps.setInt(4, 1);
+            ps.setDouble(4, precioConsulta);
+            ps.setInt(5, 1);
             ps.executeUpdate();
         }
     }

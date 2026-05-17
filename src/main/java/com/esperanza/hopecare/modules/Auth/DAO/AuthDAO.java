@@ -126,11 +126,12 @@ public class AuthDAO {
     }
 
     public void insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico) throws SQLException {
-        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
             ps.setInt(2, idEspecialidad);
             ps.setString(3, registroMedico);
+            ps.setDouble(4, 0.0);
             ps.executeUpdate();
         }
     }

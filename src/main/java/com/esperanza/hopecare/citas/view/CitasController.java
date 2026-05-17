@@ -63,7 +63,7 @@ public class CitasController implements ICitaView {
         TableColumn<Cita, String> colEstado = (TableColumn<Cita, String>) tvCitas.getColumns().get(4);
         TableColumn<Cita, Number> colPrecio = (TableColumn<Cita, Number>) tvCitas.getColumns().get(5);
 
-        colId.setCellValueFactory(new PropertyValueFactory<>("idCita"));
+        colId.setCellValueFactory(new PropertyValueFactory<>("pacienteDocumento"));
         colPac.setCellValueFactory(new PropertyValueFactory<>("pacienteNombre"));
         colMed.setCellValueFactory(new PropertyValueFactory<>("medicoNombre"));
         colFecha.setCellValueFactory(cd -> new SimpleStringProperty(
@@ -109,7 +109,9 @@ public class CitasController implements ICitaView {
                         cita.getPacienteNombre().toLowerCase().contains(searchStr);
                     boolean matchMed = cita.getMedicoNombre() != null &&
                         cita.getMedicoNombre().toLowerCase().contains(searchStr);
-                    if (!matchPac && !matchMed) return false;
+                    boolean matchDoc = cita.getPacienteDocumento() != null &&
+                        cita.getPacienteDocumento().toLowerCase().contains(searchStr);
+                    if (!matchPac && !matchMed && !matchDoc) return false;
                 }
                 LocalDateTime fh = cita.getFechaHora();
                 if (fh != null) {
@@ -136,6 +138,8 @@ public class CitasController implements ICitaView {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Nueva Cita Médica");
         dialog.setHeaderText("Complete los datos para agendar una nueva cita");
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
+        dialog.getDialogPane().setStyle("-fx-border-color: #0d9488; -fx-border-width: 0 0 0 2;");
 
         PacienteDAO pacienteDAO = new PacienteDAO();
         MedicoDAO medicoDAO = new MedicoDAO();
@@ -145,20 +149,18 @@ public class CitasController implements ICitaView {
         ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
 
         TextField txtBuscarPac = new TextField();
-        txtBuscarPac.setPromptText("Buscar paciente por nombre...");
+        txtBuscarPac.setPromptText("Buscar paciente por nombre o cédula...");
 
         FilteredList<Paciente> pacientesFiltrados = new FilteredList<>(pacientesList, p -> true);
         TableView<Paciente> tvPacientes = new TableView<>();
         tvPacientes.setPrefHeight(150);
         tvPacientes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<Paciente, Number> colPacId = new TableColumn<>("ID");
-        colPacId.setCellValueFactory(new PropertyValueFactory<>("idPaciente"));
+        TableColumn<Paciente, String> colPacCedula = new TableColumn<>("Cédula");
+        colPacCedula.setCellValueFactory(new PropertyValueFactory<>("documentoIdentidad"));
         TableColumn<Paciente, String> colPacNombre = new TableColumn<>("Nombre");
         colPacNombre.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getNombre() + " " + cd.getValue().getApellido()));
-        TableColumn<Paciente, String> colPacDoc = new TableColumn<>("Documento");
-        colPacDoc.setCellValueFactory(new PropertyValueFactory<>("documentoIdentidad"));
-        tvPacientes.getColumns().addAll(colPacId, colPacNombre, colPacDoc);
+        tvPacientes.getColumns().addAll(colPacCedula, colPacNombre);
         tvPacientes.setItems(pacientesFiltrados);
 
         ComboBox<Especialidad> cbEsp = new ComboBox<>();
@@ -210,18 +212,24 @@ public class CitasController implements ICitaView {
         cbHorarios.setDisable(true);
 
         TextField txtPrecioCita = new TextField();
-        txtPrecioCita.setPromptText("0.00");
+        txtPrecioCita.setPromptText("Seleccione un médico");
         txtPrecioCita.setPrefWidth(120);
+        txtPrecioCita.setEditable(false);
+        txtPrecioCita.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
 
         Button btnBuscar = new Button("Buscar horarios");
+        btnBuscar.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600;");
         Button btnReservar = new Button("Reservar cita");
+        btnReservar.setStyle("-fx-background-color: #115e59; -fx-text-fill: white; -fx-font-weight: 600;");
         btnReservar.setDisable(true);
 
         txtBuscarPac.textProperty().addListener((obs, old, val) -> {
             String texto = val.toLowerCase().trim();
             pacientesFiltrados.setPredicate(p -> {
+                if (texto.isEmpty()) return true;
                 String nc = (p.getNombre() + " " + p.getApellido()).toLowerCase();
-                return texto.isEmpty() || nc.contains(texto);
+                String doc = p.getDocumentoIdentidad() != null ? p.getDocumentoIdentidad().toLowerCase() : "";
+                return nc.contains(texto) || doc.contains(texto);
             });
         });
 
@@ -306,8 +314,10 @@ public class CitasController implements ICitaView {
         tvMedicos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             idMedSeleccionado[0] = sel != null ? sel.getIdMedico() : -1;
             if (sel != null) {
+                txtPrecioCita.setText(String.valueOf((int) sel.getPrecioConsulta()));
                 dialogPresenter.cargarDiasDisponibles(sel.getIdMedico());
             } else {
+                txtPrecioCita.clear();
                 diasValidos.clear();
                 dpFecha.setValue(null);
             }
@@ -331,16 +341,20 @@ public class CitasController implements ICitaView {
             dialogPresenter.reservarCita();
         });
 
+        Label lblPacSection = new Label("Seleccionar paciente:");
+        lblPacSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
         VBox pacienteSection = new VBox(5,
-            new Label("Seleccionar paciente:"),
+            lblPacSection,
             txtBuscarPac,
             tvPacientes
         );
 
         HBox filtrosMedicos = new HBox(10, cbEsp, txtBuscarMed);
         HBox.setHgrow(txtBuscarMed, javafx.scene.layout.Priority.ALWAYS);
+        Label lblMedSection = new Label("Seleccionar médico:");
+        lblMedSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
         VBox medicoSection = new VBox(5,
-            new Label("Seleccionar médico:"),
+            lblMedSection,
             filtrosMedicos,
             tvMedicos
         );
@@ -413,12 +427,22 @@ public class CitasController implements ICitaView {
         cbEstado.setValue(cita.getEstado());
 
         TextField txtPrecio = new TextField();
-        txtPrecio.setPromptText("0.00");
+        txtPrecio.setPromptText("Seleccione médico y estado ATENDIDA");
         txtPrecio.setPrefWidth(150);
-        txtPrecio.setDisable(!"ATENDIDA".equals(cita.getEstado()));
-        cbEstado.valueProperty().addListener((obs, old, val) ->
-            txtPrecio.setDisable(!"ATENDIDA".equals(val))
-        );
+        txtPrecio.setEditable(false);
+        txtPrecio.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
+
+        Runnable actualizarPrecioEdit = () -> {
+            if ("ATENDIDA".equals(cbEstado.getValue()) && cbMedico.getValue() != null) {
+                txtPrecio.setText(String.valueOf((int) cbMedico.getValue().getPrecioConsulta()));
+            } else {
+                txtPrecio.clear();
+            }
+        };
+
+        cbEstado.valueProperty().addListener((obs, old, val) -> actualizarPrecioEdit.run());
+        cbMedico.valueProperty().addListener((obs, old, val) -> actualizarPrecioEdit.run());
+        actualizarPrecioEdit.run();
 
         Button btnGuardar = new Button("Guardar cambios");
 

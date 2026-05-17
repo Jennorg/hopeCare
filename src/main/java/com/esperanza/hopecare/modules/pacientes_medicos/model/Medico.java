@@ -17,6 +17,7 @@ public class Medico extends Persona {
     private int idEspecialidad;
     private String registroMedico;
     private String nombreEspecialidad;
+    private double precioConsulta;
 
     public Medico() {}
 
@@ -37,6 +38,9 @@ public class Medico extends Persona {
 
     public String getNombreEspecialidad() { return nombreEspecialidad; }
     public void setNombreEspecialidad(String nombreEspecialidad) { this.nombreEspecialidad = nombreEspecialidad; }
+
+    public double getPrecioConsulta() { return precioConsulta; }
+    public void setPrecioConsulta(double precioConsulta) { this.precioConsulta = precioConsulta; }
 
     @Override
     public String toString() {

@@ -53,6 +53,11 @@ public class HopecareApp extends Application {
                     System.out.println("Migrando: agregando columna precio a consulta...");
                     stmt.execute("ALTER TABLE consulta ADD COLUMN precio REAL NOT NULL DEFAULT 0.0");
                 }
+
+                if (!columnaExiste(stmt, "medico", "precio_consulta")) {
+                    System.out.println("Migrando: agregando columna precio_consulta a medico...");
+                    stmt.execute("ALTER TABLE medico ADD COLUMN precio_consulta REAL NOT NULL DEFAULT 0.0");
+                }
                 
                 if (baseDatosVacia(stmt)) {
                     System.out.println("Insertando datos de prueba...");
