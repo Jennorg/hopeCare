@@ -63,7 +63,7 @@ public class CitasController implements ICitaView {
         TableColumn<Cita, String> colEstado = (TableColumn<Cita, String>) tvCitas.getColumns().get(4);
         TableColumn<Cita, Number> colPrecio = (TableColumn<Cita, Number>) tvCitas.getColumns().get(5);
 
-        colId.setCellValueFactory(new PropertyValueFactory<>("idCita"));
+        colId.setCellValueFactory(new PropertyValueFactory<>("pacienteDocumento"));
         colPac.setCellValueFactory(new PropertyValueFactory<>("pacienteNombre"));
         colMed.setCellValueFactory(new PropertyValueFactory<>("medicoNombre"));
         colFecha.setCellValueFactory(cd -> new SimpleStringProperty(
@@ -149,7 +149,7 @@ public class CitasController implements ICitaView {
         ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
 
         TextField txtBuscarPac = new TextField();
-        txtBuscarPac.setPromptText("Buscar paciente por nombre...");
+        txtBuscarPac.setPromptText("Buscar paciente por nombre o cédula...");
 
         FilteredList<Paciente> pacientesFiltrados = new FilteredList<>(pacientesList, p -> true);
         TableView<Paciente> tvPacientes = new TableView<>();
