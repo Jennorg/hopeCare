@@ -14,7 +14,7 @@ public class MedicoDAO {
 
     public List<Medico> listarTodos() {
         List<Medico> lista = new ArrayList<>();
-        String sql = "SELECT m.id_medico, m.id_persona, m.id_especialidad, m.registro_medico, "
+        String sql = "SELECT m.id_medico, m.id_persona, m.id_especialidad, m.registro_medico, m.precio_consulta, "
                    + "p.nombre, p.apellido, p.documento_identidad, e.nombre_especialidad "
                    + "FROM medico m "
                    + "JOIN persona p ON m.id_persona = p.id_persona "
@@ -33,6 +33,7 @@ public class MedicoDAO {
                 m.setApellido(rs.getString("apellido"));
                 m.setDocumentoIdentidad(rs.getString("documento_identidad"));
                 m.setNombreEspecialidad(rs.getString("nombre_especialidad"));
+                m.setPrecioConsulta(rs.getDouble("precio_consulta"));
                 lista.add(m);
             }
         } catch (SQLException ex) { ex.printStackTrace(); }
@@ -41,7 +42,7 @@ public class MedicoDAO {
 
     public boolean insertarMedico(Medico medico) {
         String sqlPersona = "INSERT INTO persona (tipo_persona, nombre, apellido, documento_identidad) VALUES (?, ?, ?, ?)";
-        String sqlMedico = "INSERT INTO medico (id_persona, id_especialidad, registro_medico) VALUES (?, ?, ?)";
+        String sqlMedico = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta) VALUES (?, ?, ?, ?)";
         
         Connection conn = null;
         PreparedStatement pstmtPersona = null;
@@ -74,6 +75,7 @@ public class MedicoDAO {
             pstmtMedico.setInt(1, idPersona);
             pstmtMedico.setInt(2, medico.getIdEspecialidad());
             pstmtMedico.setString(3, medico.getRegistroMedico());
+            pstmtMedico.setDouble(4, medico.getPrecioConsulta());
             affectedRows = pstmtMedico.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("Error al insertar en medico, ninguna fila afectada.");

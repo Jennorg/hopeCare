@@ -212,8 +212,10 @@ public class CitasController implements ICitaView {
         cbHorarios.setDisable(true);
 
         TextField txtPrecioCita = new TextField();
-        txtPrecioCita.setPromptText("0.00");
+        txtPrecioCita.setPromptText("Seleccione un médico");
         txtPrecioCita.setPrefWidth(120);
+        txtPrecioCita.setEditable(false);
+        txtPrecioCita.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
 
         Button btnBuscar = new Button("Buscar horarios");
         btnBuscar.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600;");
@@ -312,8 +314,10 @@ public class CitasController implements ICitaView {
         tvMedicos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             idMedSeleccionado[0] = sel != null ? sel.getIdMedico() : -1;
             if (sel != null) {
+                txtPrecioCita.setText(String.valueOf((int) sel.getPrecioConsulta()));
                 dialogPresenter.cargarDiasDisponibles(sel.getIdMedico());
             } else {
+                txtPrecioCita.clear();
                 diasValidos.clear();
                 dpFecha.setValue(null);
             }
@@ -423,12 +427,22 @@ public class CitasController implements ICitaView {
         cbEstado.setValue(cita.getEstado());
 
         TextField txtPrecio = new TextField();
-        txtPrecio.setPromptText("0.00");
+        txtPrecio.setPromptText("Seleccione médico y estado ATENDIDA");
         txtPrecio.setPrefWidth(150);
-        txtPrecio.setDisable(!"ATENDIDA".equals(cita.getEstado()));
-        cbEstado.valueProperty().addListener((obs, old, val) ->
-            txtPrecio.setDisable(!"ATENDIDA".equals(val))
-        );
+        txtPrecio.setEditable(false);
+        txtPrecio.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
+
+        Runnable actualizarPrecioEdit = () -> {
+            if ("ATENDIDA".equals(cbEstado.getValue()) && cbMedico.getValue() != null) {
+                txtPrecio.setText(String.valueOf((int) cbMedico.getValue().getPrecioConsulta()));
+            } else {
+                txtPrecio.clear();
+            }
+        };
+
+        cbEstado.valueProperty().addListener((obs, old, val) -> actualizarPrecioEdit.run());
+        cbMedico.valueProperty().addListener((obs, old, val) -> actualizarPrecioEdit.run());
+        actualizarPrecioEdit.run();
 
         Button btnGuardar = new Button("Guardar cambios");
 
