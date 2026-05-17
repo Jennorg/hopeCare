@@ -1,5 +1,6 @@
 package com.esperanza.hopecare.main;
 
+import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.facturacion.view.FacturacionController;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -17,11 +18,17 @@ public class MainController {
     @FXML private Tab tabLaboratorio;
     @FXML private Tab tabFacturacion;
     @FXML private Label lblBreadcrumb;
+    @FXML private Label lblUserName;
+    @FXML private Label lblUserRole;
 
     private FacturacionController facturacionController;
 
     @FXML
     public void initialize() {
+        SesionManager sesion = SesionManager.getInstance();
+        lblUserName.setText(sesion.getNombreUsuario());
+        lblUserRole.setText(sesion.getNombreRol());
+
         mainTabPane.getSelectionModel().select(tabFarmacia);
 
         Node facturaRoot = tabFacturacion.getContent();

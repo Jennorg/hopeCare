@@ -42,8 +42,8 @@
                     </StackPane>
                     <HBox styleClass="user-info" spacing="10" alignment="CENTER">
                         <VBox alignment="CENTER_RIGHT">
-                            <Label text="Admin Principal" styleClass="user-name"/>
-                            <Label text="SISTEMAS" styleClass="user-role"/>
+                            <Label fx:id="lblUserName" text="Admin Principal" styleClass="user-name"/>
+                            <Label fx:id="lblUserRole" text="SISTEMAS" styleClass="user-role"/>
                         </VBox>
                         <Circle radius="18" styleClass="user-avatar"/>
                     </HBox>
