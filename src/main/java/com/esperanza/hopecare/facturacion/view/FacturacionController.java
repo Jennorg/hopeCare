@@ -10,6 +10,8 @@ import com.esperanza.hopecare.modules.facturacion.dto.FacturaDTO;
 import com.esperanza.hopecare.modules.facturacion.dto.FacturaResumenDTO;
 import com.esperanza.hopecare.modules.facturacion.dto.PendienteDTO;
 import com.esperanza.hopecare.modules.facturacion.service.FacturacionService;
+import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
+import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -30,6 +32,12 @@ public class FacturacionController {
     @FXML private TableColumn<FacturaResumenDTO, Double> colImpuesto;
     @FXML private TableColumn<FacturaResumenDTO, Double> colTotal;
     @FXML private TableColumn<FacturaResumenDTO, String> colEstado;
+
+    @FXML private TableView<Paciente> tablaPacientes;
+    @FXML private TableColumn<Paciente, Integer> colPacId;
+    @FXML private TableColumn<Paciente, String> colPacNombre;
+    @FXML private TableColumn<Paciente, String> colPacDoc;
+    @FXML private TextField txtBuscarPaciente;
 
     @FXML private TextField txtBuscarCita;
     @FXML private Button btnGenCita;
@@ -85,6 +93,12 @@ public class FacturacionController {
     private EntregaMedicamentoDAO entregaDAO;
     private SolicitudExamenDAO solicitudExamenDAO;
 
+    private PacienteDAO pacienteDAO;
+    private ObservableList<Paciente> pacientesList;
+    private FilteredList<Paciente> pacientesFiltrados;
+    private int selectedPatientId = -1;
+    private String selectedPatientName = "";
+
     @FXML
     public void initialize() {
         service = new FacturacionService();
@@ -92,6 +106,7 @@ public class FacturacionController {
         consultaDAO = new ConsultaDAO();
         entregaDAO = new EntregaMedicamentoDAO();
         solicitudExamenDAO = new SolicitudExamenDAO();
+        pacienteDAO = new PacienteDAO();
 
         configurarTablaPendientes(colCitaIdRef, colCitaPaciente, colCitaConcepto, colCitaMonto, colCitaFecha);
         configurarTablaPendientes(colFarmIdRef, colFarmPaciente, colFarmConcepto, colFarmMonto, colFarmFecha);
@@ -103,34 +118,32 @@ public class FacturacionController {
         labPendientes = FXCollections.observableArrayList();
         todosPendientes = FXCollections.observableArrayList();
 
-        citasFiltradas = new FilteredList<>(citasPendientes, p -> true);
-        farmFiltradas = new FilteredList<>(farmPendientes, p -> true);
-        labFiltradas = new FilteredList<>(labPendientes, p -> true);
-        todosFiltrados = new FilteredList<>(todosPendientes, p -> true);
+        citasFiltradas = new FilteredList<>(citasPendientes, p -> false);
+        farmFiltradas = new FilteredList<>(farmPendientes, p -> false);
+        labFiltradas = new FilteredList<>(labPendientes, p -> false);
+        todosFiltrados = new FilteredList<>(todosPendientes, p -> false);
 
         tablaCitasPendientes.setItems(citasFiltradas);
         tablaFarmPendientes.setItems(farmFiltradas);
         tablaLabPendientes.setItems(labFiltradas);
         tablaTodosPendientes.setItems(todosFiltrados);
 
-        txtBuscarCita.textProperty().addListener((obs, o, n) ->
-            citasFiltradas.setPredicate(p -> filtrar(p, n)));
-        txtBuscarFarm.textProperty().addListener((obs, o, n) ->
-            farmFiltradas.setPredicate(p -> filtrar(p, n)));
-        txtBuscarLab.textProperty().addListener((obs, o, n) ->
-            labFiltradas.setPredicate(p -> filtrar(p, n)));
-        txtBuscarTodos.textProperty().addListener((obs, o, n) ->
-            todosFiltrados.setPredicate(p -> filtrar(p, n)));
+        txtBuscarCita.textProperty().addListener((obs, o, n) -> aplicarFiltroPendientes());
+        txtBuscarFarm.textProperty().addListener((obs, o, n) -> aplicarFiltroPendientes());
+        txtBuscarLab.textProperty().addListener((obs, o, n) -> aplicarFiltroPendientes());
+        txtBuscarTodos.textProperty().addListener((obs, o, n) -> aplicarFiltroPendientes());
 
-        btnGenCita.setOnAction(e -> generarFactura(tablaCitasPendientes, "CONSULTA"));
-        btnGenFarm.setOnAction(e -> generarFactura(tablaFarmPendientes, "MEDICAMENTO"));
-        btnGenLab.setOnAction(e -> generarFactura(tablaLabPendientes, "EXAMEN"));
-        btnGenTodos.setOnAction(e -> generarFactura(tablaTodosPendientes, null));
+        btnGenCita.setOnAction(e -> generarFactura("CONSULTA"));
+        btnGenFarm.setOnAction(e -> generarFactura("MEDICAMENTO"));
+        btnGenLab.setOnAction(e -> generarFactura("EXAMEN"));
+        btnGenTodos.setOnAction(e -> generarFactura(null));
 
+        configurarTablaPacientes();
         configurarTablaFacturas();
         try {
             cargarFacturas();
             cargarPendientes();
+            cargarPacientes();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -138,7 +151,53 @@ public class FacturacionController {
         EventBus.getInstance().register(DatosFacturablesActualizadosEvent.class, e -> refrescar());
     }
 
-    private boolean filtrar(PendienteDTO p, String texto) {
+    private void configurarTablaPacientes() {
+        colPacId.setCellValueFactory(new PropertyValueFactory<>("idPaciente"));
+        colPacNombre.setCellValueFactory(new PropertyValueFactory<>("nombreCompleto"));
+        colPacDoc.setCellValueFactory(new PropertyValueFactory<>("documentoIdentidad"));
+
+        pacientesList = FXCollections.observableArrayList();
+        pacientesFiltrados = new FilteredList<>(pacientesList, p -> true);
+        tablaPacientes.setItems(pacientesFiltrados);
+
+        txtBuscarPaciente.textProperty().addListener((obs, o, n) -> {
+            if (n == null || n.trim().isEmpty()) {
+                pacientesFiltrados.setPredicate(p -> true);
+            } else {
+                String f = n.toLowerCase().trim();
+                pacientesFiltrados.setPredicate(p ->
+                    p.getNombreCompleto().toLowerCase().contains(f)
+                    || p.getDocumentoIdentidad().toLowerCase().contains(f));
+            }
+        });
+
+        tablaPacientes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            if (sel != null) {
+                selectedPatientId = sel.getIdPaciente();
+                selectedPatientName = sel.getNombreCompleto();
+            } else {
+                selectedPatientId = -1;
+                selectedPatientName = "";
+            }
+            aplicarFiltroPendientes();
+        });
+    }
+
+    private void aplicarFiltroPendientes() {
+        int pid = selectedPatientId;
+        String tc = txtBuscarCita.getText();
+        String tf = txtBuscarFarm.getText();
+        String tl = txtBuscarLab.getText();
+        String tt = txtBuscarTodos.getText();
+
+        citasFiltradas.setPredicate(p -> filtrar(p, pid, tc));
+        farmFiltradas.setPredicate(p -> filtrar(p, pid, tf));
+        labFiltradas.setPredicate(p -> filtrar(p, pid, tl));
+        todosFiltrados.setPredicate(p -> filtrar(p, pid, tt));
+    }
+
+    private boolean filtrar(PendienteDTO p, int idPaciente, String texto) {
+        if (idPaciente > 0 && p.getIdPaciente() != idPaciente) return false;
         if (texto == null || texto.trim().isEmpty()) return true;
         String f = texto.toLowerCase().trim();
         return p.getPacienteNombre().toLowerCase().contains(f)
@@ -267,6 +326,7 @@ public class FacturacionController {
     public void refrescar() {
         cargarPendientes();
         cargarFacturas();
+        aplicarFiltroPendientes();
     }
 
     private void cargarPendientes() {
@@ -279,6 +339,10 @@ public class FacturacionController {
         todos.addAll(labPendientes);
         todos.sort((a, b) -> b.getFecha().compareTo(a.getFecha()));
         todosPendientes.setAll(todos);
+    }
+
+    private void cargarPacientes() {
+        pacientesList.setAll(pacienteDAO.listarTodos());
     }
 
     private void configurarTablaTodos(TableColumn<PendienteDTO, Integer> colId,
@@ -318,22 +382,21 @@ public class FacturacionController {
         facturasList.setAll(facturaDAO.listarTodasConPaciente());
     }
 
-    private void generarFactura(TableView<PendienteDTO> tabla, String tipo) {
-        PendienteDTO sel = tabla.getSelectionModel().getSelectedItem();
-        if (sel == null) {
-            mostrarAlerta("Error", "Seleccione un registro pendiente de la tabla.", Alert.AlertType.ERROR);
+    private void generarFactura(String tipo) {
+        if (selectedPatientId < 0) {
+            mostrarAlerta("Error", "Seleccione un paciente de la tabla izquierda.", Alert.AlertType.ERROR);
             return;
         }
 
-        FacturaDTO preview = service.previsualizarFactura(sel.getIdPaciente(), tipo);
+        FacturaDTO preview = service.previsualizarFactura(selectedPatientId, tipo);
         if (preview == null) {
             mostrarAlerta("Sin pendientes", "No hay conceptos pendientes para facturar de este tipo.", Alert.AlertType.INFORMATION);
             return;
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Paciente: ").append(sel.getPacienteNombre()).append("\n\n");
-        sb.append("Conceptos pendientes (").append(tipo.toLowerCase()).append("):\n");
+        sb.append("Paciente: ").append(selectedPatientName).append("\n\n");
+        sb.append("Conceptos pendientes").append(tipo == null ? " (todos)" : " (" + tipo.toLowerCase() + ")").append(":\n");
         preview.getDetalles().forEach(d ->
             sb.append(String.format("  - %s: $%.2f\n", d.getConcepto(), d.getMonto()))
         );
@@ -358,7 +421,7 @@ public class FacturacionController {
 
         dialog.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                FacturaDTO factura = service.generarFactura(sel.getIdPaciente(), tipo);
+                FacturaDTO factura = service.generarFactura(selectedPatientId, tipo);
                 if (factura == null) {
                     mostrarAlerta("Error", "No se pudo generar la factura.", Alert.AlertType.ERROR);
                     return;
@@ -374,6 +437,7 @@ public class FacturacionController {
                 );
                 mostrarAlerta("Factura generada", res.toString(), Alert.AlertType.INFORMATION);
                 cargarPendientes();
+                aplicarFiltroPendientes();
                 cargarFacturas();
             }
         });
