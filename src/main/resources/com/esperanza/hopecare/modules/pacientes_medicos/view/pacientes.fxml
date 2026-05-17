@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.shape.SVGPath?>
+
+<VBox spacing="20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.esperanza.hopecare.modules.pacientes_medicos.view.PacientesController">
+    <padding>
+        <Insets top="24" right="24" bottom="24" left="24" />
+    </padding>
+
+    <VBox styleClass="card" VBox.vgrow="ALWAYS">
+        <HBox styleClass="toolbar" spacing="12" alignment="CENTER_LEFT">
+            <Label text="LISTADO DE PACIENTES" styleClass="section-title"/>
+            <TextField fx:id="txtBuscarPaciente" promptText="Buscar por nombre o documento..." styleClass="search-field" prefWidth="280"/>
+            <Button fx:id="btnAgregar" text="Nuevo" styleClass="button button-small" onAction="#agregarPacienteClick">
+                <graphic>
+                    <SVGPath content="M8 2v12M2 8h12" styleClass="svg-icon" />
+                </graphic>
+            </Button>
+        </HBox>
+
+        <TableView fx:id="tblPacientes" VBox.vgrow="ALWAYS" prefHeight="400">
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
+                <TableColumn fx:id="colNombre" text="Paciente" prefWidth="180"/>
+                <TableColumn fx:id="colDocumento" text="Documento" prefWidth="100"/>
+                <TableColumn fx:id="colFechaNac" text="F. Nacimiento" prefWidth="100"/>
+                <TableColumn fx:id="colTelefono" text="Teléfono" prefWidth="90"/>
+                <TableColumn fx:id="colEmail" text="Email" prefWidth="140"/>
+                <TableColumn fx:id="colHistoria" text="H. Clínica" prefWidth="90"/>
+                <TableColumn fx:id="colGrupoSangre" text="G. Sanguíneo" prefWidth="60"/>
+                <TableColumn fx:id="colAlergias" text="Alergias" prefWidth="120"/>
+                <TableColumn fx:id="colContacto" text="Contacto Emergencia" prefWidth="120"/>
+                <TableColumn fx:id="colAcciones" text="Acciones" prefWidth="100"/>
+            </columns>
+        </TableView>
+    </VBox>
+</VBox>

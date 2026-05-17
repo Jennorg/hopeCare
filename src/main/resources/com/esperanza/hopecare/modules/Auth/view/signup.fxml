@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.shape.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.esperanza.hopecare.modules.Auth.view.SignupController"
+            styleClass="auth-root"
+            stylesheets="@../../../main/hopecare.css">
+
+    <top>
+        <BorderPane styleClass="auth-header">
+            <padding><Insets top="18" bottom="18" left="30" right="30"/></padding>
+
+            <left>
+                <Hyperlink text="← Volver al Login"
+                           styleClass="header-back-link"
+                           onAction="#goToLogin"/>
+            </left>
+
+            <center>
+                <Label text="HopeCare – Crear Cuenta" styleClass="auth-logo-sm"/>
+            </center>
+        </BorderPane>
+    </top>
+
+    <center>
+        <VBox styleClass="auth-center-bg" alignment="TOP_CENTER">
+            <padding><Insets top="20" bottom="20"/></padding>
+
+            <HBox fx:id="stepsBar" alignment="CENTER" spacing="6">
+                <padding><Insets bottom="18"/></padding>
+
+                <Label fx:id="lblStep1" text="1. Cuenta"        styleClass="step-label, step-active"/>
+                <Label text="────" styleClass="step-connector"/>
+                <Label fx:id="lblStep2" text="2. Datos Personales" styleClass="step-label, step-inactive"/>
+                <Label text="────" styleClass="step-connector"/>
+                <Label fx:id="lblStep3" text="3. Especialidad"  styleClass="step-label, step-inactive"/>
+            </HBox>
+
+            <StackPane fx:id="stackPasos" VBox.vgrow="ALWAYS">
+
+                <VBox fx:id="paso1"
+                      styleClass="auth-card" alignment="TOP_LEFT"
+                      maxWidth="440" visible="true" managed="true">
+                    <padding><Insets top="28" bottom="28" left="36" right="36"/></padding>
+                    <spacing>0</spacing>
+
+                    <Label text="Datos de Cuenta" styleClass="card-title"/>
+                    <Label text="Define tu usuario, contraseña y tipo de perfil."
+                           styleClass="card-desc" wrapText="true"/>
+                    <Separator styleClass="card-sep"/>
+                    <Region minHeight="16"/>
+
+                    <Label text="Nombre de usuario *" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <TextField fx:id="txtUsuario"
+                               promptText="ej. juan.perez"
+                               styleClass="auth-field"/>
+                    <Region minHeight="12"/>
+
+                    <Label text="Contraseña *" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <PasswordField fx:id="txtContrasena"
+                                  promptText="Mínimo 6 caracteres"
+                                  styleClass="auth-field"/>
+                    <Region minHeight="12"/>
+
+                    <Label text="Confirmar contraseña *" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <PasswordField fx:id="txtConfirmar"
+                                  promptText="Repite la contraseña"
+                                  styleClass="auth-field"/>
+                    <Region minHeight="12"/>
+
+                    <Label text="Rol *" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <ComboBox fx:id="cmbRol"
+                              promptText="Selecciona tu rol"
+                              styleClass="auth-combo"
+                              maxWidth="Infinity"/>
+                    <Region minHeight="14"/>
+
+                    <Label fx:id="lblMensaje1" text=" " styleClass="msg-error" wrapText="true"/>
+                    <Region minHeight="10"/>
+
+                    <Button text="Siguiente → Datos Personales"
+                            styleClass="btn-primary"
+                            maxWidth="Infinity"
+                            onAction="#irAPaso2"/>
+                </VBox>
+
+                <VBox fx:id="paso2"
+                      styleClass="auth-card" alignment="TOP_LEFT"
+                      maxWidth="440" visible="false" managed="false">
+                    <padding><Insets top="24" bottom="24" left="36" right="36"/></padding>
+                    <spacing>0</spacing>
+
+                    <Label text="Datos Personales" styleClass="card-title"/>
+                    <Label text="Completa tu información de identificación."
+                           styleClass="card-desc" wrapText="true"/>
+                    <Separator styleClass="card-sep"/>
+                    <Region minHeight="14"/>
+
+                    <HBox spacing="12">
+                        <VBox HBox.hgrow="ALWAYS" spacing="4">
+                            <Label text="Nombre *" styleClass="field-label"/>
+                            <TextField fx:id="txtNombre"
+                                       promptText="Nombre"
+                                       styleClass="auth-field"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="4">
+                            <Label text="Apellido *" styleClass="field-label"/>
+                            <TextField fx:id="txtApellido"
+                                       promptText="Apellido"
+                                       styleClass="auth-field"/>
+                        </VBox>
+                    </HBox>
+                    <Region minHeight="10"/>
+
+                    <HBox spacing="12">
+                        <VBox HBox.hgrow="ALWAYS" spacing="4">
+                            <Label text="Cédula / Documento" styleClass="field-label"/>
+                            <TextField fx:id="txtDocumento"
+                                       promptText="Nro. de documento"
+                                       styleClass="auth-field"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="4">
+                            <Label text="Fecha de nacimiento" styleClass="field-label"/>
+                            <DatePicker fx:id="dpFechaNac"
+                                        promptText="YYYY-MM-DD"
+                                        styleClass="auth-field"
+                                        maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+                    <Region minHeight="10"/>
+
+                    <HBox spacing="12">
+                        <VBox HBox.hgrow="ALWAYS" spacing="4">
+                            <Label text="Teléfono" styleClass="field-label"/>
+                            <TextField fx:id="txtTelefono"
+                                       promptText="ej. 04140000000"
+                                       styleClass="auth-field"/>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="4">
+                            <Label text="Género" styleClass="field-label"/>
+                            <ComboBox fx:id="cmbGenero"
+                                      styleClass="auth-combo"
+                                      maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+                    <Region minHeight="10"/>
+
+                    <Label text="Correo electrónico" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <TextField fx:id="txtEmail"
+                               promptText="correo@ejemplo.com"
+                               styleClass="auth-field"/>
+                    <Region minHeight="10"/>
+
+                    <Label text="Dirección" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <TextField fx:id="txtDireccion"
+                               promptText="Dirección de residencia"
+                               styleClass="auth-field"/>
+                    <Region minHeight="10"/>
+
+                    <Label fx:id="lblMensaje2" text=" " styleClass="msg-error" wrapText="true"/>
+                    <Region minHeight="8"/>
+
+                    <HBox spacing="10">
+                        <Button text="← Volver"
+                                styleClass="btn-secondary"
+                                onAction="#irAPaso1"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Siguiente →"
+                                styleClass="btn-primary"
+                                onAction="#irAPaso3OrFinalizar"/>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="paso3"
+                      styleClass="auth-card" alignment="TOP_LEFT"
+                      maxWidth="440" visible="false" managed="false">
+                    <padding><Insets top="28" bottom="28" left="36" right="36"/></padding>
+                    <spacing>0</spacing>
+
+                    <Label text="Datos Profesionales" styleClass="card-title"/>
+                    <Label text="Indica tu especialidad y número de registro médico."
+                           styleClass="card-desc" wrapText="true"/>
+                    <Separator styleClass="card-sep"/>
+                    <Region minHeight="18"/>
+
+                    <Label text="Especialidad *" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <ComboBox fx:id="cmbEspecialidad"
+                              promptText="Selecciona tu especialidad"
+                              styleClass="auth-combo"
+                              maxWidth="Infinity"/>
+                    <Region minHeight="14"/>
+
+                    <Label text="Número de registro médico *" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <TextField fx:id="txtRegistroMedico"
+                               promptText="ej. CM-2024-00123"
+                               styleClass="auth-field"/>
+                    <Region minHeight="14"/>
+
+                    <Label fx:id="lblMensaje3" text=" " styleClass="msg-error" wrapText="true"/>
+                    <Region minHeight="8"/>
+
+                    <HBox spacing="10">
+                        <Button text="← Volver"
+                                styleClass="btn-secondary"
+                                onAction="#irAPaso2"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="✔ Crear Cuenta"
+                                styleClass="btn-success"
+                                onAction="#finalizarRegistro"/>
+                    </HBox>
+                </VBox>
+
+            </StackPane>
+        </VBox>
+    </center>
+
+    <bottom>
+        <Label text="© 2025 HopeCare – Sisgeho v1.0"
+               styleClass="auth-footer"
+               maxWidth="Infinity"
+               alignment="CENTER">
+            <BorderPane.margin><Insets bottom="12"/></BorderPane.margin>
+        </Label>
+    </bottom>
+
+</BorderPane>

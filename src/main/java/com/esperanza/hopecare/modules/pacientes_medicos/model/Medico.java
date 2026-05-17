@@ -18,6 +18,7 @@ public class Medico extends Persona {
     private String registroMedico;
     private String nombreEspecialidad;
     private double precioConsulta;
+    private boolean activo;
 
     public Medico() {}
 
@@ -41,6 +42,9 @@ public class Medico extends Persona {
 
     public double getPrecioConsulta() { return precioConsulta; }
     public void setPrecioConsulta(double precioConsulta) { this.precioConsulta = precioConsulta; }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 
     @Override
     public String toString() {
