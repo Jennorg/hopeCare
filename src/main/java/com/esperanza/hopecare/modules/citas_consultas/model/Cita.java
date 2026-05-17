@@ -12,6 +12,7 @@ public class Cita {
     private int creadaPor;
     private LocalDateTime fechaCreacion;
     private String pacienteNombre;
+    private String pacienteDocumento;
     private String medicoNombre;
     private double precio;
 
@@ -42,6 +43,8 @@ public class Cita {
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
     public String getPacienteNombre() { return pacienteNombre; }
     public void setPacienteNombre(String pacienteNombre) { this.pacienteNombre = pacienteNombre; }
+    public String getPacienteDocumento() { return pacienteDocumento; }
+    public void setPacienteDocumento(String pacienteDocumento) { this.pacienteDocumento = pacienteDocumento; }
     public String getMedicoNombre() { return medicoNombre; }
     public void setMedicoNombre(String medicoNombre) { this.medicoNombre = medicoNombre; }
     public double getPrecio() { return precio; }
