@@ -41,10 +41,18 @@
 }
 
 .nav-links {
-    -fx-hgap: 24;
-    -fx-pref-width: 500;
+    -fx-hgap: 20;
+    -fx-vgap: 8;
     -fx-alignment: center;
 }
+
+.header-middle {
+    -fx-padding: 8 32 12 32;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+}
+
 
 .nav-link {
     -fx-text-fill: #64748b;
@@ -72,6 +80,23 @@
     -fx-border-color: #e2e8f0;
     -fx-border-width: 0 0 0 1;
     -fx-min-width: 200;
+}
+
+/* Progress Bar Loading Styles */
+.progress-bar, .loading-bar {
+    -fx-pref-height: 6px;
+    -fx-min-width: 250;
+    -fx-max-width: 320;
+}
+
+.progress-bar .track, .loading-bar .track {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 3px;
+}
+
+.progress-bar .bar, .loading-bar .bar {
+    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e);
+    -fx-background-radius: 3px;
 }
 
 .notification-icon {
@@ -229,6 +254,7 @@
     -fx-font-size: 13px;
     -fx-font-weight: 600;
     -fx-cursor: hand;
+    -fx-graphic-text-gap: 6px;
 }
 
 .button:hover {
@@ -255,16 +281,62 @@
     -fx-font-size: 13px;
     -fx-font-weight: 600;
     -fx-cursor: hand;
+    -fx-graphic-text-gap: 6px;
 }
 
 .button-secondary:hover {
     -fx-background-color: #f0fdfa;
 }
 
+.button-danger {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 6px;
+}
+
+.button-danger:hover {
+    -fx-background-color: #b91c1c;
+}
+
+.button-danger:pressed {
+    -fx-background-color: #991b1b;
+}
+
 .button-small {
     -fx-padding: 6 12;
     -fx-font-size: 12px;
 }
+
+/* SVG Icon Styles */
+.svg-icon {
+    -fx-fill: transparent;
+    -fx-stroke: #ffffff;
+    -fx-stroke-width: 1.75;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.button-secondary .svg-icon {
+    -fx-stroke: #0d9488;
+}
+
+.button-secondary:hover .svg-icon {
+    -fx-stroke: #0f766e;
+}
+
+.button:disabled .svg-icon, .button-secondary:disabled .svg-icon {
+    -fx-stroke: #cbd5e1;
+}
+
+.button-danger .svg-icon {
+    -fx-stroke: #ffffff;
+}
+
 
 /* Text Field Styles */
 .text-field, .text-field:focused {
@@ -547,3 +619,38 @@
     -fx-font-size: 14px;
     -fx-text-fill: #94a3b8;
 }
+
+/* Table Inline Action Buttons */
+.button-action-edit {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+}
+.button-action-edit:hover {
+    -fx-background-color: #f0fdfa;
+}
+.button-action-edit .svg-icon {
+    -fx-stroke: #0d9488;
+}
+.button-action-edit:hover .svg-icon {
+    -fx-stroke: #0f766e;
+}
+
+.button-action-delete {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 6;
+    -fx-cursor: hand;
+}
+.button-action-delete:hover {
+    -fx-background-color: #fef2f2;
+}
+.button-action-delete .svg-icon {
+    -fx-stroke: #ef4444;
+}
+.button-action-delete:hover .svg-icon {
+    -fx-stroke: #dc2626;
+}

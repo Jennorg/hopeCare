@@ -1,4 +1,4 @@
-package com.esperanza.hopecare.modules.Auth.DTO;
+package com.esperanza.hopecare.modules.Auth.dto;
 
 public class LoginDTO {
     private String nombreUsuario;
@@ -8,20 +8,18 @@ public class LoginDTO {
     private String mensaje;
 
     public LoginDTO() {}
-
     public LoginDTO(String nombreUsuario, String contrasena) {
         this.nombreUsuario = nombreUsuario;
         this.contrasena = contrasena;
     }
-
     public String getNombreUsuario() { return nombreUsuario; }
-    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
+    public void setNombreUsuario(String v) { this.nombreUsuario = v; }
     public String getContrasena() { return contrasena; }
-    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
+    public void setContrasena(String v) { this.contrasena = v; }
     public boolean isExitoso() { return exitoso; }
-    public void setExitoso(boolean exitoso) { this.exitoso = exitoso; }
+    public void setExitoso(boolean v) { this.exitoso = v; }
     public String getNombreRol() { return nombreRol; }
-    public void setNombreRol(String nombreRol) { this.nombreRol = nombreRol; }
+    public void setNombreRol(String v) { this.nombreRol = v; }
     public String getMensaje() { return mensaje; }
-    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+    public void setMensaje(String v) { this.mensaje = v; }
 }

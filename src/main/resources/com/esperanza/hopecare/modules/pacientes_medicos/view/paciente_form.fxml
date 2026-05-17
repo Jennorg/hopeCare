@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<DialogPane prefWidth="550" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.esperanza.hopecare.modules.pacientes_medicos.view.PacienteFormController">
+    <content>
+        <GridPane hgap="15" vgap="12">
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+            <columnConstraints>
+                <ColumnConstraints percentWidth="35"/>
+                <ColumnConstraints percentWidth="65"/>
+            </columnConstraints>
+
+            <Label text="Nombre:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <TextField fx:id="txtNombre" promptText="Ingrese nombre" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+            <Label text="Apellido:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+            <TextField fx:id="txtApellido" promptText="Ingrese apellido" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+            <Label text="Documento Identidad *:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+            <TextField fx:id="txtDocumento" promptText="Ej: 12345678" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+            <Label text="Fecha Nacimiento:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+            <DatePicker fx:id="dpFechaNac" promptText="Seleccionar fecha" prefWidth="350" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+            <Label text="Género:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+            <ComboBox fx:id="cbGenero" promptText="Seleccione género" prefWidth="350" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+            <Label text="Teléfono:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+            <TextField fx:id="txtTelefono" promptText="Ej: 0987654321" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+            <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+            <TextField fx:id="txtEmail" promptText="Ej: correo@ejemplo.com" GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+
+            <Label text="Dirección:" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+            <TextField fx:id="txtDireccion" promptText="Ej: Calle Principal 123" GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+
+            <Label text="Historia Clínica *:" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
+            <TextField fx:id="txtHistoria" promptText="Ej: HC-1004" GridPane.columnIndex="1" GridPane.rowIndex="8"/>
+
+            <Label text="Grupo Sanguíneo:" GridPane.columnIndex="0" GridPane.rowIndex="9"/>
+            <ComboBox fx:id="cbGrupoSangre" promptText="Seleccione grupo" prefWidth="350" GridPane.columnIndex="1" GridPane.rowIndex="9"/>
+
+            <Label text="Alergias:" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+            <TextField fx:id="txtAlergias" promptText="Ej: Ninguna, Penicilina" GridPane.columnIndex="1" GridPane.rowIndex="10"/>
+
+            <Label text="Contacto Emergencia:" GridPane.columnIndex="0" GridPane.rowIndex="11"/>
+            <TextField fx:id="txtContacto" promptText="Nombre y teléfono" GridPane.columnIndex="1" GridPane.rowIndex="11"/>
+        </GridPane>
+    </content>
+</DialogPane>

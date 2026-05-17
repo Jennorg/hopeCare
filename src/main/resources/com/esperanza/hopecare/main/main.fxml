@@ -11,14 +11,16 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.esperanza.hopecare.main.MainController" styleClass="main-container">
     <top>
         <VBox styleClass="header-container">
-            <HBox styleClass="header-top" spacing="0" alignment="CENTER_LEFT">
-                <HBox styleClass="logo-section" spacing="10" alignment="CENTER">
+            <HBox fx:id="headerTop" styleClass="header-top" alignment="CENTER_LEFT" spacing="0">
+                <HBox fx:id="logoSection" styleClass="logo-section" spacing="10" alignment="CENTER_LEFT">
                     <StackPane styleClass="logo-icon" prefWidth="36" prefHeight="36">
                         <Circle radius="18" styleClass="logo-circle"/>
                         <Label text="+" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
@@ -26,20 +28,22 @@
                     <Label text="HopeCare" styleClass="logo-text"/>
                 </HBox>
 
-                <HBox styleClass="nav-links" spacing="30" alignment="CENTER">
+                <!-- Responsive Spacers -->
+                <Pane fx:id="spacer1" HBox.hgrow="ALWAYS" />
+
+                <FlowPane fx:id="navLinks" styleClass="nav-links" alignment="CENTER" columnHalignment="CENTER" hgap="20" vgap="8">
                     <Hyperlink fx:id="linkDashboard" text="Dashboard" styleClass="nav-link" onAction="#navigateToDashboard"/>
-                    <Hyperlink fx:id="linkRegistro" text="Registro" styleClass="nav-link" onAction="#navigateToRegistro"/>
-                    <Hyperlink fx:id="linkCitas" text="Citas Médicas" styleClass="nav-link" onAction="#navigateToCitas"/>
-                    <Hyperlink fx:id="linkFarmacia" text="Farmacia" styleClass="nav-link active" onAction="#navigateToFarmacia"/>
+                    <Hyperlink fx:id="linkPacientes" text="Pacientes" styleClass="nav-link" onAction="#navigateToPacientes"/>
+                    <Hyperlink fx:id="linkMedicos" text="Médicos" styleClass="nav-link" onAction="#navigateToMedicos"/>
+                    <Hyperlink fx:id="linkCitas" text="Citas" styleClass="nav-link" onAction="#navigateToCitas"/>
+                    <Hyperlink fx:id="linkFarmacia" text="Farmacia" styleClass="nav-link" onAction="#navigateToFarmacia"/>
                     <Hyperlink fx:id="linkLaboratorio" text="Laboratorio" styleClass="nav-link" onAction="#navigateToLaboratorio"/>
                     <Hyperlink fx:id="linkFacturacion" text="Facturación" styleClass="nav-link" onAction="#navigateToFacturacion"/>
-                </HBox>
+                </FlowPane>
 
-                <HBox styleClass="user-section" spacing="12" alignment="CENTER_RIGHT">
-                    <StackPane styleClass="notification-icon">
-                        <Label text="&#128276;" styleClass="notification-symbol"/>
-                        <Circle radius="4" styleClass="notification-dot"/>
-                    </StackPane>
+                <Pane fx:id="spacer2" HBox.hgrow="ALWAYS" />
+
+                <HBox fx:id="userSection" styleClass="user-section" spacing="12" alignment="CENTER_RIGHT">
                     <HBox styleClass="user-info" spacing="10" alignment="CENTER">
                         <VBox alignment="CENTER_RIGHT">
                             <Label text="Admin Principal" styleClass="user-name"/>
@@ -49,6 +53,11 @@
                     </HBox>
                 </HBox>
             </HBox>
+
+            <!-- Compact mode stacked row for Navigation Links -->
+            <FlowPane fx:id="headerMiddle" styleClass="header-middle" alignment="CENTER" columnHalignment="CENTER" managed="false" visible="false">
+                <!-- Links will move here dynamically -->
+            </FlowPane>
             <HBox styleClass="header-bottom">
                 <Label fx:id="lblBreadcrumb" text="Inicio > Farmacia" styleClass="breadcrumb"/>
             </HBox>
@@ -57,29 +66,35 @@
     <center>
         <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
             <Tab fx:id="tabDashboard" text="" closable="false">
-                <fx:include source="../dashboard/view/dashboard.fxml"/>
+                <fx:include source="../modules/dashboard/view/dashboard.fxml"/>
             </Tab>
             <Tab fx:id="tabRegistro" text="" closable="false">
-                <fx:include source="../registro/view/registro_medico.fxml"/>
+                <fx:include source="../modules/pacientes_medicos/view/registro_medico.fxml"/>
+            </Tab>
+            <Tab fx:id="tabPacientes" text="" closable="false">
+                <fx:include source="../modules/pacientes_medicos/view/pacientes.fxml"/>
+            </Tab>
+            <Tab fx:id="tabMedicos" text="" closable="false">
+                <fx:include source="../modules/pacientes_medicos/view/medicos.fxml"/>
             </Tab>
             <Tab fx:id="tabCitas" text="" closable="false">
                 <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="inner-tabs">
                     <Tab text="Agendar Cita" closable="false">
-                        <fx:include source="../citas/view/citas.fxml"/>
+                        <fx:include source="../modules/citas_consultas/view/citas.fxml"/>
                     </Tab>
                     <Tab text="Registrar Consulta" closable="false">
-                        <fx:include source="../consulta/view/consulta.fxml"/>
+                        <fx:include source="../modules/citas_consultas/view/consulta.fxml"/>
                     </Tab>
                 </TabPane>
             </Tab>
             <Tab fx:id="tabFarmacia" text="" closable="false">
-                <fx:include source="../farmacia/view/farmacia.fxml"/>
+                <fx:include source="../modules/medicamentos_lab/view/farmacia.fxml"/>
             </Tab>
             <Tab fx:id="tabLaboratorio" text="" closable="false">
-                <fx:include source="../laboratorio/view/laboratorio.fxml"/>
+                <fx:include source="../modules/medicamentos_lab/view/laboratorio.fxml"/>
             </Tab>
             <Tab fx:id="tabFacturacion" text="" closable="false">
-                <fx:include source="../facturacion/view/facturacion.fxml"/>
+                <fx:include source="../modules/facturacion/view/facturacion.fxml"/>
             </Tab>
         </TabPane>
     </center>
