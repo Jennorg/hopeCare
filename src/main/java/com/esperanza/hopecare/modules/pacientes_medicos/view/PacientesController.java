@@ -168,6 +168,13 @@ public class PacientesController {
             DialogPane dialogPane = loader.load();
             dialog.setDialogPane(dialogPane);
 
+            if (tblPacientes.getScene() != null && tblPacientes.getScene().getWindow() != null) {
+                javafx.stage.Window owner = tblPacientes.getScene().getWindow();
+                dialog.initOwner(owner);
+                double targetHeight = owner.getHeight() * 0.9;
+                dialogPane.setPrefHeight(targetHeight);
+            }
+
             PacienteFormController formController = loader.getController();
             if (isEdit) {
                 formController.cargarPaciente(selectedPaciente);

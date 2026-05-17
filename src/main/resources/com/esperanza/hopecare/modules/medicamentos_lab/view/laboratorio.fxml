@@ -28,7 +28,7 @@
             </Button>
         </HBox>
 
-        <TableView fx:id="tblExamenes" prefHeight="150">
+        <TableView fx:id="tblExamenes" prefHeight="320">
             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
             <columns>
                 <TableColumn fx:id="colExamenId" text="ID" prefWidth="50"/>
@@ -46,7 +46,7 @@
                 <Label text="SOLICITUDES" styleClass="section-title"/>
                 <ComboBox fx:id="cbFiltroEstado" promptText="Filtrar por estado" prefWidth="150" onAction="#filtroEstadoChange"/>
             </HBox>
-            <TableView fx:id="tblSolicitudes" prefHeight="220">
+            <TableView fx:id="tblSolicitudes" prefHeight="280">
                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                 <columns>
                     <TableColumn fx:id="colSolicitudId" text="ID" prefWidth="50"/>
@@ -61,7 +61,7 @@
 
         <VBox styleClass="card" HBox.hgrow="ALWAYS">
             <Label text="RESULTADOS COMPLETADOS" styleClass="section-title"/>
-            <TableView fx:id="tblResultados" prefHeight="220">
+            <TableView fx:id="tblResultados" prefHeight="280">
                 <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                 <columns>
                     <TableColumn fx:id="colResultadoId" text="ID" prefWidth="50"/>

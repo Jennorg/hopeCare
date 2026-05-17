@@ -356,6 +356,7 @@ public class FarmaciaController {
         Dialog<Medicamento> dialog = new Dialog<>();
         dialog.setTitle("Agregar Medicamento");
         dialog.setHeaderText("Ingrese los datos del nuevo medicamento");
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         TextField txtNombre = new TextField();
         txtNombre.setPromptText("Nombre del medicamento");
@@ -422,6 +423,7 @@ public class FarmaciaController {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Actualizar Stock");
         dialog.setHeaderText("Nuevo stock para: " + selected.getNombreComercial());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         TextField txtNuevoStock = new TextField();
         txtNuevoStock.setText(String.valueOf(selected.getStockActual()));

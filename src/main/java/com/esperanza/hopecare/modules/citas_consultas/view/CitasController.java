@@ -397,6 +397,7 @@ public class CitasController implements ICitaView {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Cita #" + cita.getIdCita());
         dialog.setHeaderText("Paciente: " + cita.getPacienteNombre());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         Label lblMedicoActual = new Label("Médico: " + cita.getMedicoNombre());
         Label lblFechaActual = new Label("Fecha/Hora: " + cita.getFechaHora().format(dtf));

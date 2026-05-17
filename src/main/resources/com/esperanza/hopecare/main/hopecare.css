@@ -439,6 +439,7 @@
     -fx-padding: 12 16;
     -fx-border-color: #e2e8f0;
     -fx-border-width: 0 0 1 0;
+    -fx-alignment: center;
 }
 
 .table-view .column-header-background {
@@ -451,6 +452,7 @@
     -fx-text-fill: #334155;
     -fx-border-color: #f1f5f9;
     -fx-border-width: 0 0 1 0;
+    -fx-alignment: center;
 }
 
 .table-view .table-row-cell {
@@ -582,6 +584,13 @@
 /* ScrollPane */
 .scroll-pane {
     -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
 }
 
 .scroll-pane .scroll-bar:vertical {
@@ -653,4 +662,111 @@
 }
 .button-action-delete:hover .svg-icon {
     -fx-stroke: #dc2626;
-}
+}
+
+/* Premium DialogPane and Form Styles */
+.form-dialog-pane {
+    -fx-background-color: #ffffff;
+}
+
+.form-dialog-pane > .content-interface {
+    -fx-padding: 0;
+}
+
+.form-dialog-pane > .button-bar > .container {
+    -fx-background-color: #f8fafc;
+    -fx-padding: 16 24 16 24;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Global Dialog Styling - Matches the Patient Register style */
+.dialog-pane {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+}
+
+.dialog-pane > .header-panel {
+    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e);
+    -fx-padding: 22 26 22 26;
+}
+
+.dialog-pane > .header-panel > .label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.dialog-pane > .content-interface {
+    -fx-padding: 20 26 20 26;
+}
+
+.form-dialog-pane > .content-interface {
+    -fx-padding: 0;
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-background-color: #f8fafc;
+    -fx-padding: 16 26 16 26;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Style Dialog Buttons */
+.dialog-pane .button {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #334155;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #cbd5e1;
+}
+
+.dialog-pane .button:default {
+    -fx-background-color: #0d9488;
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane .button:default:hover {
+    -fx-background-color: #0f766e;
+}
+
+.form-header-paciente {
+    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e);
+    -fx-padding: 22 26 22 26;
+}
+
+.form-header-medico {
+    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e); /* Teal! Matches patient style exactly! */
+    -fx-padding: 22 26 22 26;
+}
+
+.form-header-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #ffffff;
+    -fx-letter-spacing: 0.5px;
+}
+
+.form-header-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #ccfbf1; /* Harmonious light teal text */
+}
+
+.form-header-subtitle-teal {
+    -fx-font-size: 12px;
+    -fx-text-fill: #ccfbf1;
+}
+
+.form-label-bold {
+    -fx-text-fill: #334155;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+

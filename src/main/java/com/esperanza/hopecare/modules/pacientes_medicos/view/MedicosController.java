@@ -201,6 +201,13 @@ public class MedicosController {
             DialogPane dialogPane = loader.load();
             dialog.setDialogPane(dialogPane);
 
+            if (tblMedicos.getScene() != null && tblMedicos.getScene().getWindow() != null) {
+                javafx.stage.Window owner = tblMedicos.getScene().getWindow();
+                dialog.initOwner(owner);
+                double targetHeight = owner.getHeight() * 0.9;
+                dialogPane.setPrefHeight(targetHeight);
+            }
+
             MedicoFormController formController = loader.getController();
             if (isEdit) {
                 formController.cargarMedico(selectedMedico);

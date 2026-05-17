@@ -290,6 +290,7 @@ public class FacturacionController {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Cambiar estado de factura #" + factura.getIdFactura());
         dialog.setHeaderText("Paciente: " + factura.getPacienteNombre());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         ComboBox<String> cbEstado = new ComboBox<>();
         cbEstado.getItems().addAll("PENDIENTE", "PAGADO", "ANULADO");
@@ -407,6 +408,7 @@ public class FacturacionController {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Previsualización de factura");
         dialog.setHeaderText("Confirme los conceptos a facturar");
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         TextArea area = new TextArea(sb.toString());
         area.setEditable(false);

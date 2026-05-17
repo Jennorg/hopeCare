@@ -146,6 +146,7 @@ public class ConsultaController implements IConsultaView {
         Dialog<Integer> dialog = new Dialog<>();
         dialog.setTitle("Solicitar examen");
         dialog.setHeaderText("Seleccione el examen de laboratorio");
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         VBox content = new VBox(10, new Label("Examen:"), cbExamenes);
         content.setStyle("-fx-padding: 15;");

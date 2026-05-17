@@ -361,6 +361,7 @@ public class LaboratorioController {
         Dialog<ExamenLaboratorio> dialog = new Dialog<>();
         dialog.setTitle("Agregar Examen de Laboratorio");
         dialog.setHeaderText("Ingrese los datos del nuevo examen");
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         TextField txtNombre = new TextField();
         txtNombre.setPromptText("Nombre del examen");
