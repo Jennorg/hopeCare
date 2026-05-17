@@ -75,30 +75,46 @@ public class CargarDatosPrueba {
                 insertarHorario(conn, 3, 4, "09:00", "13:00", 30, true);
                 insertarHorario(conn, 3, 5, "09:00", "13:00", 30, true);
 
+                LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
                 LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
                 LocalDateTime dayAfter = LocalDateTime.now().plusDays(2);
                 LocalDateTime now = LocalDateTime.now();
 
-                insertarCita(conn, 1, 1, tomorrow.withHour(9).withMinute(0), "PROGRAMADA", "Consulta de rutina", 1, now);
-                insertarCita(conn, 2, 1, tomorrow.withHour(9).withMinute(30), "PROGRAMADA", "Revisión general", 1, now);
-                insertarCita(conn, 3, 1, tomorrow.withHour(10).withMinute(0), "PROGRAMADA", "Chequeo anual", 1, now);
-                insertarCita(conn, 4, 2, tomorrow.withHour(14).withMinute(0), "PROGRAMADA", "Consulta pediátrica", 2, now);
-                insertarCita(conn, 5, 2, tomorrow.withHour(14).withMinute(30), "PROGRAMADA", "Seguimiento", 2, now);
+                // Citas: primeras 3 ATENDIDA (con consulta), resto PROGRAMADA
+                insertarCita(conn, 1, 1, yesterday.withHour(9).withMinute(0), "ATENDIDA", "Consulta de rutina", 1, yesterday);
+                insertarCita(conn, 2, 1, yesterday.withHour(9).withMinute(30), "ATENDIDA", "Revisión general", 1, yesterday);
+                insertarCita(conn, 3, 1, yesterday.withHour(10).withMinute(0), "ATENDIDA", "Chequeo anual", 1, yesterday);
+                insertarCita(conn, 4, 2, yesterday.withHour(14).withMinute(0), "PROGRAMADA", "Consulta pediátrica", 2, yesterday);
+                insertarCita(conn, 5, 2, yesterday.withHour(14).withMinute(30), "PROGRAMADA", "Seguimiento", 2, yesterday);
                 insertarCita(conn, 1, 3, tomorrow.withHour(9).withMinute(0), "PROGRAMADA", "Consulta cardiológica", 3, now);
                 insertarCita(conn, 2, 3, tomorrow.withHour(10).withMinute(0), "PROGRAMADA", "Control", 3, now);
                 insertarCita(conn, 3, 2, dayAfter.withHour(14).withMinute(0), "PROGRAMADA", "Consulta pediátrica", 2, now);
                 insertarCita(conn, 4, 2, dayAfter.withHour(15).withMinute(0), "PROGRAMADA", "Seguimiento", 2, now);
                 insertarCita(conn, 5, 3, dayAfter.withHour(9).withMinute(30), "PROGRAMADA", "Consulta cardiológica", 3, now);
 
-                insertarConsulta(conn, 1, "Paciente presenta síntomas de gripe", "Fiebre, tos, dolor de garganta", "Reposo y paracetamol", "", now, false, 50000.0);
-                insertarConsulta(conn, 3, "Control anual normal", "Ninguno", "Continuar con hábitos saludables", "", now, false, 80000.0);
-                insertarConsulta(conn, 5, "Seguimiento pediátrico", "Revisión de crecimiento", "Desarrollo normal", "", now, false, 60000.0);
+                // Consultas: 2 pendientes (facturado=false), 1 facturada (true)
+                insertarConsulta(conn, 1, "Paciente presenta síntomas de gripe", "Fiebre, tos, dolor de garganta", "Reposo y paracetamol", "", yesterday, false, 50000.0);
+                insertarConsulta(conn, 2, "Revisión general sin novedades", "Ninguno", "Paciente sano", "", yesterday, false, 45000.0);
+                insertarConsulta(conn, 3, "Control anual normal", "Ninguno", "Continuar con hábitos saludables", "", yesterday, true, 80000.0);
 
-                insertarEntregaMedicamento(conn, 1, 1, 2, true, now, 3, false);
-                insertarEntregaMedicamento(conn, 2, 2, 1, false, now, 3, false);
+                // Entregas: 2 pendientes, 1 facturada
+                insertarEntregaMedicamento(conn, 1, 1, 2, true, yesterday, 3, false);
+                insertarEntregaMedicamento(conn, 2, 2, 1, false, yesterday, 3, false);
+                insertarEntregaMedicamento(conn, 3, 3, 3, true, yesterday, 3, true);
 
-                insertarSolicitudExamen(conn, 1, 1, "PENDIENTE", null, null, false);
-                insertarSolicitudExamen(conn, 2, 2, "COMPLETADO", "Glucosa: 95 mg/dL (Normal)", null, true);
+                // Solicitudes: 2 pendientes (COMPLETADO, facturado=false), 1 facturada
+                insertarSolicitudExamen(conn, 1, 1, "COMPLETADO", "Hemograma: valores normales", null, false);
+                insertarSolicitudExamen(conn, 2, 2, "COMPLETADO", "Glucosa: 95 mg/dL (Normal)", null, false);
+                insertarSolicitudExamen(conn, 3, 3, "COMPLETADO", "Colesterol: 180 mg/dL (Normal)", null, true);
+
+                // Facturas existentes (para que tabla muestre datos en fresh DB)
+                // Factura 1 (paciente 3): consulta 3 ($80k) + entrega 3 ($90) = $80090 subtotal
+                int f1 = insertarFactura(conn, 3, 80090.0, 15217.1, 95307.1, "PAGADO");
+                insertarDetalleFactura(conn, f1, "Consulta médica #3", 3, "CONSULTA", 80000.0);
+                insertarDetalleFactura(conn, f1, "Medicamento: Amoxicilina", 3, "MEDICAMENTO", 90.0);
+                // Factura 2 (paciente 3): solicitud 3 ($12000) = $12000 subtotal, PENDIENTE
+                int f2 = insertarFactura(conn, 3, 12000.0, 2280.0, 14280.0, "PENDIENTE");
+                insertarDetalleFactura(conn, f2, "Examen: Colesterol total", 3, "EXAMEN", 12000.0);
 
                 conn.commit();
                 System.out.println("Datos de prueba insertados correctamente.");
@@ -288,6 +304,59 @@ public class CargarDatosPrueba {
             ps.setString(4, resultadoTexto);
             ps.setBytes(5, resultadoArchivo);
             ps.setBoolean(6, facturado);
+            ps.executeUpdate();
+        }
+    }
+
+    private static int insertarFactura(Connection conn, int idPaciente, double subtotal, double impuesto, double total, String estadoPago) throws SQLException {
+        String sql = "INSERT INTO factura (id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago, forma_pago) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, idPaciente);
+            ps.setString(2, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            ps.setDouble(3, subtotal);
+            ps.setDouble(4, impuesto);
+            ps.setDouble(5, total);
+            ps.setString(6, estadoPago);
+            ps.setString(7, "EFECTIVO");
+            ps.executeUpdate();
+            var rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+            throw new SQLException("No se pudo obtener id_factura");
+        }
+    }
+
+    private static void insertarDetalleFactura(Connection conn, int idFactura, String concepto, int idReferencia, String tipoReferencia, double monto) throws SQLException {
+        String sql = "INSERT INTO detalle_factura (id_factura, concepto, id_referencia, tipo_referencia, monto) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idFactura);
+            ps.setString(2, concepto);
+            ps.setInt(3, idReferencia);
+            ps.setString(4, tipoReferencia);
+            ps.setDouble(5, monto);
+            ps.executeUpdate();
+        }
+    }
+
+    private static void marcarFacturadoConsulta(Connection conn, int idCita) throws SQLException {
+        String sql = "UPDATE consulta SET facturado = 1 WHERE id_cita = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idCita);
+            ps.executeUpdate();
+        }
+    }
+
+    private static void marcarFacturadoExamen(Connection conn, int idSolicitud) throws SQLException {
+        String sql = "UPDATE solicitud_examen SET facturado = 1 WHERE id_solicitud = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idSolicitud);
+            ps.executeUpdate();
+        }
+    }
+
+    private static void marcarFacturadoEntrega(Connection conn, int idEntrega) throws SQLException {
+        String sql = "UPDATE entrega_medicamento SET facturado = 1 WHERE id_entrega = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idEntrega);
             ps.executeUpdate();
         }
     }

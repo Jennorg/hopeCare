@@ -1,5 +1,6 @@
 package com.esperanza.hopecare.modules.citas_consultas.presenter;
 import com.esperanza.hopecare.common.db.DatabaseConnection;
+import com.esperanza.hopecare.common.events.DatosFacturablesActualizadosEvent;
 import com.esperanza.hopecare.common.events.EventBus;
 import com.esperanza.hopecare.common.events.NuevaConsultaEvent;
 
@@ -24,6 +25,8 @@ public class ConsultaPresenter {
     private final ExamenLaboratorioDAO examenLaboratorioDAO;
     private final SolicitudExamenDAO solicitudExamenDAO;
     private int idConsultaActual = -1;
+    private int idPacienteActual = -1;
+    private List<Cita> citasCargadas;
 
     public ConsultaPresenter(IConsultaView view) {
         this.view = view;
@@ -34,8 +37,8 @@ public class ConsultaPresenter {
     }
 
     public void cargarCitasPendientes() {
-        List<Cita> citas = citaDAO.obtenerCitasPorEstadoConNombres("PROGRAMADA");
-        view.mostrarCitasPendientes(citas);
+        citasCargadas = citaDAO.obtenerCitasPorEstadoConNombres("PROGRAMADA");
+        view.mostrarCitasPendientes(citasCargadas);
         view.actualizarEstadoAcciones(false);
     }
 
@@ -46,6 +49,15 @@ public class ConsultaPresenter {
             return;
         }
         idConsultaActual = -1;
+        idPacienteActual = -1;
+        if (citasCargadas != null) {
+            for (Cita c : citasCargadas) {
+                if (c.getIdCita() == idCita) {
+                    idPacienteActual = c.getIdPaciente();
+                    break;
+                }
+            }
+        }
         view.limpiarFormulario();
         view.actualizarEstadoAcciones(false);
         view.mostrarExito("Cita cargada, puede registrar la consulta.");
@@ -75,6 +87,7 @@ public class ConsultaPresenter {
         if (idConsulta > 0) {
             idConsultaActual = idConsulta;
             EventBus.getInstance().post(new NuevaConsultaEvent(idConsulta, idCita));
+            EventBus.getInstance().post(new DatosFacturablesActualizadosEvent());
             view.actualizarEstadoAcciones(true);
             view.mostrarExito("Consulta registrada correctamente.");
             cargarCitasPendientes();
@@ -86,6 +99,10 @@ public class ConsultaPresenter {
     public void solicitarExamen() {
         if (idConsultaActual <= 0) {
             view.mostrarError("Primero guarde la consulta.");
+            return;
+        }
+        if (idPacienteActual <= 0) {
+            view.mostrarError("Error: no se pudo determinar el paciente.");
             return;
         }
 
@@ -105,7 +122,7 @@ public class ConsultaPresenter {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            SolicitudExamen solicitud = new SolicitudExamen(idConsultaActual, idExamen);
+            SolicitudExamen solicitud = new SolicitudExamen(idPacienteActual, idExamen);
             if (solicitudExamenDAO.insertar(solicitud, conn)) {
                 conn.commit();
                 view.mostrarExito("Examen solicitado correctamente.");
