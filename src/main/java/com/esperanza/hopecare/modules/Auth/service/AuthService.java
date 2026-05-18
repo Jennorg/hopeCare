@@ -50,7 +50,6 @@ public class AuthService {
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
-            int idUsuario = authDAO.insertarUsuario(conn, dto.getNombreUsuario(), dto.getContrasena(), dto.getRol());
             PersonaModel persona = new PersonaModel();
             persona.setNombre(dto.getNombre());
             persona.setApellido(dto.getApellido());
@@ -60,8 +59,9 @@ public class AuthService {
             persona.setGenero(dto.getGenero());
             persona.setEmail(dto.getEmail());
             persona.setDireccion(dto.getDireccion());
-            persona.setIdUsuario(idUsuario);
             int idPersona = authDAO.insertarPersona(conn, persona);
+            String rolBD = "ADMINISTRADOR".equals(dto.getRol()) ? "ADMIN" : dto.getRol();
+            int idUsuario = authDAO.insertarUsuario(conn, dto.getNombreUsuario(), dto.getContrasena(), rolBD, idPersona);
             if ("MEDICO".equals(dto.getRol())) {
                 int idEspecialidad = authDAO.obtenerIdEspecialidad(conn, dto.getEspecialidad());
                 authDAO.insertarMedico(conn, idPersona, idEspecialidad, dto.getRegistroMedico());

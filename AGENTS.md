@@ -87,12 +87,12 @@
 ### Esquema de Tablas
 ```
 USUARIOS Y ROLES:
-  - rol (id_rol, nombre_rol, descripcion)
-  - persona (id_persona, tipo_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero, id_usuario)
-  - usuario (id_usuario, nombre_usuario, contrasena_hash, id_rol, activo, fecha_creacion)
+  - rol (id_rol, nombre_rol)
+  - persona (id_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero)
+  - usuario (id_usuario, nombre_usuario, contrasena_hash, id_rol, id_persona, fecha_creacion)
 
 REGISTRO:
-  - especialidad (id_especialidad, nombre_especialidad, descripcion)
+  - especialidad (id_especialidad, nombre_especialidad)
   - paciente (id_paciente, id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, fecha_registro)
   - medico (id_medico, id_persona, id_especialidad, registro_medico, activo)
 

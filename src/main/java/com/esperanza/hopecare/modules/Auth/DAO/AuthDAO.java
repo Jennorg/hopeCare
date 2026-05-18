@@ -69,10 +69,10 @@ public class AuthDAO {
         } catch (SQLException e) { e.printStackTrace(); return false; }
     }
 
-    public int insertarUsuario(Connection conn, String username, String password, String rolNombre) throws SQLException {
-        String sql = "INSERT INTO usuario (nombre_usuario, contrasena_hash, id_rol) SELECT ?, ?, id_rol FROM rol WHERE nombre_rol = ?";
+    public int insertarUsuario(Connection conn, String username, String password, String rolNombre, int idPersona) throws SQLException {
+        String sql = "INSERT INTO usuario (nombre_usuario, contrasena_hash, id_rol, id_persona) SELECT ?, ?, id_rol, ? FROM rol WHERE nombre_rol = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, username); ps.setString(2, Hasher.hash(password)); ps.setString(3, rolNombre);
+            ps.setString(1, username); ps.setString(2, Hasher.hash(password)); ps.setInt(3, idPersona); ps.setString(4, rolNombre);
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) return rs.getInt(1);
@@ -85,13 +85,12 @@ public class AuthDAO {
     }
 
     public int insertarPersona(Connection conn, PersonaModel persona) throws SQLException {
-        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, genero, email, direccion, id_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, genero, email, direccion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, persona.getNombre()); ps.setString(2, persona.getApellido());
             ps.setString(3, emptyToNull(persona.getDocumentoIdentidad())); ps.setString(4, persona.getFechaNacimiento());
             ps.setString(5, emptyToNull(persona.getTelefono())); ps.setString(6, persona.getGenero());
             ps.setString(7, emptyToNull(persona.getEmail())); ps.setString(8, emptyToNull(persona.getDireccion()));
-            ps.setInt(9, persona.getIdUsuario());
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) return rs.getInt(1);

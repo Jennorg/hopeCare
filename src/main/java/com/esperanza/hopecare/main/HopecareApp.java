@@ -48,7 +48,17 @@ public class HopecareApp extends Application {
                 System.out.println("Esquema creado. Insertando datos de prueba...");
                 com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
             } else {
-                System.out.println("Base de datos existente. Verificando migraciones...");
+                System.out.println("Base de datos existente. Verificando schema...");
+                try {
+                    if (!schemaEstaSincronizado(stmt)) {
+                        System.err.println("ERROR: El schema de la BD no es compatible con esta versión del código.");
+                        System.err.println("Solución: borra el archivo 'sisgeho.db' y reinicia la aplicación.");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al verificar el schema: " + e.getMessage());
+                    e.printStackTrace();
+                }
+
                 if (!columnaExiste(stmt, "consulta", "precio")) {
                     System.out.println("Migrando: agregando columna precio a consulta...");
                     stmt.execute("ALTER TABLE consulta ADD COLUMN precio REAL NOT NULL DEFAULT 0.0");
@@ -62,14 +72,25 @@ public class HopecareApp extends Application {
                 if (baseDatosVacia(stmt)) {
                     System.out.println("Insertando datos de prueba...");
                     com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
-                } else {
-                    System.out.println("Base de datos lista.");
                 }
             }
         } catch (Exception e) {
             System.err.println("Error al inicializar la base de datos: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean schemaEstaSincronizado(Statement stmt) throws Exception {
+        if (!columnaExiste(stmt, "usuario", "id_persona")) {
+            System.out.println("[DB] Falta columna 'id_persona' en tabla 'usuario'.");
+            return false;
+        }
+        if (columnaExiste(stmt, "persona", "id_usuario")) {
+            System.out.println("[DB] Columna obsoleta 'id_usuario' en tabla 'persona'.");
+            return false;
+        }
+        System.out.println("[DB] Schema sincronizado.");
+        return true;
     }
 
     private boolean tablaExiste(Statement stmt, String nombre) throws Exception {
