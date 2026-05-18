@@ -281,7 +281,7 @@ public class LaboratorioController {
 
     private void cargarPacientes() {
         pacientesData.clear();
-        pacientesData.addAll(pacienteDAO.listarTodos());
+        pacientesData.addAll(pacienteDAO.listarActivos());
     }
 
     private void cargarSolicitudes() {

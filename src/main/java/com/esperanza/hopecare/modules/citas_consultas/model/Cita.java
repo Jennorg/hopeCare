@@ -10,7 +10,7 @@ public class Cita {
     private String estado;
     private String motivo;
     private int creadaPor;
-    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
     private String pacienteNombre;
     private String pacienteDocumento;
     private String medicoNombre;

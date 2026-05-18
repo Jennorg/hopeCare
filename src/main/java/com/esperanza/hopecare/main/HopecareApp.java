@@ -4,6 +4,7 @@ import com.esperanza.hopecare.common.db.DatabaseConnection;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -33,6 +34,14 @@ public class HopecareApp extends Application {
         scene.getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         primaryStage.setTitle("HopeCare - Sistema de Gestión Hospitalaria");
+        
+        // Add brand logo as the window icon
+        try {
+            primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/com/esperanza/hopecare/imgs/logo.png")));
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar el icono de la ventana: " + e.getMessage());
+        }
+
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
@@ -67,6 +76,11 @@ public class HopecareApp extends Application {
                 if (!columnaExiste(stmt, "medico", "precio_consulta")) {
                     System.out.println("Migrando: agregando columna precio_consulta a medico...");
                     stmt.execute("ALTER TABLE medico ADD COLUMN precio_consulta REAL NOT NULL DEFAULT 0.0");
+                }
+                
+                if (!columnaExiste(stmt, "paciente", "activo")) {
+                    System.out.println("Migrando: agregando columna activo a paciente...");
+                    stmt.execute("ALTER TABLE paciente ADD COLUMN activo INTEGER DEFAULT 1");
                 }
                 
                 if (baseDatosVacia(stmt)) {

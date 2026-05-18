@@ -145,7 +145,19 @@ public class LoginController {
     }
 
     private void showError(String mensaje) {
-        lblMensaje.setText(mensaje);
-        lblMensaje.setStyle("-fx-text-fill: #c83232;");
+        if (mensaje == null || mensaje.trim().isEmpty()) {
+            lblMensaje.setText("");
+            lblMensaje.getStyleClass().remove("msg-error-active");
+            lblMensaje.setVisible(false);
+            lblMensaje.setManaged(false);
+        } else {
+            lblMensaje.setText(mensaje);
+            lblMensaje.setStyle(""); // Clear legacy direct style overrides
+            if (!lblMensaje.getStyleClass().contains("msg-error-active")) {
+                lblMensaje.getStyleClass().add("msg-error-active");
+            }
+            lblMensaje.setVisible(true);
+            lblMensaje.setManaged(true);
+        }
     }
 }

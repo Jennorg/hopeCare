@@ -20,7 +20,7 @@
         <HBox styleClass="toolbar" spacing="12" alignment="CENTER_LEFT">
             <Label text="LISTADO DE MÉDICOS" styleClass="section-title"/>
             <TextField fx:id="txtBuscarMedico" promptText="Buscar por nombre, especialidad o registro..." styleClass="search-field" prefWidth="300"/>
-            <Button fx:id="btnAgregar" text="Nuevo" styleClass="button button-small" onAction="#agregarMedicoClick">
+            <Button fx:id="btnAgregar" text="Registrar Médico" styleClass="button button-small" onAction="#agregarMedicoClick">
                 <graphic>
                     <SVGPath content="M8 2v12M2 8h12" styleClass="svg-icon" />
                 </graphic>

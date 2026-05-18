@@ -73,11 +73,21 @@ public class CitaDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setInt(1, cita.getIdPaciente());
             pstmt.setInt(2, cita.getIdMedico());
-            pstmt.setString(3, cita.getFechaHora().format(DT_FMT));
+            
+            LocalDateTime fh = cita.getFechaHora();
+            pstmt.setString(3, fh != null ? fh.format(DT_FMT) : null);
+            
             pstmt.setString(4, cita.getEstado());
             pstmt.setString(5, cita.getMotivo());
             pstmt.setInt(6, cita.getCreadaPor());
-            pstmt.setTimestamp(7, Timestamp.valueOf(cita.getFechaCreacion()));
+            
+            LocalDateTime fc = cita.getFechaCreacion();
+            if (fc == null) {
+                fc = LocalDateTime.now();
+                cita.setFechaCreacion(fc);
+            }
+            pstmt.setTimestamp(7, Timestamp.valueOf(fc));
+            
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
                 return false;
@@ -99,11 +109,21 @@ public class CitaDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, cita.getIdMedico());
-            pstmt.setString(2, cita.getFechaHora().format(DT_FMT));
+            
+            LocalDateTime fh = cita.getFechaHora();
+            pstmt.setString(2, fh != null ? fh.format(DT_FMT) : null);
+            
             pstmt.setString(3, cita.getEstado());
             pstmt.setString(4, cita.getMotivo());
             pstmt.setInt(5, cita.getCreadaPor());
-            pstmt.setTimestamp(6, Timestamp.valueOf(cita.getFechaCreacion()));
+            
+            LocalDateTime fc = cita.getFechaCreacion();
+            if (fc == null) {
+                fc = LocalDateTime.now();
+                cita.setFechaCreacion(fc);
+            }
+            pstmt.setTimestamp(6, Timestamp.valueOf(fc));
+            
             pstmt.setInt(7, cita.getIdCita());
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {

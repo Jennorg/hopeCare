@@ -287,7 +287,7 @@ public class FarmaciaController {
 
     private void cargarPacientes() {
         pacientesData.clear();
-        pacientesData.addAll(pacienteDAO.listarTodos());
+        pacientesData.addAll(pacienteDAO.listarActivos());
     }
 
     private void cargarMedicamentos() {

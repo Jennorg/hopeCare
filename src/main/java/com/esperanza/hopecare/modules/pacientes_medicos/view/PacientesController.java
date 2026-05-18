@@ -25,6 +25,7 @@ public class PacientesController {
     @FXML private TableColumn<Paciente, String> colGrupoSangre;
     @FXML private TableColumn<Paciente, String> colAlergias;
     @FXML private TableColumn<Paciente, String> colContacto;
+    @FXML private TableColumn<Paciente, String> colEstado;
     @FXML private TableColumn<Paciente, Void> colAcciones;
 
     @FXML private Button btnAgregar;
@@ -52,6 +53,25 @@ public class PacientesController {
         colAlergias.setCellValueFactory(new PropertyValueFactory<>("alergias"));
         colContacto.setCellValueFactory(new PropertyValueFactory<>("contactoEmergencia"));
 
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+        colEstado.setCellFactory(column -> new TableCell<Paciente, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if ("Activo".equals(item)) {
+                        setStyle("-fx-text-fill: #0d9488; -fx-font-weight: bold; -fx-alignment: center;");
+                    } else {
+                        setStyle("-fx-text-fill: #64748b; -fx-font-weight: bold; -fx-alignment: center;");
+                    }
+                }
+            }
+        });
+
         colAcciones.setCellFactory(col -> new TableCell<Paciente, Void>() {
             private final Button btnEdit = new Button();
             private final Button btnDelete = new Button();
@@ -67,24 +87,10 @@ public class PacientesController {
                 btnEdit.setGraphic(editIcon);
                 btnEdit.setTooltip(new Tooltip("Editar Paciente"));
 
-                btnDelete.getStyleClass().add("button-action-delete");
-                javafx.scene.shape.SVGPath deleteIcon = new javafx.scene.shape.SVGPath();
-                deleteIcon.setContent("M2 4h12M4 4v10a1 1 0 001 1h6a1 1 0 001-1V4M6 4V2h4v2");
-                deleteIcon.getStyleClass().add("svg-icon");
-                btnDelete.setGraphic(deleteIcon);
-                btnDelete.setTooltip(new Tooltip("Eliminar Paciente"));
-
                 btnEdit.setOnAction(e -> {
                     Paciente p = getTableView().getItems().get(getIndex());
                     if (p != null) {
                         mostrarFormulario(true, p);
-                    }
-                });
-
-                btnDelete.setOnAction(e -> {
-                    Paciente p = getTableView().getItems().get(getIndex());
-                    if (p != null) {
-                        eliminarPaciente(p);
                     }
                 });
             }
@@ -95,6 +101,28 @@ public class PacientesController {
                 if (empty) {
                     setGraphic(null);
                 } else {
+                    Paciente p = getTableView().getItems().get(getIndex());
+                    if (p != null) {
+                        btnDelete.getStyleClass().clear();
+                        btnDelete.getStyleClass().add("button");
+                        
+                        javafx.scene.shape.SVGPath deleteIcon = new javafx.scene.shape.SVGPath();
+                        deleteIcon.getStyleClass().add("svg-icon");
+                        
+                        if (p.getActivo() == 1) {
+                            btnDelete.getStyleClass().add("button-action-discharge");
+                            deleteIcon.setContent("M16 11h6M13 9a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0");
+                            btnDelete.setGraphic(deleteIcon);
+                            btnDelete.setTooltip(new Tooltip("Dar de alta a Paciente"));
+                            btnDelete.setOnAction(e -> darAltaPaciente(p));
+                        } else {
+                            btnDelete.getStyleClass().add("button-action-reactivate");
+                            deleteIcon.setContent("M16 11h6m-3-3v6M13 9a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0");
+                            btnDelete.setGraphic(deleteIcon);
+                            btnDelete.setTooltip(new Tooltip("Reactivar Paciente"));
+                            btnDelete.setOnAction(e -> reactivarPaciente(p));
+                        }
+                    }
                     setGraphic(container);
                 }
             }
@@ -134,25 +162,39 @@ public class PacientesController {
         mostrarFormulario(false, null);
     }
 
-    private void eliminarPaciente(Paciente selected) {
+    private void darAltaPaciente(Paciente selected) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirmar Eliminación");
+        confirm.setTitle("Confirmar Alta Médica");
         confirm.setHeaderText(null);
-        confirm.setContentText("¿Está seguro de eliminar de forma permanente al paciente " + selected.getNombreCompleto() + "?\nEsta acción no se puede deshacer.");
+        confirm.setContentText("¿Está seguro de dar de alta (inactivar) al paciente " + selected.getNombreCompleto() + "?");
         
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                try {
-                    boolean ok = pacienteDAO.eliminar(selected.getIdPaciente());
-                    if (ok) {
-                        mostrarAlerta("Éxito", "Paciente eliminado correctamente.", Alert.AlertType.INFORMATION);
-                        cargarPacientes();
-                    } else {
-                        mostrarAlerta("Error", "No se pudo eliminar el paciente de la base de datos.", Alert.AlertType.ERROR);
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    mostrarAlerta("Error de Integridad", "El paciente posee citas, consultas, facturas o registros clínicos activos y no puede ser eliminado.", Alert.AlertType.ERROR);
+                boolean ok = pacienteDAO.darDeAlta(selected.getIdPaciente());
+                if (ok) {
+                    mostrarAlerta("Éxito", "Paciente dado de alta correctamente.", Alert.AlertType.INFORMATION);
+                    cargarPacientes();
+                } else {
+                    mostrarAlerta("Error", "No se pudo dar de alta al paciente.", Alert.AlertType.ERROR);
+                }
+            }
+        });
+    }
+
+    private void reactivarPaciente(Paciente selected) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirmar Reactivación");
+        confirm.setHeaderText(null);
+        confirm.setContentText("¿Está seguro de reactivar al paciente " + selected.getNombreCompleto() + "?");
+        
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                boolean ok = pacienteDAO.reactivar(selected.getIdPaciente());
+                if (ok) {
+                    mostrarAlerta("Éxito", "Paciente reactivado correctamente.", Alert.AlertType.INFORMATION);
+                    cargarPacientes();
+                } else {
+                    mostrarAlerta("Error", "No se pudo reactivar al paciente.", Alert.AlertType.ERROR);
                 }
             }
         });
@@ -194,7 +236,7 @@ public class PacientesController {
 
             okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
                 if (!formController.validar()) {
-                    mostrarAlerta("Validación", "Los campos marcados con * son obligatorios.", Alert.AlertType.ERROR);
+                    mostrarAlerta("Validación", formController.getMensajeError(), Alert.AlertType.ERROR);
                     event.consume();
                     return;
                 }

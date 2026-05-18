@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS paciente (
     grupo_sanguineo TEXT,
     contacto_emergencia TEXT,
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    activo INTEGER DEFAULT 1,
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 

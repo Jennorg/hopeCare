@@ -147,9 +147,9 @@ public class SignupController implements Initializable {
 
         actualizarStepsBar(paso);
 
-        lblMensaje1.setText(" ");
-        lblMensaje2.setText(" ");
-        lblMensaje3.setText(" ");
+        clearError(lblMensaje1);
+        clearError(lblMensaje2);
+        clearError(lblMensaje3);
     }
 
     private void setVisible(VBox panel, boolean visible) {
@@ -359,8 +359,24 @@ public class SignupController implements Initializable {
     }
 
     private void setError(Label lbl, String mensaje) {
-        lbl.setText(mensaje);
-        lbl.setStyle("-fx-text-fill: #c83232;");
+        if (mensaje == null || mensaje.trim().isEmpty()) {
+            clearError(lbl);
+        } else {
+            lbl.setText(mensaje);
+            lbl.setStyle(""); // Clear legacy direct style overrides
+            if (!lbl.getStyleClass().contains("msg-error-active")) {
+                lbl.getStyleClass().add("msg-error-active");
+            }
+            lbl.setVisible(true);
+            lbl.setManaged(true);
+        }
+    }
+
+    private void clearError(Label lbl) {
+        lbl.setText("");
+        lbl.getStyleClass().remove("msg-error-active");
+        lbl.setVisible(false);
+        lbl.setManaged(false);
     }
 
     public String getUsuario()        { return txtUsuario.getText().trim(); }

@@ -227,7 +227,7 @@ public class MedicosController {
 
             okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
                 if (!formController.validar()) {
-                    mostrarAlerta("Validación", "Los campos marcados con * son obligatorios y el precio debe ser numérico.", Alert.AlertType.ERROR);
+                    mostrarAlerta("Validación", formController.getMensajeError(), Alert.AlertType.ERROR);
                     event.consume();
                     return;
                 }

@@ -19,12 +19,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import com.esperanza.hopecare.modules.pacientes_medicos.view.PacienteFormController;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -145,7 +148,7 @@ public class CitasController implements ICitaView {
         MedicoDAO medicoDAO = new MedicoDAO();
         EspecialidadDAO espDAO = new EspecialidadDAO();
 
-        ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarTodos());
+        ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarActivos());
         ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
 
         TextField txtBuscarPac = new TextField();
@@ -341,11 +344,107 @@ public class CitasController implements ICitaView {
             dialogPresenter.reservarCita();
         });
 
+        Button btnNuevoPac = new Button("Registrar Paciente");
+        btnNuevoPac.getStyleClass().add("button-secondary");
+        btnNuevoPac.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600; -fx-font-size: 11px; -fx-padding: 6 12;");
+        btnNuevoPac.setOnAction(ev -> {
+            try {
+                Dialog<ButtonType> pacDialog = new Dialog<>();
+                pacDialog.setTitle("Registrar Paciente");
+                pacDialog.setHeaderText(null);
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/modules/pacientes_medicos/view/paciente_form.fxml"));
+                DialogPane dialogPane = loader.load();
+                pacDialog.setDialogPane(dialogPane);
+
+                if (dialog.getOwner() != null) {
+                    pacDialog.initOwner(dialog.getOwner());
+                    double targetHeight = dialog.getOwner().getHeight() * 0.9;
+                    dialogPane.setPrefHeight(targetHeight);
+                } else if (tvCitas.getScene() != null && tvCitas.getScene().getWindow() != null) {
+                    javafx.stage.Window owner = tvCitas.getScene().getWindow();
+                    pacDialog.initOwner(owner);
+                    double targetHeight = owner.getHeight() * 0.9;
+                    dialogPane.setPrefHeight(targetHeight);
+                }
+
+                PacienteFormController formController = loader.getController();
+                formController.cargarPaciente(new Paciente());
+
+                dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+                Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+                okButton.getStyleClass().add("button");
+                okButton.setText("Guardar");
+
+                Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+                cancelButton.getStyleClass().add("button-secondary");
+                cancelButton.setText("Cancelar");
+
+                okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                    if (!formController.validar()) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, formController.getMensajeError());
+                        alert.showAndWait();
+                        event.consume();
+                        return;
+                    }
+
+                    Paciente p = formController.obtenerPacienteModificado();
+                    if (pacienteDAO.existeDocumento(p.getDocumentoIdentidad(), p.getIdPersona())) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, "Ya existe una persona registrada con esta cédula.");
+                        alert.showAndWait();
+                        event.consume();
+                        return;
+                    }
+
+                    if (pacienteDAO.existeHistoriaClinica(p.getHistoriaClinica(), p.getIdPaciente())) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, "Ya existe un paciente con este número de historia clínica.");
+                        alert.showAndWait();
+                        event.consume();
+                    }
+                });
+
+                pacDialog.showAndWait().ifPresent(btn -> {
+                    if (btn == ButtonType.OK) {
+                        Paciente p = formController.obtenerPacienteModificado();
+                        boolean saved = pacienteDAO.insertar(p);
+
+                        if (saved) {
+                            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Paciente registrado correctamente.");
+                            alert.showAndWait();
+                            
+                            // Refresh local list of patients
+                            pacientesList.setAll(pacienteDAO.listarActivos());
+                            
+                            // Select newly added patient in the TableView!
+                            for (Paciente item : tvPacientes.getItems()) {
+                                if (item.getDocumentoIdentidad().equals(p.getDocumentoIdentidad())) {
+                                    tvPacientes.getSelectionModel().select(item);
+                                    break;
+                                }
+                            }
+                        } else {
+                            Alert alert = new Alert(Alert.AlertType.ERROR, "No se pudo guardar los datos del paciente.");
+                            alert.showAndWait();
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Error al cargar la interfaz del formulario: " + ex.getMessage());
+                alert.showAndWait();
+            }
+        });
+
         Label lblPacSection = new Label("Seleccionar paciente:");
         lblPacSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
+        
+        HBox HBoxPacSearch = new HBox(10, txtBuscarPac, btnNuevoPac);
+        HBox.setHgrow(txtBuscarPac, javafx.scene.layout.Priority.ALWAYS);
+        
         VBox pacienteSection = new VBox(5,
             lblPacSection,
-            txtBuscarPac,
+            HBoxPacSearch,
             tvPacientes
         );
 

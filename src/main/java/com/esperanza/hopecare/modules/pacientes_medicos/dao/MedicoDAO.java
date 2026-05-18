@@ -70,6 +70,14 @@ public class MedicoDAO {
         return false;
     }
 
+    private void setStringOrNull(PreparedStatement ps, int index, String value) throws SQLException {
+        if (value == null || value.trim().isEmpty()) {
+            ps.setNull(index, java.sql.Types.VARCHAR);
+        } else {
+            ps.setString(index, value.trim());
+        }
+    }
+
     public boolean insertarMedico(Medico m) {
         String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlMedico = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
@@ -79,14 +87,14 @@ public class MedicoDAO {
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
-                psP.setString(1, m.getNombre() != null ? m.getNombre() : "Sin nombre");
-                psP.setString(2, m.getApellido() != null ? m.getApellido() : "Sin apellido");
-                psP.setString(3, m.getDocumentoIdentidad());
-                psP.setString(4, m.getFechaNacimiento());
-                psP.setString(5, m.getTelefono());
-                psP.setString(6, m.getEmail());
-                psP.setString(7, m.getDireccion());
-                psP.setString(8, m.getGenero());
+                psP.setString(1, m.getNombre() != null ? m.getNombre().trim() : "Sin nombre");
+                psP.setString(2, m.getApellido() != null ? m.getApellido().trim() : "Sin apellido");
+                psP.setString(3, m.getDocumentoIdentidad().trim());
+                setStringOrNull(psP, 4, m.getFechaNacimiento());
+                setStringOrNull(psP, 5, m.getTelefono());
+                setStringOrNull(psP, 6, m.getEmail());
+                setStringOrNull(psP, 7, m.getDireccion());
+                setStringOrNull(psP, 8, m.getGenero());
                 psP.executeUpdate();
                 
                 try (ResultSet rs = psP.getGeneratedKeys()) {
@@ -102,7 +110,7 @@ public class MedicoDAO {
             try (PreparedStatement psM = conn.prepareStatement(sqlMedico, Statement.RETURN_GENERATED_KEYS)) {
                 psM.setInt(1, m.getIdPersona());
                 psM.setInt(2, m.getIdEspecialidad());
-                psM.setString(3, m.getRegistroMedico());
+                psM.setString(3, m.getRegistroMedico().trim());
                 psM.setDouble(4, m.getPrecioConsulta());
                 psM.setInt(5, m.isActivo() ? 1 : 0);
                 psM.executeUpdate();
@@ -141,21 +149,21 @@ public class MedicoDAO {
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona)) {
-                psP.setString(1, m.getNombre());
-                psP.setString(2, m.getApellido());
-                psP.setString(3, m.getDocumentoIdentidad());
-                psP.setString(4, m.getFechaNacimiento());
-                psP.setString(5, m.getTelefono());
-                psP.setString(6, m.getEmail());
-                psP.setString(7, m.getDireccion());
-                psP.setString(8, m.getGenero());
+                psP.setString(1, m.getNombre().trim());
+                psP.setString(2, m.getApellido().trim());
+                psP.setString(3, m.getDocumentoIdentidad().trim());
+                setStringOrNull(psP, 4, m.getFechaNacimiento());
+                setStringOrNull(psP, 5, m.getTelefono());
+                setStringOrNull(psP, 6, m.getEmail());
+                setStringOrNull(psP, 7, m.getDireccion());
+                setStringOrNull(psP, 8, m.getGenero());
                 psP.setInt(9, m.getIdPersona());
                 psP.executeUpdate();
             }
             
             try (PreparedStatement psM = conn.prepareStatement(sqlMedico)) {
                 psM.setInt(1, m.getIdEspecialidad());
-                psM.setString(2, m.getRegistroMedico());
+                psM.setString(2, m.getRegistroMedico().trim());
                 psM.setDouble(3, m.getPrecioConsulta());
                 psM.setInt(4, m.isActivo() ? 1 : 0);
                 psM.setInt(5, m.getIdMedico());
