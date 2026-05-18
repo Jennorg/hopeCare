@@ -71,7 +71,7 @@ public class MedicoDAO {
     }
 
     public boolean insertarMedico(Medico m) {
-        String sqlPersona = "INSERT INTO persona (tipo_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlMedico = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
@@ -79,15 +79,14 @@ public class MedicoDAO {
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
-                psP.setString(1, "MEDICO");
-                psP.setString(2, m.getNombre() != null ? m.getNombre() : "Sin nombre");
-                psP.setString(3, m.getApellido() != null ? m.getApellido() : "Sin apellido");
-                psP.setString(4, m.getDocumentoIdentidad());
-                psP.setString(5, m.getFechaNacimiento());
-                psP.setString(6, m.getTelefono());
-                psP.setString(7, m.getEmail());
-                psP.setString(8, m.getDireccion());
-                psP.setString(9, m.getGenero());
+                psP.setString(1, m.getNombre() != null ? m.getNombre() : "Sin nombre");
+                psP.setString(2, m.getApellido() != null ? m.getApellido() : "Sin apellido");
+                psP.setString(3, m.getDocumentoIdentidad());
+                psP.setString(4, m.getFechaNacimiento());
+                psP.setString(5, m.getTelefono());
+                psP.setString(6, m.getEmail());
+                psP.setString(7, m.getDireccion());
+                psP.setString(8, m.getGenero());
                 psP.executeUpdate();
                 
                 try (ResultSet rs = psP.getGeneratedKeys()) {

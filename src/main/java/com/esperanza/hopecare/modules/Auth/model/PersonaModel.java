@@ -10,7 +10,6 @@ public class PersonaModel {
     private String email;
     private String direccion;
     private String genero;
-    private int idUsuario;
 
     public PersonaModel() {}
 
@@ -32,6 +31,4 @@ public class PersonaModel {
     public void setDireccion(String direccion) { this.direccion = direccion; }
     public String getGenero() { return genero; }
     public void setGenero(String genero) { this.genero = genero; }
-    public int getIdUsuario() { return idUsuario; }
-    public void setIdUsuario(int idUsuario) { this.idUsuario = idUsuario; }
 }

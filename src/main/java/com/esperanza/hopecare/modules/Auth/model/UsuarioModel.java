@@ -2,6 +2,7 @@ package com.esperanza.hopecare.modules.Auth.model;
 
 public class UsuarioModel {
     private int idUsuario;
+    private int idPersona;
     private String nombreUsuario;
     private String contrasenaHash;
     private int idRol;
@@ -18,6 +19,8 @@ public class UsuarioModel {
 
     public int getIdUsuario() { return idUsuario; }
     public void setIdUsuario(int idUsuario) { this.idUsuario = idUsuario; }
+    public int getIdPersona() { return idPersona; }
+    public void setIdPersona(int idPersona) { this.idPersona = idPersona; }
     public String getNombreUsuario() { return nombreUsuario; }
     public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
     public String getContrasenaHash() { return contrasenaHash; }

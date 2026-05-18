@@ -14,16 +14,16 @@ public class CargarDatosPrueba {
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                insertarRol(conn, "ADMIN", "Administrador del sistema");
-                insertarRol(conn, "RECEPCION", "Personal de recepción");
-                insertarRol(conn, "FARMACIA", "Personal de farmacia");
-                insertarRol(conn, "LABORATORIO", "Personal de laboratorio");
+                insertarRol(conn, "ADMIN");
+                insertarRol(conn, "RECEPCION");
+                insertarRol(conn, "FARMACIA");
+                insertarRol(conn, "LABORATORIO");
 
-                insertarEspecialidad(conn, "Medicina General", "Especialidad en medicina general");
-                insertarEspecialidad(conn, "Pediatría", "Especialidad en pediatría");
-                insertarEspecialidad(conn, "Traumatología", "Especialidad en traumatología");
-                insertarEspecialidad(conn, "Cardiología", "Especialidad en cardiología");
-                insertarEspecialidad(conn, "Dermatología", "Especialidad en dermatología");
+                insertarEspecialidad(conn, "Medicina General");
+                insertarEspecialidad(conn, "Pediatría");
+                insertarEspecialidad(conn, "Traumatología");
+                insertarEspecialidad(conn, "Cardiología");
+                insertarEspecialidad(conn, "Dermatología");
 
                 insertarMedicamento(conn, "Paracetamol", "Paracetamol", "Tabletas", "500mg", 100.0, 100, 20, true);
                 insertarMedicamento(conn, "Ibuprofeno", "Ibuprofeno", "Tabletas", "400mg", 50.0, 50, 15, true);
@@ -37,27 +37,32 @@ public class CargarDatosPrueba {
                 insertarExamenLab(conn, "Radiografía de tórax", "Rayos X de tórax", 35000.0, 24, null);
                 insertarExamenLab(conn, "Electrocardiograma", "ECG en reposo", 20000.0, 6, null);
 
-                int u1 = insertarUsuario(conn, "admin", "admin123", 1);
-                int u2 = insertarUsuario(conn, "recepcion", "recepcion123", 2);
-                int u3 = insertarUsuario(conn, "farmacia", "farmacia123", 3);
-                int u4 = insertarUsuario(conn, "laboratorio", "laboratorio123", 4);
+                int pAdmin = insertarPersona(conn, "Admin", "Sistema", "99999999", null, null, "admin@hopecare.com", null, null);
+                int pRecep = insertarPersona(conn, "Recepcion", "Sistema", "99999998", null, null, "recepcion@hopecare.com", null, null);
+                int pFarma = insertarPersona(conn, "Farmacia", "Sistema", "99999997", null, null, "farmacia@hopecare.com", null, null);
+                int pLab = insertarPersona(conn, "Laboratorio", "Sistema", "99999996", null, null, "laboratorio@hopecare.com", null, null);
 
-                int pp1 = insertarPersona(conn, "PACIENTE", "Juan", "Pérez", "12345678", "1980-01-15", "123456789", "juan.perez@email.com", "Calle 123 #45-67", "M", u1);
+                int u1 = insertarUsuario(conn, "admin", "admin123", 1, pAdmin);
+                int u2 = insertarUsuario(conn, "recepcion", "recepcion123", 2, pRecep);
+                int u3 = insertarUsuario(conn, "farmacia", "farmacia123", 3, pFarma);
+                int u4 = insertarUsuario(conn, "laboratorio", "laboratorio123", 4, pLab);
+
+                int pp1 = insertarPersona(conn, "Juan", "Pérez", "12345678", "1980-01-15", "123456789", "juan.perez@email.com", "Calle 123 #45-67", "M");
                 insertarPaciente(conn, pp1, "HC001", "Ninguna", "O+", "María Pérez - 987654321");
-                int pp2 = insertarPersona(conn, "PACIENTE", "María", "González", "23456789", "1985-05-20", "234567890", "maria.gonzalez@email.com", "Calle 456 #78-90", "F", u2);
+                int pp2 = insertarPersona(conn, "María", "González", "23456789", "1985-05-20", "234567890", "maria.gonzalez@email.com", "Calle 456 #78-90", "F");
                 insertarPaciente(conn, pp2, "HC002", "Penicilina", "A+", "Roberto González - 876543210");
-                int pp3 = insertarPersona(conn, "PACIENTE", "Carlos", "López", "34567890", "1990-08-10", "345678901", "carlos.lopez@email.com", "Carrera 789 #12-34", "M", u3);
+                int pp3 = insertarPersona(conn, "Carlos", "López", "34567890", "1990-08-10", "345678901", "carlos.lopez@email.com", "Carrera 789 #12-34", "M");
                 insertarPaciente(conn, pp3, "HC003", "Ninguna", "B+", "Laura López - 765432109");
-                int pp4 = insertarPersona(conn, "PACIENTE", "Laura", "Fernández", "45678901", "1975-12-03", "456789012", "laura.fernandez@email.com", "Avenida 123 #45-67", "F", u4);
+                int pp4 = insertarPersona(conn, "Laura", "Fernández", "45678901", "1975-12-03", "456789012", "laura.fernandez@email.com", "Avenida 123 #45-67", "F");
                 insertarPaciente(conn, pp4, "HC004", "Aspirina", "AB+", "Carlos Fernández - 654321098");
-                int pp5 = insertarPersona(conn, "PACIENTE", "Roberto", "Díaz", "56789012", "1988-03-25", "567890123", "roberto.diaz@email.com", "Diagonal 456 #78-90", "M", u1);
+                int pp5 = insertarPersona(conn, "Roberto", "Díaz", "56789012", "1988-03-25", "567890123", "roberto.diaz@email.com", "Diagonal 456 #78-90", "M");
                 insertarPaciente(conn, pp5, "HC005", "Ninguna", "O-", "Laura Díaz - 543210987");
 
-                int pm1 = insertarPersona(conn, "MEDICO", "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F", u1);
+                int pm1 = insertarPersona(conn, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
                 insertarMedico(conn, pm1, 1, "RM12345", 50000.0);
-                int pm2 = insertarPersona(conn, "MEDICO", "Pedro", "Ramírez", "98765432", "1972-11-22", "789012345", "pedro.ramirez@email.com", "Carrera 123 #45-67", "M", u2);
+                int pm2 = insertarPersona(conn, "Pedro", "Ramírez", "98765432", "1972-11-22", "789012345", "pedro.ramirez@email.com", "Carrera 123 #45-67", "M");
                 insertarMedico(conn, pm2, 2, "RM12346", 60000.0);
-                int pm3 = insertarPersona(conn, "MEDICO", "Sofía", "Torres", "11111111", "1980-04-30", "890123456", "sofia.torres@email.com", "Avenida 456 #78-90", "F", u3);
+                int pm3 = insertarPersona(conn, "Sofía", "Torres", "11111111", "1980-04-30", "890123456", "sofia.torres@email.com", "Avenida 456 #78-90", "F");
                 insertarMedico(conn, pm3, 4, "RM12347", 80000.0);
 
                 insertarHorario(conn, 1, 1, "08:00", "12:00", 30, true);
@@ -130,31 +135,29 @@ public class CargarDatosPrueba {
         }
     }
 
-    private static void insertarRol(Connection conn, String nombre, String descripcion) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO rol (nombre_rol, descripcion) VALUES (?, ?)";
+    private static void insertarRol(Connection conn, String nombre) throws SQLException {
+        String sql = "INSERT OR IGNORE INTO rol (nombre_rol) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
-            ps.setString(2, descripcion);
             ps.executeUpdate();
         }
     }
 
-    private static void insertarEspecialidad(Connection conn, String nombre, String descripcion) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO especialidad (nombre_especialidad, descripcion) VALUES (?, ?)";
+    private static void insertarEspecialidad(Connection conn, String nombre) throws SQLException {
+        String sql = "INSERT OR IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
-            ps.setString(2, descripcion);
             ps.executeUpdate();
         }
     }
 
-    private static int insertarUsuario(Connection conn, String nombreUsuario, String password, int idRol) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena_hash, id_rol, activo) VALUES (?, ?, ?, ?)";
+    private static int insertarUsuario(Connection conn, String nombreUsuario, String password, int idRol, int idPersona) throws SQLException {
+        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena_hash, id_rol, id_persona) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, nombreUsuario);
             ps.setString(2, Hasher.hash(password));
             ps.setInt(3, idRol);
-            ps.setInt(4, 1);
+            ps.setInt(4, idPersona);
             ps.executeUpdate();
             var rs = ps.getGeneratedKeys();
             if (rs.next()) return rs.getInt(1);
@@ -195,20 +198,18 @@ public class CargarDatosPrueba {
         }
     }
 
-    private static int insertarPersona(Connection conn, String tipo, String nombre, String apellido, String documento,
-                                  String fechaNacimiento, String telefono, String email, String direccion, String genero, int idUsuario) throws SQLException {
-        String sql = "INSERT INTO persona (tipo_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero, id_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static int insertarPersona(Connection conn, String nombre, String apellido, String documento,
+                                  String fechaNacimiento, String telefono, String email, String direccion, String genero) throws SQLException {
+        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, tipo);
-            ps.setString(2, nombre);
-            ps.setString(3, apellido);
-            ps.setString(4, documento);
-            ps.setString(5, fechaNacimiento);
-            ps.setString(6, telefono);
-            ps.setString(7, email);
-            ps.setString(8, direccion);
-            ps.setString(9, genero);
-            ps.setInt(10, idUsuario);
+            ps.setString(1, nombre);
+            ps.setString(2, apellido);
+            ps.setString(3, documento);
+            ps.setString(4, fechaNacimiento);
+            ps.setString(5, telefono);
+            ps.setString(6, email);
+            ps.setString(7, direccion);
+            ps.setString(8, genero);
             ps.executeUpdate();
             var rs = ps.getGeneratedKeys();
             if (rs.next()) return rs.getInt(1);

@@ -7,8 +7,7 @@
 -- Tabla: rol
 CREATE TABLE rol (
     id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_rol TEXT UNIQUE NOT NULL,
-    descripcion TEXT
+    nombre_rol TEXT UNIQUE NOT NULL
 );
 
 -- Tabla: usuario
@@ -17,15 +16,15 @@ CREATE TABLE usuario (
     nombre_usuario TEXT UNIQUE NOT NULL,
     contrasena_hash TEXT NOT NULL,
     id_rol INTEGER NOT NULL,
-    activo INTEGER DEFAULT 1,
+    id_persona INTEGER NOT NULL,
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
+    FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
 -- Tabla: persona (tabla base para pacientes y médicos)
 CREATE TABLE persona (
     id_persona INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo_persona TEXT NOT NULL, -- 'PACIENTE' o 'MEDICO'
     nombre TEXT NOT NULL,
     apellido TEXT NOT NULL,
     documento_identidad TEXT UNIQUE,
@@ -33,9 +32,7 @@ CREATE TABLE persona (
     telefono TEXT,
     email TEXT,
     direccion TEXT,
-    genero TEXT, -- 'M', 'F', 'O'
-    id_usuario INTEGER,
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+    genero TEXT
 );
 
 -- Tabla: paciente
@@ -53,8 +50,7 @@ CREATE TABLE paciente (
 -- Tabla: especialidad
 CREATE TABLE especialidad (
     id_especialidad INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_especialidad TEXT UNIQUE NOT NULL,
-    descripcion TEXT
+    nombre_especialidad TEXT UNIQUE NOT NULL
 );
 
 -- Tabla: medico

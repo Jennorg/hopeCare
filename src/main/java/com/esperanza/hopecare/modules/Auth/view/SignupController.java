@@ -57,7 +57,7 @@ public class SignupController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbRol.setItems(FXCollections.observableArrayList(
-                "ADMINISTRADOR", "PACIENTE", "MEDICO"
+                "ADMINISTRADOR", "MEDICO"
         ));
         cmbRol.getSelectionModel().selectFirst();
 
@@ -70,6 +70,14 @@ public class SignupController implements Initializable {
         if (!cmbEspecialidad.getItems().isEmpty()) {
             cmbEspecialidad.getSelectionModel().selectFirst();
         }
+
+        cmbRol.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (pasoActual != 1) {
+                mostrarPaso(1);
+            }
+            actualizarVisibilidadPaso3();
+            actualizarStepsBar(pasoActual);
+        });
 
         mostrarPaso(1);
     }
@@ -113,6 +121,40 @@ public class SignupController implements Initializable {
         } else {
             finalizarRegistro();
         }
+    }
+
+    private void actualizarVisibilidadPaso3() {
+        boolean esMedico = "MEDICO".equals(cmbRol.getValue());
+        lblStep3.setVisible(esMedico);
+        lblStep3.setManaged(esMedico);
+    }
+
+    private void mostrarPaso(int paso) {
+        pasoActual = paso;
+        boolean esMedico = "MEDICO".equals(cmbRol.getValue());
+
+        paso1.setVisible(paso == 1);
+        paso1.setManaged(paso == 1);
+
+        paso2.setVisible(paso == 2);
+        paso2.setManaged(paso == 2);
+
+        paso3.setVisible(paso == 3);
+        paso3.setManaged(paso == 3 && esMedico);
+
+        lblStep3.setVisible(esMedico);
+        lblStep3.setManaged(esMedico);
+
+        actualizarStepsBar(paso);
+
+        lblMensaje1.setText(" ");
+        lblMensaje2.setText(" ");
+        lblMensaje3.setText(" ");
+    }
+
+    private void setVisible(VBox panel, boolean visible) {
+        panel.setVisible(visible);
+        panel.setManaged(visible);
     }
 
     @FXML
@@ -195,29 +237,14 @@ public class SignupController implements Initializable {
         }
     }
 
-    private void mostrarPaso(int paso) {
-        pasoActual = paso;
-
-        setVisible(paso1, paso == 1);
-        setVisible(paso2, paso == 2);
-        setVisible(paso3, paso == 3);
-
-        actualizarStepsBar(paso);
-
-        lblMensaje1.setText(" ");
-        lblMensaje2.setText(" ");
-        lblMensaje3.setText(" ");
-    }
-
-    private void setVisible(VBox panel, boolean visible) {
-        panel.setVisible(visible);
-        panel.setManaged(visible);
-    }
-
     private void actualizarStepsBar(int pasoActivo) {
+        boolean esMedico = "MEDICO".equals(cmbRol.getValue());
         Label[] labels = { lblStep1, lblStep2, lblStep3 };
         for (int i = 0; i < labels.length; i++) {
             labels[i].getStyleClass().removeAll("step-active", "step-done", "step-inactive");
+            if (!esMedico && i == 2) {
+                continue;
+            }
             if (i + 1 == pasoActivo) {
                 labels[i].getStyleClass().add("step-active");
             } else if (i + 1 < pasoActivo) {

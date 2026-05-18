@@ -68,7 +68,7 @@ public class PacienteDAO {
     }
 
     public boolean insertar(Paciente p) {
-        String sqlPersona = "INSERT INTO persona (tipo_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
@@ -76,15 +76,14 @@ public class PacienteDAO {
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
-                psP.setString(1, "PACIENTE");
-                psP.setString(2, p.getNombre());
-                psP.setString(3, p.getApellido());
-                psP.setString(4, p.getDocumentoIdentidad());
-                psP.setString(5, p.getFechaNacimiento());
-                psP.setString(6, p.getTelefono());
-                psP.setString(7, p.getEmail());
-                psP.setString(8, p.getDireccion());
-                psP.setString(9, p.getGenero());
+                psP.setString(1, p.getNombre());
+                psP.setString(2, p.getApellido());
+                psP.setString(3, p.getDocumentoIdentidad());
+                psP.setString(4, p.getFechaNacimiento());
+                psP.setString(5, p.getTelefono());
+                psP.setString(6, p.getEmail());
+                psP.setString(7, p.getDireccion());
+                psP.setString(8, p.getGenero());
                 psP.executeUpdate();
                 
                 try (ResultSet rs = psP.getGeneratedKeys()) {

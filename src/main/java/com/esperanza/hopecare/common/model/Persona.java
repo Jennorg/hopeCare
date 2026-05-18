@@ -20,7 +20,6 @@ public class Persona {
     protected String email;
     protected String direccion;
     protected String genero;
-    protected int idUsuario;
 
     public Persona() {}
 
@@ -63,9 +62,6 @@ public class Persona {
 
     public String getGenero() { return genero; }
     public void setGenero(String genero) { this.genero = genero; }
-
-    public int getIdUsuario() { return idUsuario; }
-    public void setIdUsuario(int idUsuario) { this.idUsuario = idUsuario; }
 
     public String getNombreCompleto() {
         if (nombre != null && apellido != null) {

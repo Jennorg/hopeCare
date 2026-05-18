@@ -4,27 +4,26 @@
 -- ======================================================
 
 -- Tabla: rol
-CREATE TABLE rol (
+CREATE TABLE IF NOT EXISTS rol (
     id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_rol TEXT UNIQUE NOT NULL,
-    descripcion TEXT
+    nombre_rol TEXT UNIQUE NOT NULL
 );
 
 -- Tabla: usuario
-CREATE TABLE usuario (
+CREATE TABLE IF NOT EXISTS usuario (
     id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_usuario TEXT UNIQUE NOT NULL,
     contrasena_hash TEXT NOT NULL,
     id_rol INTEGER NOT NULL,
-    activo INTEGER DEFAULT 1,
+    id_persona INTEGER NOT NULL,
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
+    FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
 -- Tabla: persona (tabla base para pacientes y médicos)
-CREATE TABLE persona (
+CREATE TABLE IF NOT EXISTS persona (
     id_persona INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo_persona TEXT NOT NULL,
     nombre TEXT NOT NULL,
     apellido TEXT NOT NULL,
     documento_identidad TEXT UNIQUE,
@@ -32,13 +31,11 @@ CREATE TABLE persona (
     telefono TEXT,
     email TEXT,
     direccion TEXT,
-    genero TEXT,
-    id_usuario INTEGER,
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+    genero TEXT
 );
 
 -- Tabla: paciente
-CREATE TABLE paciente (
+CREATE TABLE IF NOT EXISTS paciente (
     id_paciente INTEGER PRIMARY KEY AUTOINCREMENT,
     id_persona INTEGER NOT NULL,
     historia_clinica TEXT UNIQUE NOT NULL,
@@ -50,14 +47,13 @@ CREATE TABLE paciente (
 );
 
 -- Tabla: especialidad
-CREATE TABLE especialidad (
+CREATE TABLE IF NOT EXISTS especialidad (
     id_especialidad INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_especialidad TEXT UNIQUE NOT NULL,
-    descripcion TEXT
+    nombre_especialidad TEXT UNIQUE NOT NULL
 );
 
 -- Tabla: medico
-CREATE TABLE medico (
+CREATE TABLE IF NOT EXISTS medico (
     id_medico INTEGER PRIMARY KEY AUTOINCREMENT,
     id_persona INTEGER NOT NULL,
     id_especialidad INTEGER NOT NULL,
@@ -69,7 +65,7 @@ CREATE TABLE medico (
 );
 
 -- Tabla: horario_atencion
-CREATE TABLE horario_atencion (
+CREATE TABLE IF NOT EXISTS horario_atencion (
     id_horario INTEGER PRIMARY KEY AUTOINCREMENT,
     id_medico INTEGER NOT NULL,
     dia_semana INTEGER NOT NULL,
@@ -81,7 +77,7 @@ CREATE TABLE horario_atencion (
 );
 
 -- Tabla: cita
-CREATE TABLE cita (
+CREATE TABLE IF NOT EXISTS cita (
     id_cita INTEGER PRIMARY KEY AUTOINCREMENT,
     id_paciente INTEGER NOT NULL,
     id_medico INTEGER NOT NULL,
@@ -96,7 +92,7 @@ CREATE TABLE cita (
 );
 
 -- Tabla: consulta
-CREATE TABLE consulta (
+CREATE TABLE IF NOT EXISTS consulta (
     id_consulta INTEGER PRIMARY KEY AUTOINCREMENT,
     id_cita INTEGER NOT NULL UNIQUE,
     diagnostico TEXT,
@@ -110,7 +106,7 @@ CREATE TABLE consulta (
 );
 
 -- Tabla: medicamento
-CREATE TABLE medicamento (
+CREATE TABLE IF NOT EXISTS medicamento (
     id_medicamento INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_comercial TEXT NOT NULL,
     principio_activo TEXT,
@@ -123,7 +119,7 @@ CREATE TABLE medicamento (
 );
 
 -- Tabla: entrega_medicamento (sin recetas, referencia directa a paciente)
-CREATE TABLE entrega_medicamento (
+CREATE TABLE IF NOT EXISTS entrega_medicamento (
     id_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
     id_paciente INTEGER NOT NULL,
     id_medicamento INTEGER NOT NULL,
@@ -138,7 +134,7 @@ CREATE TABLE entrega_medicamento (
 );
 
 -- Tabla: examen_laboratorio
-CREATE TABLE examen_laboratorio (
+CREATE TABLE IF NOT EXISTS examen_laboratorio (
     id_examen INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_examen TEXT UNIQUE NOT NULL,
     descripcion TEXT,
@@ -148,7 +144,7 @@ CREATE TABLE examen_laboratorio (
 );
 
 -- Tabla: solicitud_examen (sin consulta, referencia directa a paciente)
-CREATE TABLE solicitud_examen (
+CREATE TABLE IF NOT EXISTS solicitud_examen (
     id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
     id_paciente INTEGER NOT NULL,
     id_examen INTEGER NOT NULL,
@@ -164,7 +160,7 @@ CREATE TABLE solicitud_examen (
 );
 
 -- Tabla: factura
-CREATE TABLE factura (
+CREATE TABLE IF NOT EXISTS factura (
     id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
     id_paciente INTEGER NOT NULL,
     fecha_emision DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -177,7 +173,7 @@ CREATE TABLE factura (
 );
 
 -- Tabla: detalle_factura
-CREATE TABLE detalle_factura (
+CREATE TABLE IF NOT EXISTS detalle_factura (
     id_detalle_factura INTEGER PRIMARY KEY AUTOINCREMENT,
     id_factura INTEGER NOT NULL,
     concepto TEXT NOT NULL,
@@ -187,15 +183,3 @@ CREATE TABLE detalle_factura (
     FOREIGN KEY (id_factura) REFERENCES factura(id_factura)
 );
 
--- Tabla: bitacora_eventos
-CREATE TABLE bitacora_eventos (
-    id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_usuario INTEGER NOT NULL,
-    tabla_afectada TEXT,
-    id_registro INTEGER,
-    accion TEXT,
-    fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
-    datos_antes TEXT,
-    datos_despues TEXT,
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
-);
