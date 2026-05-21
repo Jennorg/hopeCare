@@ -10,22 +10,16 @@ public class Consulta {
     private String tratamiento;
     private String notasMedicas;
     private LocalDateTime fechaConsulta;
-    private boolean facturado;
     private double precio;
 
     public Consulta() {}
 
-    public Consulta(int idCita, String diagnostico, String sintomas, String tratamiento, boolean facturado, double precio) {
+    public Consulta(int idCita, String diagnostico, String sintomas, String tratamiento, double precio) {
         this.idCita = idCita;
         this.diagnostico = diagnostico;
         this.sintomas = sintomas;
         this.tratamiento = tratamiento;
-        this.facturado = facturado;
         this.precio = precio;
-    }
-
-    public Consulta(int idCita, String diagnostico, String sintomas, String tratamiento, boolean facturado) {
-        this(idCita, diagnostico, sintomas, tratamiento, facturado, 0.0);
     }
 
     public int getIdConsulta() { return idConsulta; }
@@ -42,8 +36,6 @@ public class Consulta {
     public void setNotasMedicas(String notasMedicas) { this.notasMedicas = notasMedicas; }
     public LocalDateTime getFechaConsulta() { return fechaConsulta; }
     public void setFechaConsulta(LocalDateTime fechaConsulta) { this.fechaConsulta = fechaConsulta; }
-    public boolean isFacturado() { return facturado; }
-    public void setFacturado(boolean facturado) { this.facturado = facturado; }
     public double getPrecio() { return precio; }
     public void setPrecio(double precio) { this.precio = precio; }
 }

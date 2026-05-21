@@ -44,11 +44,6 @@
                     <SVGPath content="M2 2h10l2 2v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1zM5 2v4h6V2M4 10h8v5H4z" styleClass="svg-icon" />
                 </graphic>
             </Button>
-            <Button fx:id="btnSolicitarExamen" text="Solicitar examen" styleClass="button-secondary">
-                <graphic>
-                    <SVGPath content="M6 2h4M8 2v4M3 14l3-8h4l3 8a1 1 0 01-1 1H4a1 1 0 01-1-1z" styleClass="svg-icon" />
-                </graphic>
-            </Button>
         </HBox>
     </GridPane>
 </VBox>

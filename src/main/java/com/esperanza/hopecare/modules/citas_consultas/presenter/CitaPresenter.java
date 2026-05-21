@@ -11,7 +11,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.esperanza.hopecare.common.events.DatosFacturablesActualizadosEvent;
 import com.esperanza.hopecare.common.events.EventBus;
 import com.esperanza.hopecare.common.events.NuevaCitaEvent;
 
@@ -103,7 +102,6 @@ public class CitaPresenter {
             if (precio > 0) {
                 new ConsultaDAO().insertarSiNoExiste(nuevaCita.getIdCita(), precio);
             }
-            EventBus.getInstance().post(new DatosFacturablesActualizadosEvent());
             EventBus.getInstance().post(new NuevaCitaEvent(nuevaCita.getIdCita(), nuevaCita.getFechaHora()));
             view.mostrarMensajeExito("Cita reservada exitosamente.");
             view.limpiarCampos();

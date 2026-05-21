@@ -17,7 +17,6 @@ public class LoginController {
     @FXML private PasswordField txtContrasena;
     @FXML private Label         lblMensaje;
     @FXML private Button        btnIngresar;
-    @FXML private Hyperlink     linkRegistro;
 
     @FXML private VBox          formContainer;
     @FXML private VBox          loadingContainer;
@@ -61,47 +60,6 @@ public class LoginController {
         );
         timeline.setOnFinished(e -> javafx.application.Platform.runLater(this::abrirPrincipal));
         timeline.play();
-    }
-
-    @FXML
-    private void goToSignup() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/com/esperanza/hopecare/modules/Auth/view/signup.fxml")
-            );
-            BorderPane root = loader.load();
-
-            Stage stage = (Stage) txtUsuario.getScene().getWindow();
-            double x = stage.getX();
-            double y = stage.getY();
-            double w = stage.getWidth();
-            double h = stage.getHeight();
-            boolean max = stage.isMaximized();
-
-            Scene scene = new Scene(root, 900, 700);
-            scene.getStylesheets().add(
-                getClass().getResource("/com/esperanza/hopecare/main/hopecare.css")
-                          .toExternalForm()
-            );
-            stage.setTitle("HopeCare – Crear Cuenta");
-            stage.setScene(scene);
-            stage.setResizable(true);
-
-            if (max) {
-                stage.setMaximized(false);
-                stage.setMaximized(true);
-            } else {
-                stage.setMaximized(false);
-                stage.setX(x);
-                stage.setY(y);
-                stage.setWidth(w);
-                stage.setHeight(h);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("No se pudo abrir el formulario de registro.");
-        }
     }
 
     private void abrirPrincipal() {
@@ -152,7 +110,7 @@ public class LoginController {
             lblMensaje.setManaged(false);
         } else {
             lblMensaje.setText(mensaje);
-            lblMensaje.setStyle(""); // Clear legacy direct style overrides
+            lblMensaje.setStyle("");
             if (!lblMensaje.getStyleClass().contains("msg-error-active")) {
                 lblMensaje.getStyleClass().add("msg-error-active");
             }

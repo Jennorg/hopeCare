@@ -167,6 +167,19 @@
     -fx-stroke: transparent;
 }
 
+.logout-btn {
+    -fx-text-fill: #0d9488;
+    -fx-font-weight: 700;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-underline: true;
+    -fx-padding: 4 8;
+}
+
+.logout-btn:hover {
+    -fx-text-fill: #115e59;
+}
+
 .header-bottom {
     -fx-background-color: #f8fafc;
     -fx-padding: 8 32 8 32;

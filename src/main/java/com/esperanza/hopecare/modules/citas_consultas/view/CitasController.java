@@ -11,8 +11,7 @@ import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
 import com.esperanza.hopecare.modules.pacientes_medicos.model.Especialidad;
 import com.esperanza.hopecare.modules.pacientes_medicos.model.Medico;
 import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
-import com.esperanza.hopecare.common.events.DatosFacturablesActualizadosEvent;
-import com.esperanza.hopecare.common.events.EventBus;
+import com.esperanza.hopecare.common.db.DatabaseConnection;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -148,7 +147,7 @@ public class CitasController implements ICitaView {
         MedicoDAO medicoDAO = new MedicoDAO();
         EspecialidadDAO espDAO = new EspecialidadDAO();
 
-        ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarActivos());
+        ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarTodos());
         ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
 
         TextField txtBuscarPac = new TextField();
@@ -412,11 +411,9 @@ public class CitasController implements ICitaView {
                         if (saved) {
                             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Paciente registrado correctamente.");
                             alert.showAndWait();
-                            
-                            // Refresh local list of patients
-                            pacientesList.setAll(pacienteDAO.listarActivos());
-                            
-                            // Select newly added patient in the TableView!
+
+                            pacientesList.setAll(pacienteDAO.listarTodos());
+
                             for (Paciente item : tvPacientes.getItems()) {
                                 if (item.getDocumentoIdentidad().equals(p.getDocumentoIdentidad())) {
                                     tvPacientes.getSelectionModel().select(item);
@@ -436,19 +433,111 @@ public class CitasController implements ICitaView {
             }
         });
 
+        Button btnNuevoMed = new Button("Registrar Médico");
+        btnNuevoMed.getStyleClass().add("button-secondary");
+        btnNuevoMed.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600; -fx-font-size: 11px; -fx-padding: 6 12;");
+        btnNuevoMed.setOnAction(ev -> {
+            Dialog<ButtonType> medDialog = new Dialog<>();
+            medDialog.setTitle("Registrar Médico");
+            medDialog.setHeaderText("Complete los datos del nuevo médico");
+
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(8);
+            grid.setPadding(new Insets(15));
+
+            TextField medNombre = new TextField(); medNombre.setPromptText("Nombre");
+            TextField medApellido = new TextField(); medApellido.setPromptText("Apellido");
+            TextField medDoc = new TextField(); medDoc.setPromptText("Documento de identidad");
+            ComboBox<Especialidad> medEsp = new ComboBox<>();
+            medEsp.setPrefWidth(200);
+            medEsp.getItems().addAll(espDAO.listarTodas());
+            TextField medReg = new TextField(); medReg.setPromptText("Registro médico (CMP)");
+            TextField medPrecio = new TextField(); medPrecio.setPromptText("Precio consulta");
+
+            grid.add(new Label("Nombre:"), 0, 0); grid.add(medNombre, 1, 0);
+            grid.add(new Label("Apellido:"), 0, 1); grid.add(medApellido, 1, 1);
+            grid.add(new Label("Documento:"), 0, 2); grid.add(medDoc, 1, 2);
+            grid.add(new Label("Especialidad:"), 0, 3); grid.add(medEsp, 1, 3);
+            grid.add(new Label("Registro:"), 0, 4); grid.add(medReg, 1, 4);
+            grid.add(new Label("Precio ($):"), 0, 5); grid.add(medPrecio, 1, 5);
+
+            medDialog.getDialogPane().setContent(grid);
+            medDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+            medDialog.getDialogPane().setPrefWidth(400);
+
+            medDialog.setResultConverter(btn -> {
+                if (btn == ButtonType.OK) return ButtonType.OK;
+                return null;
+            });
+
+            medDialog.showAndWait().ifPresent(btn -> {
+                String nombre = medNombre.getText().trim();
+                String apellido = medApellido.getText().trim();
+                String doc = medDoc.getText().trim();
+                Especialidad esp = medEsp.getValue();
+                String reg = medReg.getText().trim();
+                String precioStr = medPrecio.getText().trim();
+
+                if (nombre.isEmpty() || apellido.isEmpty() || doc.isEmpty() || esp == null || reg.isEmpty()) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Complete todos los campos obligatorios.");
+                    alert.showAndWait();
+                    return;
+                }
+                if (medicoDAO.existeDocumento(doc, -1)) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Ya existe una persona con este documento.");
+                    alert.showAndWait();
+                    return;
+                }
+                if (medicoDAO.existeRegistroMedico(reg, -1)) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Ya existe un médico con este registro.");
+                    alert.showAndWait();
+                    return;
+                }
+
+                double precio = 0.0;
+                try { precio = Double.parseDouble(precioStr); } catch (NumberFormatException ignored) {}
+
+                Medico m = new Medico();
+                m.setNombre(nombre);
+                m.setApellido(apellido);
+                m.setDocumentoIdentidad(doc);
+                m.setIdEspecialidad(esp.getIdEspecialidad());
+                m.setNombreEspecialidad(esp.getNombre());
+                m.setRegistroMedico(reg);
+                m.setPrecioConsulta(precio);
+                m.setActivo(true);
+
+                if (medicoDAO.insertarMedico(m)) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Médico registrado correctamente.");
+                    alert.showAndWait();
+                    medicosList.setAll(medicoDAO.listarTodos());
+                    for (Medico item : tvMedicos.getItems()) {
+                        if (item.getDocumentoIdentidad().equals(doc)) {
+                            tvMedicos.getSelectionModel().select(item);
+                            break;
+                        }
+                    }
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Error al registrar el médico.");
+                    alert.showAndWait();
+                }
+            });
+        });
+
         Label lblPacSection = new Label("Seleccionar paciente:");
         lblPacSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
-        
+
         HBox HBoxPacSearch = new HBox(10, txtBuscarPac, btnNuevoPac);
         HBox.setHgrow(txtBuscarPac, javafx.scene.layout.Priority.ALWAYS);
-        
+
         VBox pacienteSection = new VBox(5,
             lblPacSection,
             HBoxPacSearch,
             tvPacientes
         );
 
-        HBox filtrosMedicos = new HBox(10, cbEsp, txtBuscarMed);
+        HBox filtrosMedicos = new HBox(10, cbEsp, txtBuscarMed, btnNuevoMed);
         HBox.setHgrow(txtBuscarMed, javafx.scene.layout.Priority.ALWAYS);
         Label lblMedSection = new Label("Seleccionar médico:");
         lblMedSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
@@ -478,7 +567,7 @@ public class CitasController implements ICitaView {
         content.setStyle("-fx-padding: 15;");
 
         dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().setPrefWidth(750);
+        dialog.getDialogPane().setPrefWidth(900);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
 
         dialog.showAndWait();
@@ -579,7 +668,6 @@ public class CitasController implements ICitaView {
             if (citaDAO.actualizarCita(cita)) {
                 if ("ATENDIDA".equals(nuevoEstado)) {
                     new ConsultaDAO().insertarSiNoExiste(cita.getIdCita(), precio);
-                    EventBus.getInstance().post(new DatosFacturablesActualizadosEvent());
                 }
                 mostrarMensajeExito("Cita actualizada correctamente.");
                 dialog.close();

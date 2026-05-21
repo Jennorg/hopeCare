@@ -7,7 +7,7 @@ import java.sql.*;
 public class ConsultaDAO {
 
     public int insertarConsultaYActualizarEstado(Consulta consulta) {
-        String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, facturado, precio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, ?, ?, ?, ?, ?, ?)";
         String sqlUpdate = "UPDATE cita SET estado = 'ATENDIDA' WHERE id_cita = ?";
         Connection conn = null;
         PreparedStatement pstmtInsert = null;
@@ -23,8 +23,7 @@ public class ConsultaDAO {
             pstmtInsert.setString(4, consulta.getTratamiento());
             pstmtInsert.setString(5, consulta.getNotasMedicas());
             pstmtInsert.setTimestamp(6, Timestamp.valueOf(consulta.getFechaConsulta()));
-            pstmtInsert.setBoolean(7, consulta.isFacturado());
-            pstmtInsert.setDouble(8, consulta.getPrecio());
+            pstmtInsert.setDouble(7, consulta.getPrecio());
             int affectedInsert = pstmtInsert.executeUpdate();
 
             pstmtUpdate = conn.prepareStatement(sqlUpdate);
@@ -60,7 +59,7 @@ public class ConsultaDAO {
 
     public void insertarSiNoExiste(int idCita, double precio) {
         String sqlCheck = "SELECT COUNT(*) FROM consulta WHERE id_cita = ?";
-        String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, facturado, precio) VALUES (?, '', '', '', '', datetime('now', 'localtime'), 0, ?)";
+        String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, '', '', '', '', datetime('now', 'localtime'), ?)";
         try (Connection conn = DatabaseConnection.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(sqlCheck)) {
                 ps.setInt(1, idCita);

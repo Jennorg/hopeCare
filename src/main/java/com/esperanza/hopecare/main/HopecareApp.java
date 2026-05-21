@@ -34,8 +34,7 @@ public class HopecareApp extends Application {
         scene.getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
 
         primaryStage.setTitle("HopeCare - Sistema de Gestión Hospitalaria");
-        
-        // Add brand logo as the window icon
+
         try {
             primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/com/esperanza/hopecare/imgs/logo.png")));
         } catch (Exception e) {
@@ -57,32 +56,6 @@ public class HopecareApp extends Application {
                 System.out.println("Esquema creado. Insertando datos de prueba...");
                 com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
             } else {
-                System.out.println("Base de datos existente. Verificando schema...");
-                try {
-                    if (!schemaEstaSincronizado(stmt)) {
-                        System.err.println("ERROR: El schema de la BD no es compatible con esta versión del código.");
-                        System.err.println("Solución: borra el archivo 'sisgeho.db' y reinicia la aplicación.");
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error al verificar el schema: " + e.getMessage());
-                    e.printStackTrace();
-                }
-
-                if (!columnaExiste(stmt, "consulta", "precio")) {
-                    System.out.println("Migrando: agregando columna precio a consulta...");
-                    stmt.execute("ALTER TABLE consulta ADD COLUMN precio REAL NOT NULL DEFAULT 0.0");
-                }
-
-                if (!columnaExiste(stmt, "medico", "precio_consulta")) {
-                    System.out.println("Migrando: agregando columna precio_consulta a medico...");
-                    stmt.execute("ALTER TABLE medico ADD COLUMN precio_consulta REAL NOT NULL DEFAULT 0.0");
-                }
-                
-                if (!columnaExiste(stmt, "paciente", "activo")) {
-                    System.out.println("Migrando: agregando columna activo a paciente...");
-                    stmt.execute("ALTER TABLE paciente ADD COLUMN activo INTEGER DEFAULT 1");
-                }
-                
                 if (baseDatosVacia(stmt)) {
                     System.out.println("Insertando datos de prueba...");
                     com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
@@ -94,33 +67,11 @@ public class HopecareApp extends Application {
         }
     }
 
-    private boolean schemaEstaSincronizado(Statement stmt) throws Exception {
-        if (!columnaExiste(stmt, "usuario", "id_persona")) {
-            System.out.println("[DB] Falta columna 'id_persona' en tabla 'usuario'.");
-            return false;
-        }
-        if (columnaExiste(stmt, "persona", "id_usuario")) {
-            System.out.println("[DB] Columna obsoleta 'id_usuario' en tabla 'persona'.");
-            return false;
-        }
-        System.out.println("[DB] Schema sincronizado.");
-        return true;
-    }
-
     private boolean tablaExiste(Statement stmt, String nombre) throws Exception {
         try (ResultSet rs = stmt.executeQuery(
                 "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + nombre + "'")) {
             return rs.next() && rs.getInt(1) > 0;
         }
-    }
-
-    private boolean columnaExiste(Statement stmt, String tabla, String columna) throws Exception {
-        try (ResultSet rs = stmt.executeQuery("PRAGMA table_info(" + tabla + ")")) {
-            while (rs.next()) {
-                if (columna.equals(rs.getString("name"))) return true;
-            }
-        }
-        return false;
     }
 
     private boolean baseDatosVacia(Statement stmt) throws Exception {

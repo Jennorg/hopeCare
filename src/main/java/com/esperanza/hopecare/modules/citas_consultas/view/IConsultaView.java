@@ -1,6 +1,5 @@
 package com.esperanza.hopecare.modules.citas_consultas.view;
 import com.esperanza.hopecare.modules.citas_consultas.model.Cita;
-import com.esperanza.hopecare.modules.medicamentos_lab.model.ExamenLaboratorio;
 import java.util.List;
 
 public interface IConsultaView {
@@ -15,5 +14,4 @@ public interface IConsultaView {
     void limpiarFormulario();
     void limpiarSeleccionCita();
     void actualizarEstadoAcciones(boolean consultaGuardada);
-    Integer solicitarExamen(List<ExamenLaboratorio> examenesDisponibles);
 }

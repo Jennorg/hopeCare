@@ -3,12 +3,10 @@ package com.esperanza.hopecare.modules.citas_consultas.view;
 import com.esperanza.hopecare.modules.citas_consultas.model.Cita;
 import com.esperanza.hopecare.modules.citas_consultas.presenter.ConsultaPresenter;
 import com.esperanza.hopecare.modules.citas_consultas.view.IConsultaView;
-import com.esperanza.hopecare.modules.medicamentos_lab.model.ExamenLaboratorio;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -16,7 +14,7 @@ public class ConsultaController implements IConsultaView {
     @FXML private ComboBox<String> cbCitasPendientes;
     @FXML private TextArea txtSintomas, txtDiagnostico, txtTratamiento;
     @FXML private TextField txtPrecio;
-    @FXML private Button btnCargar, btnGuardar, btnSolicitarExamen;
+    @FXML private Button btnCargar, btnGuardar;
 
     private ConsultaPresenter presenter;
     private ObservableList<String> citasList;
@@ -29,7 +27,6 @@ public class ConsultaController implements IConsultaView {
 
         btnCargar.setOnAction(e -> presenter.seleccionarCita());
         btnGuardar.setOnAction(e -> presenter.registrarConsulta());
-        btnSolicitarExamen.setOnAction(e -> presenter.solicitarExamen());
 
         presenter.cargarCitasPendientes();
     }
@@ -120,47 +117,5 @@ public class ConsultaController implements IConsultaView {
     @Override
     public void actualizarEstadoAcciones(boolean consultaGuardada) {
         btnGuardar.setDisable(consultaGuardada);
-        btnSolicitarExamen.setDisable(!consultaGuardada);
-    }
-
-    @Override
-    public Integer solicitarExamen(List<ExamenLaboratorio> examenesDisponibles) {
-        ComboBox<ExamenLaboratorio> cbExamenes = new ComboBox<>();
-        cbExamenes.setPrefWidth(350);
-        cbExamenes.getItems().setAll(examenesDisponibles);
-        cbExamenes.setCellFactory(lv -> new ListCell<ExamenLaboratorio>() {
-            @Override
-            protected void updateItem(ExamenLaboratorio item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(item != null ? item.getNombreExamen() : null);
-            }
-        });
-        cbExamenes.setButtonCell(new ListCell<ExamenLaboratorio>() {
-            @Override
-            protected void updateItem(ExamenLaboratorio item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(item != null ? item.getNombreExamen() : "Seleccionar examen...");
-            }
-        });
-
-        Dialog<Integer> dialog = new Dialog<>();
-        dialog.setTitle("Solicitar examen");
-        dialog.setHeaderText("Seleccione el examen de laboratorio");
-        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
-
-        VBox content = new VBox(10, new Label("Examen:"), cbExamenes);
-        content.setStyle("-fx-padding: 15;");
-        dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        dialog.setResultConverter(btn -> {
-            if (btn == ButtonType.OK) {
-                ExamenLaboratorio seleccion = cbExamenes.getValue();
-                return seleccion != null ? seleccion.getIdExamen() : null;
-            }
-            return null;
-        });
-
-        return dialog.showAndWait().orElse(null);
     }
 }
