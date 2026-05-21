@@ -212,6 +212,40 @@ public class CitaDAO {
         return citas;
     }
 
+    public boolean eliminarCita(int idCita) {
+        Connection conn = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement delConsulta = conn.prepareStatement("DELETE FROM consulta WHERE id_cita = ?")) {
+                delConsulta.setInt(1, idCita);
+                delConsulta.executeUpdate();
+            }
+
+            try (PreparedStatement delCita = conn.prepareStatement("DELETE FROM cita WHERE id_cita = ?")) {
+                delCita.setInt(1, idCita);
+                if (delCita.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            return false;
+        } finally {
+            if (conn != null) {
+                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+    }
+
     public List<Cita> obtenerCitasPorEstadoConNombres(String estado) {
         List<Cita> citas = new ArrayList<>();
         String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "

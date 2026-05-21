@@ -697,7 +697,30 @@ public class CitasController implements ICitaView {
         editGrid.add(new Label("Costo consulta ($):"), 0, 4);
         editGrid.add(txtPrecio, 1, 4);
 
-        VBox content = new VBox(12, infoSection, new Label("— Editar —"), editGrid, btnGuardar);
+        Button btnEliminar = new Button("Eliminar cita");
+        btnEliminar.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: 700; -fx-padding: 8 16; -fx-cursor: hand;");
+        btnEliminar.setOnAction(ev -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Eliminar cita");
+            confirm.setHeaderText("¿Está seguro de eliminar la cita #" + cita.getIdCita() + "?");
+            confirm.setContentText("Paciente: " + cita.getPacienteNombre() + "\nMédico: " + cita.getMedicoNombre() + "\nFecha: " + cita.getFechaHora().format(dtf) + "\n\nEsta acción no se puede deshacer.");
+            confirm.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
+            confirm.showAndWait().ifPresent(r -> {
+                if (r == ButtonType.OK) {
+                    if (citaDAO.eliminarCita(cita.getIdCita())) {
+                        mostrarMensajeExito("Cita eliminada correctamente.");
+                        dialog.close();
+                        presenter.cargarCitasExistentes();
+                    } else {
+                        mostrarMensajeError("Error al eliminar la cita.");
+                    }
+                }
+            });
+        });
+
+        HBox buttonRow = new HBox(10, btnGuardar, btnEliminar);
+
+        VBox content = new VBox(12, infoSection, new Label("— Editar —"), editGrid, buttonRow);
         content.setPadding(new Insets(15));
 
         dialog.getDialogPane().setContent(content);
