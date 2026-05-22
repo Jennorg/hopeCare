@@ -34,6 +34,18 @@ public class ConsultaDAO {
         }
     }
 
+    public boolean marcarFacturado(int idReferencia) {
+        String sql = "UPDATE consulta SET facturado = 1 WHERE id_consulta = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idReferencia);
+            return ps.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public List<PendienteDTO> listarPendientesConPaciente() {
         List<PendienteDTO> lista = new ArrayList<>();
         String sql = "SELECT c.id_consulta, ci.id_paciente, "

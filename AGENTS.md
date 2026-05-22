@@ -33,14 +33,14 @@
 | `modules/dashboard/` | Observer pattern, DashboardDAO |
 | `common/model/` | Persona (base class con nombre, apellido, documentoIdentidad) |
 | `common/db/` | DatabaseConnection, CrearBaseDatos, CargarDatosPrueba |
-| `common/events/` | EventBus, NuevaCitaEvent, NuevaFacturaEvent |
+| `common/events/` | EventBus, DatosFacturablesActualizadosEvent |
 | `common/util/` | RoleValidator |
 | `citas/view/` | CitasController.java (JavaFX, implementa ICitaView) + citas.fxml |
 | `consulta/view/` | ConsultaController.java (standalone) + consulta.fxml |
 | `ui/citas/` | CitasPanel.java (Swing, implementa ICitaView) |
 | `*/view/` | Java Controllers + FXML files |
 
-## Módulos Completos (Citas/Consultas + Farmacia + Laboratorio)
+## Módulos Completos (Citas/Consultas + Farmacia + Laboratorio + Facturación)
 
 ### Citas (MVP - ICitaView + CitaPresenter)
 - **ICP**: `ICitaView.java` - interfaz con mostrarHorariosDisponibles(), getters de selección
@@ -81,40 +81,29 @@
 ### Schema Actual
 - Archivo: `sisgeho.db` en raíz del proyecto
 - Script DDL: `src/main/resources/sisgeho_schema.sql` (schema completo con todas las tablas)
-- Datos de prueba: `CargarDatosPrueba.java` (5 pacientes, 3 médicos, 5 medicamentos, 5 exámenes, 10 citas)
+- Datos de prueba: `CargarDatosPrueba.java` (3 roles, 3 personas/usuarios, 1 médico, 3 pacientes, 4 citas, 3 consultas, 1 factura)
 - Driver: SQLite v3.45.1.0 (xerial sqlite-jdbc)
 
 ### Esquema de Tablas
 ```
 USUARIOS Y ROLES:
-  - rol (id_rol, nombre_rol)
-  - persona (id_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero)
-  - usuario (id_usuario, nombre_usuario, contrasena_hash, id_rol, id_persona, fecha_creacion)
+- rol (id_rol, nombre_rol)
+- persona (id_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero)
+- usuario (id_usuario, nombre_usuario, contrasena_hash, id_rol, id_persona, fecha_creacion)
 
 REGISTRO:
-  - especialidad (id_especialidad, nombre_especialidad)
-  - paciente (id_paciente, id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, fecha_registro)
-  - medico (id_medico, id_persona, id_especialidad, registro_medico, activo)
+- especialidad (id_especialidad, nombre_especialidad)
+- paciente (id_paciente, id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, fecha_registro)
+- medico (id_medico, id_persona, id_especialidad, registro_medico, activo)
 
 CITAS Y CONSULTAS:
-  - horario_atencion (id_horario, id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo)
-  - cita (id_cita, id_paciente, id_medico, fecha_hora, estado, motivo, creada_por, fecha_creacion)
-  - consulta (id_consulta, id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, facturado)
-
-FARMACIA:
-  - medicamento (id_medicamento, nombre_comercial, principio_activo, presentacion, concentracion, precio_unitario, stock_actual, stock_minimo, requiere_receta)
-  - entrega_medicamento (id_entrega, id_paciente, id_medicamento, cantidad_entregada, presente_receta, fecha_entrega, entregado_por, facturado)
-
-LABORATORIO:
-  - examen_laboratorio (id_examen, nombre_examen, descripcion, precio, tiempo_resultado_horas, resultado_archivo)
-  - solicitud_examen (id_solicitud, id_paciente, id_examen, fecha_solicitud, estado, resultado_texto, resultado_archivo, realizado_por, facturado)
+- horario_atencion (id_horario, id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo)
+- cita (id_cita, id_paciente, id_medico, fecha_hora, estado, motivo, creada_por, fecha_creacion)
+- consulta (id_consulta, id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, facturado, precio)
 
 FACTURACIÓN:
-  - factura (id_factura, id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago, forma_pago)
-  - detalle_factura (id_detalle_factura, id_factura, concepto, id_referencia, tipo_referencia, monto)
-
-AUDITORÍA:
-  - bitacora_eventos (id_evento, id_usuario, tabla_afectada, id_registro, accion, fecha_hora, datos_antes, datos_despues)
+- factura (id_factura, id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago, forma_pago)
+- detalle_factura (id_detalle_factura, id_factura, concepto, id_referencia, tipo_referencia, monto)
 ```
 
 ### Columnas de Compatibilidad (stock_minimo, facturado, presente_receta)
@@ -125,9 +114,10 @@ AUDITORÍA:
 
 ## Inicialización Automática de BD
 La app crea y puebla la base de datos automáticamente al iniciar (`HopecareApp.init()`):
+
 1. Verifica si la tabla `persona` existe
 2. Si no existe → ejecuta `sisgeho_schema.sql` para crear todas las tablas
-3. Si `persona` está vacía → inserta datos de prueba (5 pacientes, 3 médicos, 5 medicamentos, 5 exámenes, 10 citas, 4 usuarios, horarios, etc.)
+3. Si `persona` está vacía → inserta datos de prueba (3 roles, 3 personas/usuarios, 1 médico, 3 pacientes, 4 citas, 3 consultas, 1 factura)
 4. Si ya hay datos → no hace nada
 
 Para resetear la BD: borrar `sisgeho.db` de la raíz y reiniciar la app.
@@ -136,9 +126,9 @@ Para resetear la BD: borrar `sisgeho.db` de la raíz y reiniciar la app.
 | Usuario | Contraseña | Rol |
 |---------|------------|-----|
 | admin | admin123 | ADMIN |
-| recepcion | recepcion123 | RECEPCION |
-| farmacia | farmacia123 | FARMACIA |
-| laboratorio | laboratorio123 | LABORATORIO |
+| secretaria | secretaria123 | SECRETARIA |
+| juan | juan123 | PACIENTE |
+| maria | maria123 | PACIENTE |
 
 ## Testing
 - Archivos de prueba: `src/main/java/com/esperanza/hopecare/test/`
@@ -159,7 +149,7 @@ mvn javafx:run
 
 ## Navegación Principal
 La navegación se maneja desde `MainController.java`:
-- `main.fxml` usa un `TabPane` oculto con los 6 módulos
+- `main.fxml` usa un `TabPane` oculto con los módulos
 - El header superior con `Hyperlink` navega cambiando el índice del TabPane
 - Breadcrumb se actualiza dinámicamente
 
@@ -170,37 +160,43 @@ La navegación se maneja desde `MainController.java`:
 - Al agregar nuevos modelos usados en TableView con PropertyValueFactory, agregar `opens` correspondiente en `module-info.java`
 
 ## Pendientes Conocidos
-- Módulos Dashboard, Registro, Facturación: estructura visual completa pero DAOs/Service pendientes
+- Módulos Dashboard, Registro: estructura visual completa pero DAOs/Service pendientes
 - Reportes (JasperReports)
 - Pruebas unitarias JUnit 5
 - JAR ejecutable con Maven Assembly Plugin
 
 ## Notas de la Versión Actual
-- Schema modificado: tablas `receta` y `detalle_receta` eliminadas
-- `entrega_medicamento` ahora referencia directamente `id_paciente` e `id_medicamento` (antes dependía de detalle_receta)
-- `solicitud_examen` ahora referencia directamente `id_paciente` (antes dependía de id_consulta)
-- Columna `presente_receta` agregada a `entrega_medicamento` para indicar si el paciente presentó receta
-- Modelos `EntregaMedicamento` y `SolicitudExamen` ahora incluyen campos de nombres (`pacienteNombreCompleto`, `medicamentoNombre`, `examenNombre`)
-- DAOs reescritos con JOINs a persona/medicamento/examen_laboratorio para obtener nombres
-- FarmaciaController ahora usa ComboBoxes con CellFactory para seleccionar paciente y medicamento
-- Columna "Receta" en tabla de entregas muestra SÍ (verde) / NO (rojo) según presente_receta
-- LaboratorioController muestra nombres de pacientes y exámenes, nuevo formulario para crear solicitudes
-- IMPORTANTE: Al actualizar, eliminar `sisgeho.db` para recrear con el nuevo esquema
+### Módulo de Facturación (Actualizado)
+- **Schema reducido**: Solo tablas necesarias para facturación (rol, persona, usuario, paciente, especialidad, medico, horario_atencion, cita, consulta, factura, detalle_factura)
+- **Roles**: ADMIN (acceso completo), SECRETARIA (crear/editar, no eliminar facturas), PACIENTE (solo lectura de sus facturas)
+- **Eliminar factura**: Solo ADMIN puede eliminar facturas. Al eliminar, las consultas asociadas revierten su flag `facturado` a 0, permitiendo re-facturar
+- **UI refresh**: Tras eliminar factura, se refrescan pendientes y facturas vía EventBus
+- **Botón Ayuda/FAQ**: Diálogo con guía de uso y preguntas frecuentes
+- **Sin farmacia/laboratorio**: Módulos eliminados del proyecto
 
-## Estructura de Archivos Modificados
-- `main.fxml` / `MainController.java` - Nueva navegación header
+### Cambios Recientes en Facturación
+- `FacturaDAO.eliminarFactura()`: Ahora revierte `consulta.facturado = 0` antes de eliminar, usando subquery en `detalle_factura`
+- `FacturacionController.confirmarEliminarFactura()`: Refresca UI completa y publica evento `DatosFacturablesActualizadosEvent`
+- Restricción por roles: Solo ADMIN ve menú contextual "Eliminar factura"
+- Nuevo botón "Ayuda / FAQ" en la interfaz de facturación
+
+### Estructura de Archivos Modificados
+- `main.fxml` / `MainController.java` - Navegación simplificada (solo Facturación)
 - `hopecare.css` - Paleta teal/slate completa
-- `farmacia.fxml` / `FarmaciaController.java` - Completo + ComboBoxes con CellFactory + columna Receta SÍ/NO
-- `laboratorio.fxml` / `LaboratorioController.java` - Completo + nombres de pacientes + nuevo form crear solicitudes
-- `dashboard.fxml` - Estilo visual actualizado (lógica existente)
-- `Auth/` - Login/Signup con autenticación SHA-256 y flujo completo
-- `module-info.java` - opens para Auth.view
-- `sisgeho_schema.sql` - Schema actualizado (entrega_medicamento ahora referencia id_paciente e id_medicamento directamente, eliminadas tablas receta y detalle_receta)
-- `EntregaMedicamento.java` - Modelo actualizado con campos pacienteNombre, medicamentoNombre, presente_receta
-- `EntregaMedicamentoDAO.java` - DAO reescrito para nuevo esquema con JOIN a persona para obtener nombres
-- `SolicitudExamen.java` - Modelo con idPaciente (eliminado idConsulta)
-- `SolicitudExamenDAO.java` - DAO reescrito con JOIN a persona/examen para nombres
-- `ExamenService.java` - solicitadoExamen(int idPaciente, int idExamen)
-- `GestionClinicaFacade.java` - procesarEntregaMedicamento(idPaciente, idMedicamento, cantidad, presenteReceta, rol)
-- `ConsultaPresenter.java` / `IConsultaView.java` / `ConsultaController.java` - Sin funcionalidad de recetas
-- `Persona.java` - Agregado getNombreCompleto()
+- `facturacion.fxml` / `FacturacionController.java` - UI completa con role-based access, botón Ayuda, eliminar facturas (ADMIN), refresh post-eliminación
+- `Auth/` - Login/Signup con autenticación SHA-256, 3 roles (ADMINISTRADOR, SECRETARIA, PACIENTE)
+- `module-info.java` - opens para Auth.view, eliminados paquetes no usados
+- `sisgeho_schema.sql` - Schema reducido (eliminadas tablas de farmacia/laboratorio)
+- `FacturaDAO.java` - eliminarFactura() con revert de facturado
+- `FacturacionService.java` - Solo maneja tipo CONSULTA
+- `ConsultaDAO.java` - listarPendientesConPaciente(), listarNoFacturadasPorPaciente()
+- `PacienteDAO.obtenerIdPacientePorIdPersona()` - Convierte idPersona → idPaciente
+- `SesionManager` - Ahora rastrea idPersona además del rol
+- `AuthDAO.autenticar()` - Devuelve id_persona además de id_usuario
+- `CargarDatosPrueba.java` - Datos mínimos: 3 roles, 3 usuarios, 1 médico, 3 pacientes, 4 citas, 3 consultas, 1 factura
+
+## Notas Importantes
+- IMPORTANTE: Al actualizar, eliminar `sisgeho.db` para recrear con el nuevo schema
+- Los warnings de SVGPath al iniciar son cosméticos (ruta SVG truncada en FXML), no afectan funcionalidad
+- Después de eliminar una factura, los conceptos vuelven a estar disponibles en la pendientes
+- El botón "Ayuda / FAQ" contiene guía completa de uso del módulo de facturación

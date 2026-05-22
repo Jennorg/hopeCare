@@ -28,6 +28,7 @@ public class AuthService {
         if (model != null) {
             dto.setExitoso(true);
             dto.setNombreRol(model.getNombreRol());
+            dto.setIdPersona(model.getIdPersona());
             dto.setMensaje("Inicio de sesion exitoso.");
         } else {
             dto.setExitoso(false);
@@ -60,12 +61,10 @@ public class AuthService {
             persona.setEmail(dto.getEmail());
             persona.setDireccion(dto.getDireccion());
             int idPersona = authDAO.insertarPersona(conn, persona);
-            String rolBD = "ADMINISTRADOR".equals(dto.getRol()) ? "ADMIN" : dto.getRol();
+            String rolBD = dto.getRol();
+            if ("ADMINISTRADOR".equals(rolBD)) rolBD = "ADMIN";
             int idUsuario = authDAO.insertarUsuario(conn, dto.getNombreUsuario(), dto.getContrasena(), rolBD, idPersona);
-            if ("MEDICO".equals(dto.getRol())) {
-                int idEspecialidad = authDAO.obtenerIdEspecialidad(conn, dto.getEspecialidad());
-                authDAO.insertarMedico(conn, idPersona, idEspecialidad, dto.getRegistroMedico());
-            } else if ("PACIENTE".equals(dto.getRol())) {
+            if ("PACIENTE".equals(dto.getRol())) {
                 authDAO.insertarPaciente(conn, idPersona, "HC-" + System.currentTimeMillis());
             }
             conn.commit();

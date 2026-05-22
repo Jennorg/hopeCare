@@ -40,6 +40,17 @@ public class PacienteDAO {
         return lista;
     }
 
+    public int obtenerIdPacientePorIdPersona(int idPersona) {
+        String sql = "SELECT id_paciente FROM paciente WHERE id_persona = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPersona);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return -1;
+    }
+
     public List<Paciente> listarActivos() {
         List<Paciente> lista = new ArrayList<>();
         String sql = "SELECT p.id_paciente, p.id_persona, p.historia_clinica, p.alergias, p.grupo_sanguineo, p.contacto_emergencia, p.activo, "

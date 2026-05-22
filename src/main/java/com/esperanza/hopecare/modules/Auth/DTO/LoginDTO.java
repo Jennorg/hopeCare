@@ -5,6 +5,7 @@ public class LoginDTO {
     private String contrasena;
     private boolean exitoso;
     private String nombreRol;
+    private int idPersona = -1;
     private String mensaje;
 
     public LoginDTO() {}
@@ -20,6 +21,8 @@ public class LoginDTO {
     public void setExitoso(boolean v) { this.exitoso = v; }
     public String getNombreRol() { return nombreRol; }
     public void setNombreRol(String v) { this.nombreRol = v; }
+    public int getIdPersona() { return idPersona; }
+    public void setIdPersona(int v) { this.idPersona = v; }
     public String getMensaje() { return mensaje; }
     public void setMensaje(String v) { this.mensaje = v; }
 }

@@ -70,13 +70,73 @@ public class FacturaDAO {
         }
     }
 
+    public List<FacturaResumenDTO> listarPorIdPaciente(int idPaciente) {
+        List<FacturaResumenDTO> lista = new ArrayList<>();
+        String sql = "SELECT f.id_factura, f.fecha_emision, f.subtotal, f.impuesto, f.total, f.estado_pago, "
+                   + "per.nombre, per.apellido "
+                   + "FROM factura f "
+                   + "JOIN paciente p ON f.id_paciente = p.id_paciente "
+                   + "JOIN persona per ON p.id_persona = per.id_persona "
+                   + "WHERE f.id_paciente = ? "
+                   + "ORDER BY f.fecha_emision DESC";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPaciente);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String paciente = rs.getString("nombre") + " " + rs.getString("apellido");
+                lista.add(new FacturaResumenDTO(
+                    rs.getInt("id_factura"),
+                    paciente,
+                    rs.getString("fecha_emision"),
+                    rs.getDouble("subtotal"),
+                    rs.getDouble("impuesto"),
+                    rs.getDouble("total"),
+                    rs.getString("estado_pago")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    public boolean eliminarFactura(int idFactura) {
+        Connection conn = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE consulta SET facturado = 0 WHERE id_consulta IN ("
+                    + "SELECT id_referencia FROM detalle_factura WHERE id_factura = ? AND tipo_referencia = 'CONSULTA')")) {
+                ps.setInt(1, idFactura);
+                ps.executeUpdate();
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM detalle_factura WHERE id_factura = ?")) {
+                ps.setInt(1, idFactura);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM factura WHERE id_factura = ?")) {
+                ps.setInt(1, idFactura);
+                int affected = ps.executeUpdate();
+                if (affected == 0) { conn.rollback(); return false; }
+            }
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (conn != null) { try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); } }
+            return false;
+        } finally {
+            if (conn != null) { try { conn.setAutoCommit(true); conn.close(); } catch (SQLException e) { e.printStackTrace(); } }
+        }
+    }
+
     public Set<Integer> obtenerIdsPacientesConPendientes() {
         Set<Integer> ids = new HashSet<>();
-        String sql = "SELECT DISTINCT ci.id_paciente FROM consulta c JOIN cita ci ON c.id_cita = ci.id_cita WHERE ci.estado = 'ATENDIDA' AND c.facturado = 0 "
-                   + "UNION "
-                   + "SELECT DISTINCT s.id_paciente FROM solicitud_examen s WHERE s.estado = 'COMPLETADO' AND s.facturado = 0 "
-                   + "UNION "
-                   + "SELECT DISTINCT em.id_paciente FROM entrega_medicamento em WHERE em.facturado = 0";
+        String sql = "SELECT DISTINCT ci.id_paciente FROM consulta c JOIN cita ci ON c.id_cita = ci.id_cita WHERE ci.estado = 'ATENDIDA' AND c.facturado = 0";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();

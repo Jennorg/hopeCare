@@ -14,7 +14,7 @@ import java.sql.Statement;
 public class AuthDAO {
 
     public UsuarioModel autenticar(String usuario, String contrasena) {
-        String sql = "SELECT u.id_usuario, u.nombre_usuario, r.nombre_rol AS rol " +
+        String sql = "SELECT u.id_usuario, u.nombre_usuario, r.nombre_rol AS rol, u.id_persona " +
                      "FROM usuario u JOIN rol r ON u.id_rol = r.id_rol " +
                      "WHERE u.nombre_usuario = ? AND u.contrasena_hash = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -27,6 +27,7 @@ public class AuthDAO {
                 model.setIdUsuario(rs.getInt("id_usuario"));
                 model.setNombreUsuario(rs.getString("nombre_usuario"));
                 model.setNombreRol(rs.getString("rol"));
+                model.setIdPersona(rs.getInt("id_persona"));
                 return model;
             }
         } catch (SQLException e) { e.printStackTrace(); }

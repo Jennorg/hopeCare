@@ -57,7 +57,7 @@ public class SignupController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbRol.setItems(FXCollections.observableArrayList(
-                "ADMINISTRADOR", "MEDICO"
+                "ADMINISTRADOR", "SECRETARIA", "PACIENTE"
         ));
         cmbRol.getSelectionModel().selectFirst();
 
@@ -114,24 +114,16 @@ public class SignupController implements Initializable {
     @FXML
     private void irAPaso3OrFinalizar() {
         if (!validarPaso2()) return;
-
-        String rol = cmbRol.getValue();
-        if ("MEDICO".equals(rol)) {
-            mostrarPaso(3);
-        } else {
-            finalizarRegistro();
-        }
+        finalizarRegistro();
     }
 
     private void actualizarVisibilidadPaso3() {
-        boolean esMedico = "MEDICO".equals(cmbRol.getValue());
-        lblStep3.setVisible(esMedico);
-        lblStep3.setManaged(esMedico);
+        lblStep3.setVisible(false);
+        lblStep3.setManaged(false);
     }
 
     private void mostrarPaso(int paso) {
         pasoActual = paso;
-        boolean esMedico = "MEDICO".equals(cmbRol.getValue());
 
         paso1.setVisible(paso == 1);
         paso1.setManaged(paso == 1);
@@ -139,11 +131,11 @@ public class SignupController implements Initializable {
         paso2.setVisible(paso == 2);
         paso2.setManaged(paso == 2);
 
-        paso3.setVisible(paso == 3);
-        paso3.setManaged(paso == 3 && esMedico);
+        paso3.setVisible(false);
+        paso3.setManaged(false);
 
-        lblStep3.setVisible(esMedico);
-        lblStep3.setManaged(esMedico);
+        lblStep3.setVisible(false);
+        lblStep3.setManaged(false);
 
         actualizarStepsBar(paso);
 
@@ -173,8 +165,8 @@ public class SignupController implements Initializable {
         dto.setGenero(getGenero());
         dto.setEmail(getEmail());
         dto.setDireccion(getDireccion());
-        dto.setEspecialidad(getEspecialidad());
-        dto.setRegistroMedico(getRegistroMedico());
+        dto.setEspecialidad(null);
+        dto.setRegistroMedico(null);
 
         String error = authService.registrar(dto);
 
@@ -238,13 +230,9 @@ public class SignupController implements Initializable {
     }
 
     private void actualizarStepsBar(int pasoActivo) {
-        boolean esMedico = "MEDICO".equals(cmbRol.getValue());
         Label[] labels = { lblStep1, lblStep2, lblStep3 };
         for (int i = 0; i < labels.length; i++) {
             labels[i].getStyleClass().removeAll("step-active", "step-done", "step-inactive");
-            if (!esMedico && i == 2) {
-                continue;
-            }
             if (i + 1 == pasoActivo) {
                 labels[i].getStyleClass().add("step-active");
             } else if (i + 1 < pasoActivo) {
@@ -338,24 +326,7 @@ public class SignupController implements Initializable {
     }
 
     private boolean validarPaso3() {
-        String registro = txtRegistroMedico.getText().trim();
-        if (registro.isEmpty()) {
-            setError(lblMensaje3, "El número de registro médico es obligatorio.");
-            return false;
-        }
-        if (registro.length() < 4) {
-            setError(lblMensaje3, "El registro médico parece demasiado corto.");
-            return false;
-        }
-        if (cmbEspecialidad.getValue() == null) {
-            setError(lblMensaje3, "Debes seleccionar una especialidad.");
-            return false;
-        }
-        if (authService.registroMedicoExiste(registro)) {
-            setError(lblMensaje3, "Este registro médico ya está registrado.");
-            return false;
-        }
-        return true;
+        return true; // No hay paso 3 para ADMIN, SECRETARIA, o PACIENTE
     }
 
     private void setError(Label lbl, String mensaje) {
@@ -393,6 +364,6 @@ public class SignupController implements Initializable {
     }
     public String getEmail()          { return txtEmail.getText().trim(); }
     public String getDireccion()      { return txtDireccion.getText().trim(); }
-    public String getEspecialidad()   { return cmbEspecialidad.getValue(); }
-    public String getRegistroMedico() { return txtRegistroMedico.getText().trim(); }
+    public String getEspecialidad()   { return null; }
+    public String getRegistroMedico() { return null; }
 }

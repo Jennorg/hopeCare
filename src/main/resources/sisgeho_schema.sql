@@ -1,5 +1,5 @@
 -- ======================================================
--- Sistema de Gestión Hospitalaria (Sisgeho)
+-- Sistema de Gestión Hospitalaria (Sisgeho) - Aislado para Facturación
 -- Base de datos para SQLite
 -- ======================================================
 
@@ -7,18 +7,6 @@
 CREATE TABLE IF NOT EXISTS rol (
     id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_rol TEXT UNIQUE NOT NULL
-);
-
--- Tabla: usuario
-CREATE TABLE IF NOT EXISTS usuario (
-    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_usuario TEXT UNIQUE NOT NULL,
-    contrasena_hash TEXT NOT NULL,
-    id_rol INTEGER NOT NULL,
-    id_persona INTEGER NOT NULL,
-    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
-    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
 -- Tabla: persona (tabla base para pacientes y médicos)
@@ -32,6 +20,18 @@ CREATE TABLE IF NOT EXISTS persona (
     email TEXT,
     direccion TEXT,
     genero TEXT
+);
+
+-- Tabla: usuario
+CREATE TABLE IF NOT EXISTS usuario (
+    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_usuario TEXT UNIQUE NOT NULL,
+    contrasena_hash TEXT NOT NULL,
+    id_rol INTEGER NOT NULL,
+    id_persona INTEGER NOT NULL,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
 -- Tabla: paciente
@@ -106,60 +106,6 @@ CREATE TABLE IF NOT EXISTS consulta (
     FOREIGN KEY (id_cita) REFERENCES cita(id_cita)
 );
 
--- Tabla: medicamento
-CREATE TABLE IF NOT EXISTS medicamento (
-    id_medicamento INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_comercial TEXT NOT NULL,
-    principio_activo TEXT,
-    presentacion TEXT,
-    concentracion TEXT,
-    precio_unitario REAL NOT NULL,
-    stock_actual INTEGER DEFAULT 0,
-    stock_minimo INTEGER DEFAULT 0,
-    requiere_receta INTEGER DEFAULT 1
-);
-
--- Tabla: entrega_medicamento (sin recetas, referencia directa a paciente)
-CREATE TABLE IF NOT EXISTS entrega_medicamento (
-    id_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_paciente INTEGER NOT NULL,
-    id_medicamento INTEGER NOT NULL,
-    cantidad_entregada INTEGER NOT NULL,
-    presente_receta INTEGER DEFAULT 0,
-    fecha_entrega DATETIME DEFAULT CURRENT_TIMESTAMP,
-    entregado_por INTEGER NOT NULL,
-    facturado INTEGER DEFAULT 0,
-    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
-    FOREIGN KEY (id_medicamento) REFERENCES medicamento(id_medicamento),
-    FOREIGN KEY (entregado_por) REFERENCES usuario(id_usuario)
-);
-
--- Tabla: examen_laboratorio
-CREATE TABLE IF NOT EXISTS examen_laboratorio (
-    id_examen INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre_examen TEXT UNIQUE NOT NULL,
-    descripcion TEXT,
-    precio REAL NOT NULL,
-    tiempo_resultado_horas INTEGER,
-    resultado_archivo BLOB
-);
-
--- Tabla: solicitud_examen (sin consulta, referencia directa a paciente)
-CREATE TABLE IF NOT EXISTS solicitud_examen (
-    id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_paciente INTEGER NOT NULL,
-    id_examen INTEGER NOT NULL,
-    fecha_solicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
-    estado TEXT NOT NULL DEFAULT 'PENDIENTE',
-    resultado_texto TEXT,
-    resultado_archivo BLOB,
-    realizado_por INTEGER,
-    facturado INTEGER DEFAULT 0,
-    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente),
-    FOREIGN KEY (id_examen) REFERENCES examen_laboratorio(id_examen),
-    FOREIGN KEY (realizado_por) REFERENCES usuario(id_usuario)
-);
-
 -- Tabla: factura
 CREATE TABLE IF NOT EXISTS factura (
     id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -183,4 +129,3 @@ CREATE TABLE IF NOT EXISTS detalle_factura (
     monto REAL NOT NULL,
     FOREIGN KEY (id_factura) REFERENCES factura(id_factura)
 );
-
