@@ -3,13 +3,14 @@ package com.esperanza.hopecare.modules.dashboard.ui;
 import com.esperanza.hopecare.common.events.*;
 import com.esperanza.hopecare.modules.dashboard.dao.DashboardDAO;
 import com.esperanza.hopecare.modules.dashboard.model.DashboardData;
+import com.esperanza.hopecare.modules.dashboard.model.RegistroItem;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.VBox;
 
 public class DashboardController {
 
@@ -32,12 +33,20 @@ public class DashboardController {
     @FXML private Label lblIngFarmacia;
     @FXML private Label lblIngLaboratorio;
 
-    @FXML private ListView<String> listRegistros;
+    @FXML private ListView<RegistroItem> listRegistros;
+    @FXML private ListView<RegistroItem> listPacientes;
+    @FXML private ListView<RegistroItem> listMedicos;
 
     @FXML private Label lblTotalPacientes;
     @FXML private Label lblTotalMedicos;
     @FXML private Label lblTotalMedicamentos;
     @FXML private Label lblTotalExamenes;
+
+    @FXML private VBox cardCitasHoy;
+    @FXML private VBox cardAtendidos;
+    @FXML private VBox cardIngresos;
+    @FXML private VBox cardFacturasPend;
+    @FXML private VBox cardConsultas;
 
     private DashboardDAO dao;
 
@@ -45,6 +54,57 @@ public class DashboardController {
     public void initialize() {
         dao = new DashboardDAO();
         refrescar();
+
+        listRegistros.setCellFactory(lv -> new ListCell<RegistroItem>() {
+            @Override
+            protected void updateItem(RegistroItem item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item == null || empty ? null : item.getDisplayText());
+            }
+        });
+
+        listPacientes.setCellFactory(lv -> new ListCell<RegistroItem>() {
+            @Override
+            protected void updateItem(RegistroItem item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item == null || empty ? null : item.getDisplayText());
+            }
+        });
+
+        listMedicos.setCellFactory(lv -> new ListCell<RegistroItem>() {
+            @Override
+            protected void updateItem(RegistroItem item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item == null || empty ? null : item.getDisplayText());
+            }
+        });
+
+        listRegistros.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                RegistroItem selected = listRegistros.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    mostrarDetalleRegistro(selected);
+                }
+            }
+        });
+
+        listPacientes.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                RegistroItem selected = listPacientes.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    mostrarDetalleEliminarPacienteMedico(selected);
+                }
+            }
+        });
+
+        listMedicos.setOnMouseClicked(event -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                RegistroItem selected = listMedicos.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    mostrarDetalleEliminarPacienteMedico(selected);
+                }
+            }
+        });
 
         EventBus.getInstance().register(NuevaCitaEvent.class, event -> Platform.runLater(this::refrescar));
         EventBus.getInstance().register(NuevaConsultaEvent.class, event -> Platform.runLater(this::refrescar));
@@ -78,12 +138,201 @@ public class DashboardController {
         lblIngFarmacia.setText(String.format("$%,.0f", data.getIngresosFarmacia()));
         lblIngLaboratorio.setText(String.format("$%,.0f", data.getIngresosLaboratorio()));
 
-        ObservableList<String> registros = FXCollections.observableArrayList(data.getRegistrosRecientes());
+        ObservableList<RegistroItem> registros = FXCollections.observableArrayList(data.getRegistrosRecientes());
         listRegistros.setItems(registros);
+
+        listPacientes.setItems(FXCollections.observableArrayList(dao.obtenerListaPacientes()));
+        listMedicos.setItems(FXCollections.observableArrayList(dao.obtenerListaMedicos()));
 
         lblTotalPacientes.setText(String.valueOf(data.getTotalPacientes()));
         lblTotalMedicos.setText(String.valueOf(data.getTotalMedicos()));
         lblTotalMedicamentos.setText(String.valueOf(data.getTotalMedicamentos()));
         lblTotalExamenes.setText(String.valueOf(data.getTotalExamenes()));
+    }
+
+    private void mostrarDetalleEliminarPacienteMedico(RegistroItem item) {
+        String[] detalles;
+        String titulo;
+        String tipo;
+        boolean esPaciente = "PACIENTE".equals(item.getTipo());
+
+        if (esPaciente) {
+            detalles = dao.obtenerDetalleCompletoPaciente(item.getId());
+            titulo = "Detalle de Paciente";
+            tipo = "PACIENTE";
+        } else {
+            detalles = dao.obtenerDetalleCompletoMedico(item.getId());
+            titulo = "Detalle de Médico";
+            tipo = "MÉDICO";
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle(titulo);
+        dialog.setHeaderText(null);
+
+        VBox content = new VBox(4);
+        content.setStyle("-fx-padding: 16;");
+
+        for (String linea : detalles) {
+            Label lbl = new Label(linea);
+            if (linea.equals("PACIENTE") || linea.equals("MÉDICO")) {
+                lbl.setStyle("-fx-font-weight: 700; -fx-font-size: 16px; -fx-text-fill: #0f172a; -fx-padding: 0 0 8 0;");
+            } else {
+                lbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #334155;");
+            }
+            content.getChildren().add(lbl);
+        }
+
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(400);
+        scroll.setMaxHeight(500);
+
+        dialog.getDialogPane().setContent(scroll);
+        ButtonType btnEliminar = new ButtonType("Eliminar " + tipo, ButtonBar.ButtonData.APPLY);
+        dialog.getDialogPane().getButtonTypes().addAll(btnEliminar, ButtonType.CANCEL);
+        dialog.getDialogPane().setMinWidth(500);
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == btnEliminar) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "¿Está seguro de eliminar este " + tipo.toLowerCase() + "?",
+                    ButtonType.YES, ButtonType.NO);
+                confirm.setTitle("Confirmar eliminación");
+                confirm.showAndWait().ifPresent(r -> {
+                    if (r == ButtonType.YES) {
+                        boolean ok;
+                        if (esPaciente) {
+                            ok = dao.eliminarPaciente(item.getId());
+                        } else {
+                            ok = dao.eliminarMedico(item.getId());
+                        }
+                        if (ok) {
+                            Alert info = new Alert(Alert.AlertType.INFORMATION,
+                                tipo + " eliminado correctamente.");
+                            info.setHeaderText(null);
+                            info.showAndWait();
+                            refrescar();
+                        } else {
+                            Alert err = new Alert(Alert.AlertType.ERROR,
+                                "No se pudo eliminar. El " + tipo.toLowerCase() +
+                                " tiene registros asociados.");
+                            err.setHeaderText(null);
+                            err.showAndWait();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    private void mostrarDetalleRegistro(RegistroItem item) {
+        String[] detalles;
+        switch (item.getTipo()) {
+            case "CITA":
+                detalles = dao.obtenerDetalleCompletoCita(item.getId());
+                mostrarDialogoDetalle("Detalle de Cita", detalles);
+                break;
+            case "CONSULTA":
+                detalles = dao.obtenerDetalleCompletoConsulta(item.getId());
+                mostrarDialogoDetalle("Detalle de Consulta", detalles);
+                break;
+            case "FACTURA":
+                detalles = dao.obtenerDetalleCompletoFactura(item.getId());
+                mostrarDialogoDetalle("Detalle de Factura", detalles);
+                break;
+        }
+    }
+
+    private void mostrarDialogoDetalle(String titulo, String[] lineas) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle(titulo);
+        dialog.setHeaderText(null);
+
+        VBox content = new VBox(4);
+        content.setStyle("-fx-padding: 16;");
+
+        for (String linea : lineas) {
+            Label lbl = new Label(linea);
+            if (linea.startsWith("---")) {
+                lbl.setStyle("-fx-font-weight: 700; -fx-text-fill: #0d9488; -fx-padding: 8 0 4 0;");
+            } else if (linea.startsWith("CITA #") || linea.startsWith("CONSULTA #") || linea.startsWith("FACTURA #")) {
+                lbl.setStyle("-fx-font-weight: 700; -fx-font-size: 16px; -fx-text-fill: #0f172a; -fx-padding: 0 0 8 0;");
+            } else if (linea.startsWith("TOTAL:")) {
+                lbl.setStyle("-fx-font-weight: 700; -fx-font-size: 14px; -fx-text-fill: #0d9488;");
+            } else if (linea.startsWith("  ")) {
+                lbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569; -fx-padding: 0 0 0 12;");
+            } else {
+                lbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #334155;");
+            }
+            content.getChildren().add(lbl);
+        }
+
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(400);
+        scroll.setMaxHeight(500);
+
+        dialog.getDialogPane().setContent(scroll);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setMinWidth(500);
+        dialog.showAndWait();
+    }
+
+    @FXML
+    private void mostrarDetalleCitasHoy() {
+        java.util.List<String[]> datos = dao.obtenerDetalleCitasHoy();
+        mostrarDialogoLista("Citas de Hoy", new String[]{"Paciente", "Médico", "Hora", "Estado", "Motivo"}, datos);
+    }
+
+    @FXML
+    private void mostrarDetalleAtendidos() {
+        java.util.List<String[]> datos = dao.obtenerDetalleAtendidosHoy();
+        mostrarDialogoLista("Atendidos Hoy", new String[]{"Paciente", "Hora", "Diagnóstico"}, datos);
+    }
+
+    @FXML
+    private void mostrarDetalleFacturas() {
+        java.util.List<String[]> datos = dao.obtenerDetalleFacturas();
+        mostrarDialogoLista("Facturas", new String[]{"Factura", "Paciente", "Fecha", "Total", "Estado", "Pago"}, datos);
+    }
+
+    @FXML
+    private void mostrarDetalleConsultas() {
+        java.util.List<String[]> datos = dao.obtenerDetalleConsultas();
+        mostrarDialogoLista("Consultas Realizadas", new String[]{"Paciente", "Médico", "Fecha", "Diagnóstico", "Precio"}, datos);
+    }
+
+    private void mostrarDialogoLista(String titulo, String[] headers, java.util.List<String[]> datos) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle(titulo);
+        dialog.setHeaderText(null);
+
+        VBox content = new VBox(6);
+        content.setStyle("-fx-padding: 16;");
+
+        Label headerLine = new Label(String.join("  |  ", headers));
+        headerLine.setStyle("-fx-font-weight: 700; -fx-font-size: 12px; -fx-text-fill: #0d9488; -fx-padding: 0 0 8 0;");
+        content.getChildren().add(headerLine);
+
+        if (datos.isEmpty()) {
+            content.getChildren().add(new Label("No hay datos disponibles."));
+        } else {
+            ScrollPane scroll = new ScrollPane();
+            VBox rows = new VBox(4);
+            for (String[] fila : datos) {
+                rows.getChildren().add(new Label(String.join("  |  ", fila)));
+            }
+            scroll.setContent(rows);
+            scroll.setFitToWidth(true);
+            scroll.setPrefHeight(300);
+            scroll.setMaxHeight(400);
+            content.getChildren().add(scroll);
+        }
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setMinWidth(600);
+        dialog.showAndWait();
     }
 }

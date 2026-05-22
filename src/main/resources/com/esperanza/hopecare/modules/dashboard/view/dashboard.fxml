@@ -16,15 +16,15 @@
 
     <!-- Fila 1: KPIs principales -->
     <HBox spacing="20">
-        <VBox styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity">
+        <VBox fx:id="cardCitasHoy" styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity" onMouseClicked="#mostrarDetalleCitasHoy" style="-fx-cursor: hand;">
             <Label text="CITAS HOY" styleClass="section-title"/>
             <Label fx:id="lblCitasHoy" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
         </VBox>
-        <VBox styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity">
+        <VBox fx:id="cardAtendidos" styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity" onMouseClicked="#mostrarDetalleAtendidos" style="-fx-cursor: hand;">
             <Label text="ATENDIDOS HOY" styleClass="section-title"/>
             <Label fx:id="lblAtendidosHoy" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
         </VBox>
-        <VBox styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity">
+        <VBox fx:id="cardIngresos" styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity" onMouseClicked="#mostrarDetalleFacturas" style="-fx-cursor: hand;">
             <Label text="INGRESOS DEL MES" styleClass="section-title"/>
             <Label fx:id="lblIngresosMes" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
         </VBox>
@@ -40,11 +40,11 @@
         <VBox styleClass="card" HBox.hgrow="ALWAYS">
             <Label text="ESTADO DE CITAS DEL MES" styleClass="section-title"/>
             <HBox spacing="12" alignment="CENTER">
-                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #dbeafe; -fx-background-radius: 8; -fx-padding: 8;">
+                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" onMouseClicked="#mostrarDetalleCitasHoy" style="-fx-cursor: hand; -fx-background-color: #dbeafe; -fx-background-radius: 8; -fx-padding: 8;">
                     <Label text="PROGRAMADAS" style="-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #1e40af; -fx-letter-spacing: 0.5px;"/>
                     <Label fx:id="lblProgramadas" style="-fx-font-size: 26px; -fx-font-weight: 700; -fx-text-fill: #1e40af;"/>
                 </VBox>
-                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #dcfce7; -fx-background-radius: 8; -fx-padding: 8;">
+                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" onMouseClicked="#mostrarDetalleConsultas" style="-fx-cursor: hand; -fx-background-color: #dcfce7; -fx-background-radius: 8; -fx-padding: 8;">
                     <Label text="ATENDIDAS" style="-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #166534; -fx-letter-spacing: 0.5px;"/>
                     <Label fx:id="lblAtendidas" style="-fx-font-size: 26px; -fx-font-weight: 700; -fx-text-fill: #166534;"/>
                 </VBox>
@@ -93,11 +93,23 @@
         </VBox>
         <VBox styleClass="card" HBox.hgrow="ALWAYS">
             <Label text="REGISTROS RECIENTES" styleClass="section-title"/>
-            <ListView fx:id="listRegistros" prefHeight="80" style="-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent;"/>
+            <ListView fx:id="listRegistros" prefHeight="100" style="-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent;"/>
         </VBox>
     </HBox>
 
-    <!-- Fila 4: Totales del Sistema -->
+    <!-- Fila 4: Registro de Pacientes y Médicos -->
+    <HBox spacing="20">
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="REGISTRO DE PACIENTES" styleClass="section-title"/>
+            <ListView fx:id="listPacientes" prefHeight="140" style="-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent;" styleClass="list-with-pointer"/>
+        </VBox>
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="REGISTRO DE MÉDICOS" styleClass="section-title"/>
+            <ListView fx:id="listMedicos" prefHeight="140" style="-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Fila 5: Totales del Sistema -->
     <HBox styleClass="card" spacing="20" alignment="CENTER">
         <HBox spacing="6" alignment="CENTER">
             <Label text="Pacientes:" style="-fx-font-weight: 600; -fx-text-fill: #94a3b8; -fx-font-size: 13px;"/>
