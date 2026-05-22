@@ -622,7 +622,7 @@ public class CitasController implements ICitaView {
 
         dialog.showAndWait();
 
-        presenter.cargarCitasExistentes();
+        cargarCitasPorRol();
     }
 
     private void abrirDialogoEditarCita(Cita cita) {
@@ -721,7 +721,7 @@ public class CitasController implements ICitaView {
                 }
                 mostrarMensajeExito("Cita actualizada correctamente.");
                 dialog.close();
-                presenter.cargarCitasExistentes();
+                cargarCitasPorRol();
             } else {
                 mostrarMensajeError("Error al actualizar la cita.");
             }
@@ -760,7 +760,7 @@ public class CitasController implements ICitaView {
                     if (citaDAO.eliminarCita(cita.getIdCita())) {
                         mostrarMensajeExito("Cita eliminada correctamente.");
                         dialog.close();
-                        presenter.cargarCitasExistentes();
+                        cargarCitasPorRol();
                     } else {
                         mostrarMensajeError("Error al eliminar la cita.");
                     }
