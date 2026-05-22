@@ -57,6 +57,50 @@ public class ConsultaDAO {
         }
     }
 
+    public Consulta obtenerConsultaPorId(int idConsulta) {
+        String sql = "SELECT id_consulta, id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio FROM consulta WHERE id_consulta = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idConsulta);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Consulta c = new Consulta();
+                c.setIdConsulta(rs.getInt("id_consulta"));
+                c.setIdCita(rs.getInt("id_cita"));
+                c.setDiagnostico(rs.getString("diagnostico"));
+                c.setSintomas(rs.getString("sintomas"));
+                c.setTratamiento(rs.getString("tratamiento"));
+                c.setNotasMedicas(rs.getString("notas_medicas"));
+                c.setPrecio(rs.getDouble("precio"));
+                String cf = rs.getString("fecha_consulta");
+                if (cf != null) {
+                    try {
+                        c.setFechaConsulta(java.time.LocalDateTime.parse(cf, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    } catch (Exception e) {
+                        try { c.setFechaConsulta(java.time.LocalDateTime.parse(cf)); } catch (Exception ignored) {}
+                    }
+                }
+                return c;
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
+    }
+
+    public boolean actualizarConsulta(Consulta consulta) {
+        String sql = "UPDATE consulta SET diagnostico = ?, sintomas = ?, tratamiento = ?, notas_medicas = ?, precio = ? WHERE id_consulta = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, consulta.getDiagnostico());
+            ps.setString(2, consulta.getSintomas());
+            ps.setString(3, consulta.getTratamiento());
+            ps.setString(4, consulta.getNotasMedicas());
+            ps.setDouble(5, consulta.getPrecio());
+            ps.setInt(6, consulta.getIdConsulta());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
     public void insertarSiNoExiste(int idCita, double precio) {
         String sqlCheck = "SELECT COUNT(*) FROM consulta WHERE id_cita = ?";
         String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, '', '', '', '', datetime('now', 'localtime'), ?)";

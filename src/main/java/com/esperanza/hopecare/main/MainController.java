@@ -2,9 +2,19 @@ package com.esperanza.hopecare.main;
 
 import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.modules.pacientes_medicos.dao.MedicoDAO;
+import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
+import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
@@ -132,8 +142,11 @@ public class MainController {
     @FXML
     private void onUserProfileClick() {
         SesionManager sesion = SesionManager.getInstance();
-        if ("MEDICO".equals(sesion.getRol())) {
+        String rol = sesion.getRol();
+        if ("MEDICO".equals(rol)) {
             abrirPerfilMedico();
+        } else if ("PACIENTE".equals(rol)) {
+            abrirPerfilPaciente();
         } else {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Cerrar Sesión");
@@ -194,6 +207,52 @@ public class MainController {
         });
 
         dialog.showAndWait();
+    }
+
+    private void abrirPerfilPaciente() {
+        SesionManager sesion = SesionManager.getInstance();
+        PacienteDAO dao = new PacienteDAO();
+        Paciente p = dao.obtenerPorIdPersona(sesion.getIdPersona());
+        if (p == null) return;
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Mi Perfil");
+        dialog.setHeaderText(p.getNombreCompleto());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(8);
+
+        String na = "—";
+        grid.add(new Label("Documento:"), 0, 0);
+        grid.add(new Label(nonNull(p.getDocumentoIdentidad())), 1, 0);
+        grid.add(new Label("Fecha Nacimiento:"), 0, 1);
+        grid.add(new Label(nonNull(p.getFechaNacimiento())), 1, 1);
+        grid.add(new Label("Género:"), 0, 2);
+        grid.add(new Label(nonNull(p.getGenero())), 1, 2);
+        grid.add(new Label("Teléfono:"), 0, 3);
+        grid.add(new Label(nonNull(p.getTelefono())), 1, 3);
+        grid.add(new Label("Email:"), 0, 4);
+        grid.add(new Label(nonNull(p.getEmail())), 1, 4);
+        grid.add(new Label("Dirección:"), 0, 5);
+        grid.add(new Label(nonNull(p.getDireccion())), 1, 5);
+        grid.add(new Label("Historia Clínica:"), 0, 6);
+        grid.add(new Label(nonNull(p.getHistoriaClinica())), 1, 6);
+        grid.add(new Label("Alergias:"), 0, 7);
+        grid.add(new Label(nonNull(p.getAlergias())), 1, 7);
+        grid.add(new Label("Grupo Sanguíneo:"), 0, 8);
+        grid.add(new Label(nonNull(p.getGrupoSanguineo())), 1, 8);
+        grid.add(new Label("Contacto Emergencia:"), 0, 9);
+        grid.add(new Label(nonNull(p.getContactoEmergencia())), 1, 9);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        dialog.showAndWait();
+    }
+
+    private static String nonNull(String s) {
+        return s != null && !s.trim().isEmpty() ? s : "—";
     }
 
     private void cerrarSesion() {

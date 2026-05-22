@@ -28,6 +28,13 @@
         </Button>
     </HBox>
 
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="lblFiltroMedico" text="Médico:" style="-fx-font-weight: 600;" />
+        <ComboBox fx:id="cbFiltroMedico" prefWidth="280" promptText="Todos los médicos" />
+        <Label text="Paciente:" style="-fx-font-weight: 600; -fx-padding: 0 0 0 10;" />
+        <TextField fx:id="txtFiltroPaciente" prefWidth="200" promptText="Buscar paciente..." />
+    </HBox>
+
     <Label text="Historial de Consultas:" style="-fx-font-weight: bold;" />
     <TableView fx:id="tvConsultas" VBox.vgrow="ALWAYS">
         <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
@@ -38,6 +45,18 @@
             <TableColumn text="Fecha Consulta" prefWidth="-1" />
             <TableColumn text="Diagnóstico" prefWidth="-1" />
             <TableColumn text="Precio" prefWidth="-1" />
+        </columns>
+    </TableView>
+
+    <Label text="Citas Programadas:" style="-fx-font-weight: bold; -fx-text-fill: #0d9488;" />
+    <TableView fx:id="tvCitasProgramadas" prefHeight="250" VBox.vgrow="NEVER">
+        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+        <columns>
+            <TableColumn text="ID" prefWidth="-1" />
+            <TableColumn text="Paciente" prefWidth="-1" />
+            <TableColumn text="Médico" prefWidth="-1" />
+            <TableColumn text="Fecha/Hora" prefWidth="-1" />
+            <TableColumn text="Estado" prefWidth="-1" />
         </columns>
     </TableView>
 </VBox>

@@ -8,10 +8,12 @@ import com.esperanza.hopecare.modules.citas_consultas.model.Consulta;
 import com.esperanza.hopecare.modules.citas_consultas.presenter.ConsultaPresenter;
 import com.esperanza.hopecare.modules.citas_consultas.view.IConsultaView;
 import com.esperanza.hopecare.modules.pacientes_medicos.dao.MedicoDAO;
+import com.esperanza.hopecare.modules.pacientes_medicos.model.Medico;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -21,13 +23,20 @@ import javafx.scene.layout.HBox;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ConsultaController implements IConsultaView {
     @FXML private TableView<Cita> tvConsultas;
+    @FXML private TableView<Cita> tvCitasProgramadas;
     @FXML private Button btnNuevaConsulta;
+    @FXML private ComboBox<Medico> cbFiltroMedico;
+    @FXML private TextField txtFiltroPaciente;
+    @FXML private Label lblFiltroMedico;
 
     private ConsultaPresenter presenter;
     private ObservableList<Cita> consultasList;
+    private FilteredList<Cita> consultasFiltradas;
+    private ObservableList<Cita> programadasList;
     private String rol;
     private int idMedicoLogueado = -1;
 
@@ -42,9 +51,21 @@ public class ConsultaController implements IConsultaView {
         }
 
         configurarTablaHistorial();
+        configurarTablaCitasProgramadas();
         btnNuevaConsulta.setOnAction(e -> abrirDialogoNuevaConsulta());
 
+        tvConsultas.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                Cita seleccionada = tvConsultas.getSelectionModel().getSelectedItem();
+                if (seleccionada != null) {
+                    abrirDialogoEditarConsulta(seleccionada);
+                }
+            }
+        });
+
         cargarHistorial();
+        cargarCitasProgramadas();
+        cargarFiltros();
     }
 
     private void configurarTablaHistorial() {
@@ -71,7 +92,30 @@ public class ConsultaController implements IConsultaView {
         });
 
         consultasList = FXCollections.observableArrayList();
-        tvConsultas.setItems(consultasList);
+        consultasFiltradas = new FilteredList<>(consultasList, p -> true);
+        tvConsultas.setItems(consultasFiltradas);
+    }
+
+    private void configurarTablaCitasProgramadas() {
+        TableColumn<Cita, String> colId = (TableColumn<Cita, String>) tvCitasProgramadas.getColumns().get(0);
+        TableColumn<Cita, String> colPac = (TableColumn<Cita, String>) tvCitasProgramadas.getColumns().get(1);
+        TableColumn<Cita, String> colMed = (TableColumn<Cita, String>) tvCitasProgramadas.getColumns().get(2);
+        TableColumn<Cita, String> colFecha = (TableColumn<Cita, String>) tvCitasProgramadas.getColumns().get(3);
+        TableColumn<Cita, String> colEstado = (TableColumn<Cita, String>) tvCitasProgramadas.getColumns().get(4);
+
+        colId.setCellValueFactory(cd -> new SimpleStringProperty(String.valueOf(cd.getValue().getIdCita())));
+        colPac.setCellValueFactory(new PropertyValueFactory<>("pacienteNombre"));
+        colMed.setCellValueFactory(new PropertyValueFactory<>("medicoNombre"));
+        colFecha.setCellValueFactory(cd -> {
+            if (cd.getValue().getFechaHora() != null) {
+                return new SimpleStringProperty(cd.getValue().getFechaHora().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            }
+            return new SimpleStringProperty("");
+        });
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+
+        programadasList = FXCollections.observableArrayList();
+        tvCitasProgramadas.setItems(programadasList);
     }
 
     private void cargarHistorial() {
@@ -83,6 +127,68 @@ public class ConsultaController implements IConsultaView {
             list = dao.listarConsultasAtendidas();
         }
         consultasList.setAll(list);
+        aplicarFiltros();
+    }
+
+    private void cargarCitasProgramadas() {
+        CitaDAO dao = new CitaDAO();
+        List<Cita> list = dao.obtenerCitasPorEstadoConNombres("PROGRAMADA");
+        if ("MEDICO".equals(rol) && idMedicoLogueado > 0) {
+            list.removeIf(c -> c.getIdMedico() != idMedicoLogueado);
+        }
+        programadasList.setAll(list);
+    }
+
+    private void cargarFiltros() {
+        boolean esAdmin = !"MEDICO".equals(rol);
+        lblFiltroMedico.setVisible(esAdmin);
+        lblFiltroMedico.setManaged(esAdmin);
+        cbFiltroMedico.setVisible(esAdmin);
+        cbFiltroMedico.setManaged(esAdmin);
+
+        if (esAdmin) {
+            MedicoDAO medicoDAO = new MedicoDAO();
+            List<Medico> medicos = medicoDAO.listarTodos();
+            cbFiltroMedico.setItems(FXCollections.observableArrayList(medicos));
+            cbFiltroMedico.setCellFactory(lv -> new ListCell<>() {
+                @Override protected void updateItem(Medico m, boolean empty) {
+                    super.updateItem(m, empty);
+                    setText(empty || m == null ? null : m.toString());
+                }
+            });
+            cbFiltroMedico.setButtonCell(new ListCell<>() {
+                @Override protected void updateItem(Medico m, boolean empty) {
+                    super.updateItem(m, empty);
+                    setText(empty || m == null ? "Todos los médicos" : m.toString());
+                }
+            });
+            cbFiltroMedico.setOnAction(e -> aplicarFiltros());
+        }
+
+        txtFiltroPaciente.textProperty().addListener((obs, old, val) -> aplicarFiltros());
+    }
+
+    private void aplicarFiltros() {
+        Medico medicoSel = cbFiltroMedico.getValue();
+        String txtPaciente = txtFiltroPaciente.getText() != null ? txtFiltroPaciente.getText().trim().toLowerCase() : "";
+
+        Predicate<Cita> predicate = cita -> {
+            if (medicoSel != null) {
+                String nomMed = cita.getMedicoNombre();
+                String nomMedSel = (medicoSel.getNombre() + " " + medicoSel.getApellido()).toLowerCase();
+                if (nomMed == null || !nomMed.toLowerCase().contains(nomMedSel)) {
+                    return false;
+                }
+            }
+            if (!txtPaciente.isEmpty()) {
+                String nomPac = cita.getPacienteNombre();
+                if (nomPac == null || !nomPac.toLowerCase().contains(txtPaciente)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        consultasFiltradas.setPredicate(predicate);
     }
 
     private void abrirDialogoNuevaConsulta() {
@@ -198,8 +304,77 @@ public class ConsultaController implements IConsultaView {
                     mostrarExito("Consulta registrada correctamente.");
                     dialog.close();
                     cargarHistorial();
+                    cargarCitasProgramadas();
                 } else {
                     mostrarError("Error al registrar la consulta.");
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void abrirDialogoEditarConsulta(Cita cita) {
+        ConsultaDAO consultaDAO = new ConsultaDAO();
+        Consulta consulta = consultaDAO.obtenerConsultaPorId(cita.getConsultaId());
+        if (consulta == null) {
+            mostrarError("No se pudo obtener la consulta.");
+            return;
+        }
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Editar Consulta #" + consulta.getIdConsulta());
+        dialog.setHeaderText("Paciente: " + cita.getPacienteNombre());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
+
+        TextArea txtSintomas = new TextArea(consulta.getSintomas());
+        txtSintomas.setPrefHeight(80);
+        TextArea txtDiagnostico = new TextArea(consulta.getDiagnostico());
+        txtDiagnostico.setPrefHeight(80);
+        TextArea txtTratamiento = new TextArea(consulta.getTratamiento());
+        txtTratamiento.setPrefHeight(80);
+
+        TextField txtPrecio = new TextField(String.format("%.0f", consulta.getPrecio()));
+        txtPrecio.setEditable(false);
+        txtPrecio.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("Síntomas:"), 0, 0);
+        grid.add(txtSintomas, 1, 0);
+        grid.add(new Label("Diagnóstico:"), 0, 1);
+        grid.add(txtDiagnostico, 1, 1);
+        grid.add(new Label("Tratamiento:"), 0, 2);
+        grid.add(txtTratamiento, 1, 2);
+        grid.add(new Label("Precio ($):"), 0, 3);
+        grid.add(txtPrecio, 1, 3);
+
+        ButtonType btnGuardar = new ButtonType("Guardar Cambios", ButtonBar.ButtonData.OK_DONE);
+        ButtonType btnCancelar = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnGuardar, btnCancelar);
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().setPrefWidth(550);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == btnGuardar) {
+                String sintomas = txtSintomas.getText().trim();
+                String diagnostico = txtDiagnostico.getText().trim();
+                String tratamiento = txtTratamiento.getText().trim();
+                if (sintomas.isEmpty() || diagnostico.isEmpty()) {
+                    mostrarError("Síntomas y diagnóstico son obligatorios.");
+                    return null;
+                }
+                consulta.setSintomas(sintomas);
+                consulta.setDiagnostico(diagnostico);
+                consulta.setTratamiento(tratamiento);
+                if (consultaDAO.actualizarConsulta(consulta)) {
+                    mostrarExito("Consulta actualizada correctamente.");
+                    dialog.close();
+                    cargarHistorial();
+                } else {
+                    mostrarError("Error al actualizar la consulta.");
                 }
             }
             return null;

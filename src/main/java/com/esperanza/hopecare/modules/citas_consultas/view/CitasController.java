@@ -122,7 +122,7 @@ public class CitasController implements ICitaView {
         tvCitas.setItems(citasFiltradas);
 
         tvCitas.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
+            if (e.getClickCount() == 2 && !"PACIENTE".equals(rol)) {
                 Cita sel = tvCitas.getSelectionModel().getSelectedItem();
                 if (sel != null) abrirDialogoEditarCita(sel);
             }

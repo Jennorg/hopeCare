@@ -88,6 +88,38 @@ public class PacienteDAO {
         return -1;
     }
 
+    public Paciente obtenerPorIdPersona(int idPersona) {
+        String sql = "SELECT p.id_paciente, p.id_persona, p.historia_clinica, p.alergias, p.grupo_sanguineo, p.contacto_emergencia, "
+                   + "per.nombre, per.apellido, per.documento_identidad, per.fecha_nacimiento, per.telefono, per.email, per.direccion, per.genero "
+                   + "FROM paciente p "
+                   + "JOIN persona per ON p.id_persona = per.id_persona "
+                   + "WHERE p.id_persona = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPersona);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Paciente p = new Paciente();
+                p.setIdPaciente(rs.getInt("id_paciente"));
+                p.setIdPersona(rs.getInt("id_persona"));
+                p.setHistoriaClinica(rs.getString("historia_clinica"));
+                p.setAlergias(rs.getString("alergias"));
+                p.setGrupoSanguineo(rs.getString("grupo_sanguineo"));
+                p.setContactoEmergencia(rs.getString("contacto_emergencia"));
+                p.setNombre(rs.getString("nombre"));
+                p.setApellido(rs.getString("apellido"));
+                p.setDocumentoIdentidad(rs.getString("documento_identidad"));
+                p.setFechaNacimiento(rs.getString("fecha_nacimiento"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setEmail(rs.getString("email"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setGenero(rs.getString("genero"));
+                return p;
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
+    }
+
     public boolean insertar(Paciente p) {
         String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";
