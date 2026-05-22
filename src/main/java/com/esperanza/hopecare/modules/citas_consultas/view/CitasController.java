@@ -65,7 +65,13 @@ public class CitasController implements ICitaView {
 
         configurarTablaCitas();
         configurarFiltros();
-        btnNuevaCita.setOnAction(e -> abrirDialogoNuevaCita());
+
+        if ("MEDICO".equals(rol)) {
+            btnNuevaCita.setVisible(false);
+            btnNuevaCita.setManaged(false);
+        } else {
+            btnNuevaCita.setOnAction(e -> abrirDialogoNuevaCita());
+        }
 
         cargarCitasPorRol();
     }

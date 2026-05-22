@@ -63,7 +63,7 @@
     <center>
         <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
             <Tab fx:id="tabCitas" text="" closable="false">
-                <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="inner-tabs">
+                <TabPane fx:id="innerTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="inner-tabs">
                     <Tab text="Agendar Cita" closable="false">
                         <fx:include source="../modules/citas_consultas/view/citas.fxml"/>
                     </Tab>

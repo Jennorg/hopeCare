@@ -12,6 +12,7 @@ import javafx.scene.layout.Pane;
 
 public class MainController {
     @FXML private TabPane mainTabPane;
+    @FXML private TabPane innerTabPane;
     @FXML private Tab tabCitas;
     @FXML private Tab tabMisCitas;
     @FXML private Label lblBreadcrumb;
@@ -44,7 +45,12 @@ public class MainController {
         } else {
             mainTabPane.getTabs().remove(tabMisCitas);
             mainTabPane.getSelectionModel().select(tabCitas);
-            lblBreadcrumb.setText("Inicio > Citas Médicas");
+            if ("MEDICO".equals(rol) && innerTabPane != null) {
+                innerTabPane.getSelectionModel().select(1);
+                lblBreadcrumb.setText("Inicio > Registrar Consulta");
+            } else {
+                lblBreadcrumb.setText("Inicio > Citas Médicas");
+            }
             linkMisCitas.setVisible(false);
             linkMisCitas.setManaged(false);
         }
@@ -64,7 +70,13 @@ public class MainController {
     @FXML
     private void navigateToCitas() {
         mainTabPane.getSelectionModel().select(tabCitas);
-        lblBreadcrumb.setText("Inicio > Citas Médicas");
+        String rol = SesionManager.getInstance().getRol();
+        if ("MEDICO".equals(rol) && innerTabPane != null) {
+            innerTabPane.getSelectionModel().select(1);
+            lblBreadcrumb.setText("Inicio > Registrar Consulta");
+        } else {
+            lblBreadcrumb.setText("Inicio > Citas Médicas");
+        }
         actualizarEnlacesActivos(linkCitas);
     }
 
