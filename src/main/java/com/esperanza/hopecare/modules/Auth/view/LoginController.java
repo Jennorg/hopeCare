@@ -32,7 +32,7 @@ public class LoginController {
         LoginDTO result = authService.login(usuario, contrasena);
 
         if (result.isExitoso()) {
-            SesionManager.getInstance().iniciarSesion(usuario, result.getNombreRol());
+            SesionManager.getInstance().iniciarSesion(usuario, result.getNombreRol(), result.getRol(), -1, result.getIdPersona());
             iniciarAnimacionCarga();
         } else {
             showError(result.getMensaje());

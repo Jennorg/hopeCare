@@ -18,6 +18,7 @@ public class ConsultaPresenter {
     private final CitaDAO citaDAO;
     private int idConsultaActual = -1;
     private int idPacienteActual = -1;
+    private int idMedicoFiltro = -1;
     private List<Cita> citasCargadas;
 
     public ConsultaPresenter(IConsultaView view) {
@@ -26,8 +27,22 @@ public class ConsultaPresenter {
         this.citaDAO = new CitaDAO();
     }
 
+    public void setFiltroMedico(int idMedico) {
+        this.idMedicoFiltro = idMedico;
+    }
+
     public void cargarCitasPendientes() {
-        citasCargadas = citaDAO.obtenerCitasPorEstadoConNombres("PROGRAMADA");
+        List<Cita> todas = citaDAO.obtenerCitasPorEstadoConNombres("PROGRAMADA");
+        if (idMedicoFiltro > 0) {
+            citasCargadas = new java.util.ArrayList<>();
+            for (Cita c : todas) {
+                if (c.getIdMedico() == idMedicoFiltro) {
+                    citasCargadas.add(c);
+                }
+            }
+        } else {
+            citasCargadas = todas;
+        }
         view.mostrarCitasPendientes(citasCargadas);
         view.actualizarEstadoAcciones(false);
     }

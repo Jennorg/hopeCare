@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     nombre_usuario TEXT UNIQUE NOT NULL,
     contrasena_hash TEXT NOT NULL,
     id_persona INTEGER NOT NULL,
+    rol TEXT NOT NULL DEFAULT 'MEDICO',
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );

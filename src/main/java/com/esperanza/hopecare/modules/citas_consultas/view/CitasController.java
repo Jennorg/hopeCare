@@ -1,5 +1,6 @@
 package com.esperanza.hopecare.modules.citas_consultas.view;
 
+import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.modules.citas_consultas.dao.CitaDAO;
 import com.esperanza.hopecare.modules.citas_consultas.dao.ConsultaDAO;
 import com.esperanza.hopecare.modules.citas_consultas.model.Cita;
@@ -45,16 +46,40 @@ public class CitasController implements ICitaView {
     private CitaPresenter presenter;
     private ObservableList<Cita> citasList;
     private FilteredList<Cita> citasFiltradas;
+    private String rol;
+    private int idMedicoLogueado = -1;
+    private int idPacienteLogueado = -1;
 
     @FXML
     public void initialize() {
         presenter = new CitaPresenter(this);
 
+        SesionManager sesion = SesionManager.getInstance();
+        rol = sesion.getRol();
+
+        if ("MEDICO".equals(rol)) {
+            idMedicoLogueado = new MedicoDAO().obtenerIdMedicoPorIdPersona(sesion.getIdPersona());
+        } else if ("PACIENTE".equals(rol)) {
+            idPacienteLogueado = new PacienteDAO().obtenerIdPacientePorIdPersona(sesion.getIdPersona());
+        }
+
         configurarTablaCitas();
         configurarFiltros();
         btnNuevaCita.setOnAction(e -> abrirDialogoNuevaCita());
 
-        presenter.cargarCitasExistentes();
+        cargarCitasPorRol();
+    }
+
+    private void cargarCitasPorRol() {
+        if ("MEDICO".equals(rol) && idMedicoLogueado > 0) {
+            List<Cita> citas = new CitaDAO().listarPorMedicoConNombres(idMedicoLogueado);
+            mostrarCitasExistentes(citas);
+        } else if ("PACIENTE".equals(rol) && idPacienteLogueado > 0) {
+            List<Cita> citas = new CitaDAO().listarPorPacienteConNombres(idPacienteLogueado);
+            mostrarCitasExistentes(citas);
+        } else {
+            presenter.cargarCitasExistentes();
+        }
     }
 
     private void configurarTablaCitas() {
@@ -150,6 +175,8 @@ public class CitasController implements ICitaView {
         ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarTodos());
         ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
 
+        final int[] idPacSeleccionado = {-1};
+
         TextField txtBuscarPac = new TextField();
         txtBuscarPac.setPromptText("Buscar paciente por nombre o cédula...");
 
@@ -164,6 +191,15 @@ public class CitasController implements ICitaView {
         colPacNombre.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getNombre() + " " + cd.getValue().getApellido()));
         tvPacientes.getColumns().addAll(colPacCedula, colPacNombre);
         tvPacientes.setItems(pacientesFiltrados);
+
+        boolean esPaciente = "PACIENTE".equals(rol);
+        if (esPaciente) {
+            txtBuscarPac.setVisible(false);
+            txtBuscarPac.setManaged(false);
+            tvPacientes.setVisible(false);
+            tvPacientes.setManaged(false);
+            idPacSeleccionado[0] = idPacienteLogueado;
+        }
 
         ComboBox<Especialidad> cbEsp = new ComboBox<>();
         cbEsp.setPrefWidth(200);
@@ -225,6 +261,15 @@ public class CitasController implements ICitaView {
         btnReservar.setStyle("-fx-background-color: #115e59; -fx-text-fill: white; -fx-font-weight: 600;");
         btnReservar.setDisable(true);
 
+        if (esPaciente && idPacienteLogueado > 0) {
+            for (Paciente p : pacientesList) {
+                if (p.getIdPaciente() == idPacienteLogueado) {
+                    idPacSeleccionado[0] = idPacienteLogueado;
+                    break;
+                }
+            }
+        }
+
         txtBuscarPac.textProperty().addListener((obs, old, val) -> {
             String texto = val.toLowerCase().trim();
             pacientesFiltrados.setPredicate(p -> {
@@ -250,12 +295,13 @@ public class CitasController implements ICitaView {
         cbEsp.setOnAction(e -> filtrarMedicos.run());
         txtBuscarMed.textProperty().addListener((obs, old, val) -> filtrarMedicos.run());
 
-        final int[] idPacSeleccionado = {-1};
         final int[] idMedSeleccionado = {-1};
 
-        tvPacientes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            idPacSeleccionado[0] = sel != null ? sel.getIdPaciente() : -1;
-        });
+        if (!esPaciente) {
+            tvPacientes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+                idPacSeleccionado[0] = sel != null ? sel.getIdPaciente() : -1;
+            });
+        }
 
         CitaPresenter dialogPresenter = new CitaPresenter(new ICitaView() {
             @Override public void mostrarCitasExistentes(List<Cita> citas) {}
@@ -536,6 +582,10 @@ public class CitasController implements ICitaView {
             HBoxPacSearch,
             tvPacientes
         );
+        if (esPaciente) {
+            pacienteSection.setVisible(false);
+            pacienteSection.setManaged(false);
+        }
 
         HBox filtrosMedicos = new HBox(10, cbEsp, txtBuscarMed, btnNuevoMed);
         HBox.setHgrow(txtBuscarMed, javafx.scene.layout.Priority.ALWAYS);

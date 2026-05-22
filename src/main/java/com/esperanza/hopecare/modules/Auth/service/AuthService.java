@@ -22,6 +22,8 @@ public class AuthService {
         if (model != null) {
             dto.setExitoso(true);
             dto.setNombreRol(model.getNombreRol());
+            dto.setRol(model.getRol());
+            dto.setIdPersona(model.getIdPersona());
             dto.setMensaje("Inicio de sesion exitoso.");
         } else {
             dto.setExitoso(false);

@@ -1,8 +1,10 @@
 package com.esperanza.hopecare.modules.citas_consultas.view;
 
+import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.modules.citas_consultas.model.Cita;
 import com.esperanza.hopecare.modules.citas_consultas.presenter.ConsultaPresenter;
 import com.esperanza.hopecare.modules.citas_consultas.view.IConsultaView;
+import com.esperanza.hopecare.modules.pacientes_medicos.dao.MedicoDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,12 +20,21 @@ public class ConsultaController implements IConsultaView {
 
     private ConsultaPresenter presenter;
     private ObservableList<String> citasList;
+    private String rol;
+    private int idMedicoLogueado = -1;
 
     @FXML
     public void initialize() {
         presenter = new ConsultaPresenter(this);
         citasList = FXCollections.observableArrayList();
         cbCitasPendientes.setItems(citasList);
+
+        SesionManager sesion = SesionManager.getInstance();
+        rol = sesion.getRol();
+        if ("MEDICO".equals(rol)) {
+            idMedicoLogueado = new MedicoDAO().obtenerIdMedicoPorIdPersona(sesion.getIdPersona());
+            presenter.setFiltroMedico(idMedicoLogueado);
+        }
 
         btnCargar.setOnAction(e -> presenter.seleccionarCita());
         btnGuardar.setOnAction(e -> presenter.registrarConsulta());
@@ -117,5 +128,13 @@ public class ConsultaController implements IConsultaView {
     @Override
     public void actualizarEstadoAcciones(boolean consultaGuardada) {
         btnGuardar.setDisable(consultaGuardada);
+    }
+
+    public int getIdMedicoLogueado() {
+        return idMedicoLogueado;
+    }
+
+    public String getRol() {
+        return rol;
     }
 }

@@ -188,6 +188,19 @@ public class MedicoDAO {
         }
     }
 
+    public int obtenerIdMedicoPorIdPersona(int idPersona) {
+        String sql = "SELECT id_medico FROM medico WHERE id_persona = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPersona);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_medico");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return -1;
+    }
+
     public boolean eliminarMedicoLogico(int idMedico) {
         String sql = "UPDATE medico SET activo = 0 WHERE id_medico = ?";
         try (Connection conn = DatabaseConnection.getConnection();

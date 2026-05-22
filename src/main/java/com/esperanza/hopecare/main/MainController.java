@@ -13,11 +13,13 @@ import javafx.scene.layout.Pane;
 public class MainController {
     @FXML private TabPane mainTabPane;
     @FXML private Tab tabCitas;
+    @FXML private Tab tabMisCitas;
     @FXML private Label lblBreadcrumb;
     @FXML private Label lblUserName;
     @FXML private Label lblUserRole;
 
     @FXML private Hyperlink linkCitas;
+    @FXML private Hyperlink linkMisCitas;
 
     @FXML private HBox headerTop;
     @FXML private FlowPane navLinks;
@@ -28,11 +30,24 @@ public class MainController {
     @FXML
     public void initialize() {
         SesionManager sesion = SesionManager.getInstance();
-        lblUserName.setText(sesion.getNombreUsuario());
-        lblUserRole.setText(sesion.getNombreRol());
+        lblUserName.setText(sesion.getNombrePersona());
+        lblUserRole.setText(sesion.getRol());
 
-        mainTabPane.getSelectionModel().select(tabCitas);
-        actualizarEnlacesActivos(linkCitas);
+        String rol = sesion.getRol();
+
+        if ("PACIENTE".equals(rol)) {
+            mainTabPane.getTabs().remove(tabCitas);
+            mainTabPane.getSelectionModel().select(tabMisCitas);
+            lblBreadcrumb.setText("Inicio > Mis Citas");
+            linkCitas.setVisible(false);
+            linkCitas.setManaged(false);
+        } else {
+            mainTabPane.getTabs().remove(tabMisCitas);
+            mainTabPane.getSelectionModel().select(tabCitas);
+            lblBreadcrumb.setText("Inicio > Citas Médicas");
+            linkMisCitas.setVisible(false);
+            linkMisCitas.setManaged(false);
+        }
 
         mainTabPane.widthProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && newVal.doubleValue() > 0) {
@@ -53,8 +68,16 @@ public class MainController {
         actualizarEnlacesActivos(linkCitas);
     }
 
+    @FXML
+    private void navigateToMisCitas() {
+        mainTabPane.getSelectionModel().select(tabMisCitas);
+        lblBreadcrumb.setText("Inicio > Mis Citas");
+        actualizarEnlacesActivos(linkMisCitas);
+    }
+
     private void actualizarEnlacesActivos(Hyperlink activeLink) {
         if (linkCitas != null) linkCitas.getStyleClass().remove("active");
+        if (linkMisCitas != null) linkMisCitas.getStyleClass().remove("active");
         if (activeLink != null) activeLink.getStyleClass().add("active");
     }
 

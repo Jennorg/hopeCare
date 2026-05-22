@@ -4,6 +4,8 @@ public class UsuarioModel {
     private int idUsuario;
     private String nombreUsuario;
     private String nombreRol;
+    private String rol;
+    private int idPersona;
 
     public UsuarioModel() {}
 
@@ -13,4 +15,8 @@ public class UsuarioModel {
     public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
     public String getNombreRol() { return nombreRol; }
     public void setNombreRol(String nombreRol) { this.nombreRol = nombreRol; }
+    public String getRol() { return rol; }
+    public void setRol(String rol) { this.rol = rol; }
+    public int getIdPersona() { return idPersona; }
+    public void setIdPersona(int idPersona) { this.idPersona = idPersona; }
 }

@@ -75,6 +75,19 @@ public class PacienteDAO {
         }
     }
 
+    public int obtenerIdPacientePorIdPersona(int idPersona) {
+        String sql = "SELECT id_paciente FROM paciente WHERE id_persona = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPersona);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id_paciente");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return -1;
+    }
+
     public boolean insertar(Paciente p) {
         String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";

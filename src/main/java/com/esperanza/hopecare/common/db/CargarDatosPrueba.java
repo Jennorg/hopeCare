@@ -61,6 +61,8 @@ public class CargarDatosPrueba {
             ps.setString(1, "Carlos"); ps.setString(2, "Lopez"); ps.setString(3, "34567890"); ps.executeUpdate();
             ps.setString(1, "Laura"); ps.setString(2, "Fernandez"); ps.setString(3, "45678901"); ps.executeUpdate();
             ps.setString(1, "Roberto"); ps.setString(2, "Diaz"); ps.setString(3, "56789012"); ps.executeUpdate();
+            ps.setString(1, "Admin"); ps.setString(2, "Sistema"); ps.setString(3, "99999999"); ps.executeUpdate();
+            ps.setString(1, "Paciente"); ps.setString(2, "Demo"); ps.setString(3, "00000001"); ps.executeUpdate();
         }
     }
 
@@ -81,6 +83,7 @@ public class CargarDatosPrueba {
             ps.setInt(1, 6); ps.setString(2, "HC003"); ps.setString(3, "Ninguna"); ps.setString(4, "B+"); ps.executeUpdate();
             ps.setInt(1, 7); ps.setString(2, "HC004"); ps.setString(3, "Aspirina"); ps.setString(4, "AB+"); ps.executeUpdate();
             ps.setInt(1, 8); ps.setString(2, "HC005"); ps.setString(3, "Ninguna"); ps.setString(4, "O-"); ps.executeUpdate();
+            ps.setInt(1, 10); ps.setString(2, "HC006"); ps.setString(3, "Ninguna"); ps.setString(4, "A+"); ps.executeUpdate();
         }
     }
 
@@ -101,11 +104,24 @@ public class CargarDatosPrueba {
     }
 
     private static void insertarUsuarios(Connection conn) throws SQLException {
-        String sql = "INSERT INTO usuario (nombre_usuario, contrasena_hash, id_persona) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO usuario (nombre_usuario, contrasena_hash, id_persona, rol) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "amedico");
             ps.setString(2, Hasher.hash("medico123"));
             ps.setInt(3, 1);
+            ps.setString(4, "MEDICO");
+            ps.executeUpdate();
+
+            ps.setString(1, "aadmin");
+            ps.setString(2, Hasher.hash("admin123"));
+            ps.setInt(3, 9);
+            ps.setString(4, "ADMIN");
+            ps.executeUpdate();
+
+            ps.setString(1, "apaciente");
+            ps.setString(2, Hasher.hash("paciente123"));
+            ps.setInt(3, 10);
+            ps.setString(4, "PACIENTE");
             ps.executeUpdate();
         }
     }

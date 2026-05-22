@@ -5,7 +5,10 @@ public class SesionManager {
     private static SesionManager instance;
 
     private String nombreUsuario;
-    private String nombreRol;
+    private String nombrePersona;
+    private String rol;
+    private int idUsuario;
+    private int idPersona;
 
     private SesionManager() {}
 
@@ -16,14 +19,20 @@ public class SesionManager {
         return instance;
     }
 
-    public void iniciarSesion(String nombreUsuario, String nombreRol) {
+    public void iniciarSesion(String nombreUsuario, String nombrePersona, String rol, int idUsuario, int idPersona) {
         this.nombreUsuario = nombreUsuario;
-        this.nombreRol = nombreRol;
+        this.nombrePersona = nombrePersona;
+        this.rol = rol;
+        this.idUsuario = idUsuario;
+        this.idPersona = idPersona;
     }
 
     public void cerrarSesion() {
         this.nombreUsuario = null;
-        this.nombreRol = null;
+        this.nombrePersona = null;
+        this.rol = null;
+        this.idUsuario = -1;
+        this.idPersona = -1;
     }
 
     public boolean haySesionActiva() {
@@ -31,5 +40,8 @@ public class SesionManager {
     }
 
     public String getNombreUsuario() { return nombreUsuario; }
-    public String getNombreRol() { return nombreRol; }
+    public String getNombrePersona() { return nombrePersona; }
+    public String getRol() { return rol; }
+    public int getIdUsuario() { return idUsuario; }
+    public int getIdPersona() { return idPersona; }
 }

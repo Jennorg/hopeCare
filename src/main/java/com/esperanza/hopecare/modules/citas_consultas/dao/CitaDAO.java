@@ -246,6 +246,88 @@ public class CitaDAO {
         }
     }
 
+    public List<Cita> listarPorMedicoConNombres(int idMedico) {
+        List<Cita> citas = new ArrayList<>();
+        String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
+                   + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, pp.documento_identidad AS p_documento, "
+                   + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
+                   + "COALESCE(cs.precio, 0.0) AS precio "
+                   + "FROM cita c "
+                   + "JOIN paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN medico me ON c.id_medico = me.id_medico "
+                   + "JOIN persona pm ON me.id_persona = pm.id_persona "
+                   + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
+                   + "WHERE c.id_medico = ? "
+                   + "ORDER BY c.fecha_hora DESC";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idMedico);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Cita c = new Cita();
+                c.setIdCita(rs.getInt("id_cita"));
+                c.setIdPaciente(rs.getInt("id_paciente"));
+                c.setIdMedico(rs.getInt("id_medico"));
+                c.setFechaHora(parseFechaHora(rs));
+                c.setEstado(rs.getString("estado"));
+                c.setMotivo(rs.getString("motivo"));
+                c.setCreadaPor(rs.getInt("creada_por"));
+                Timestamp ts = rs.getTimestamp("fecha_creacion");
+                if (ts != null) {
+                    c.setFechaCreacion(ts.toLocalDateTime());
+                }
+                c.setPacienteNombre(rs.getString("p_nombre") + " " + rs.getString("p_apellido"));
+                c.setPacienteDocumento(rs.getString("p_documento"));
+                c.setMedicoNombre(rs.getString("m_nombre") + " " + rs.getString("m_apellido"));
+                c.setPrecio(rs.getDouble("precio"));
+                citas.add(c);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return citas;
+    }
+
+    public List<Cita> listarPorPacienteConNombres(int idPaciente) {
+        List<Cita> citas = new ArrayList<>();
+        String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
+                   + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, pp.documento_identidad AS p_documento, "
+                   + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
+                   + "COALESCE(cs.precio, 0.0) AS precio "
+                   + "FROM cita c "
+                   + "JOIN paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN medico me ON c.id_medico = me.id_medico "
+                   + "JOIN persona pm ON me.id_persona = pm.id_persona "
+                   + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
+                   + "WHERE c.id_paciente = ? "
+                   + "ORDER BY c.fecha_hora DESC";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idPaciente);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Cita c = new Cita();
+                c.setIdCita(rs.getInt("id_cita"));
+                c.setIdPaciente(rs.getInt("id_paciente"));
+                c.setIdMedico(rs.getInt("id_medico"));
+                c.setFechaHora(parseFechaHora(rs));
+                c.setEstado(rs.getString("estado"));
+                c.setMotivo(rs.getString("motivo"));
+                c.setCreadaPor(rs.getInt("creada_por"));
+                Timestamp ts = rs.getTimestamp("fecha_creacion");
+                if (ts != null) {
+                    c.setFechaCreacion(ts.toLocalDateTime());
+                }
+                c.setPacienteNombre(rs.getString("p_nombre") + " " + rs.getString("p_apellido"));
+                c.setPacienteDocumento(rs.getString("p_documento"));
+                c.setMedicoNombre(rs.getString("m_nombre") + " " + rs.getString("m_apellido"));
+                c.setPrecio(rs.getDouble("precio"));
+                citas.add(c);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return citas;
+    }
+
     public List<Cita> obtenerCitasPorEstadoConNombres(String estado) {
         List<Cita> citas = new ArrayList<>();
         String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
