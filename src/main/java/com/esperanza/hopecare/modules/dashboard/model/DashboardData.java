@@ -16,7 +16,7 @@ public class DashboardData {
     private double ingresosConsultas;
     private double ingresosFarmacia;
     private double ingresosLaboratorio;
-    private List<String> registrosRecientes;
+    private List<RegistroItem> registrosRecientes;
     private int totalPacientes;
     private int totalMedicos;
     private int totalMedicamentos;
@@ -57,8 +57,8 @@ public class DashboardData {
     public double getIngresosLaboratorio() { return ingresosLaboratorio; }
     public void setIngresosLaboratorio(double ingresosLaboratorio) { this.ingresosLaboratorio = ingresosLaboratorio; }
 
-    public List<String> getRegistrosRecientes() { return registrosRecientes; }
-    public void setRegistrosRecientes(List<String> registrosRecientes) { this.registrosRecientes = registrosRecientes; }
+    public List<RegistroItem> getRegistrosRecientes() { return registrosRecientes; }
+    public void setRegistrosRecientes(List<RegistroItem> registrosRecientes) { this.registrosRecientes = registrosRecientes; }
 
     public int getTotalPacientes() { return totalPacientes; }
     public void setTotalPacientes(int totalPacientes) { this.totalPacientes = totalPacientes; }
