@@ -88,6 +88,7 @@ public class ConsultaPresenter {
             return;
         }
         Consulta consulta = new Consulta(idCita, diagnostico, sintomas, tratamiento, precio);
+        consulta.setFechaConsulta(java.time.LocalDateTime.now());
         int idConsulta = consultaDAO.insertarConsultaYActualizarEstado(consulta);
         if (idConsulta > 0) {
             idConsultaActual = idConsulta;

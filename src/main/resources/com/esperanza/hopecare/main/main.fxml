@@ -40,7 +40,7 @@
                 <Pane fx:id="spacer2" HBox.hgrow="ALWAYS" />
 
                 <HBox fx:id="userSection" styleClass="user-section" spacing="12" alignment="CENTER_RIGHT">
-                    <HBox styleClass="user-info" spacing="10" alignment="CENTER">
+                    <HBox styleClass="user-info" spacing="10" alignment="CENTER" onMouseClicked="#onUserProfileClick">
                         <VBox alignment="CENTER_RIGHT">
                             <Label fx:id="lblUserName" text="Médico" styleClass="user-name"/>
                             <Label fx:id="lblUserRole" text="MÉDICO" styleClass="user-role"/>

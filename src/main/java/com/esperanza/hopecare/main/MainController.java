@@ -1,11 +1,10 @@
 package com.esperanza.hopecare.main;
 
 import com.esperanza.hopecare.common.session.SesionManager;
+import com.esperanza.hopecare.modules.pacientes_medicos.dao.MedicoDAO;
 import javafx.fxml.FXML;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
@@ -132,15 +131,69 @@ public class MainController {
 
     @FXML
     private void onUserProfileClick() {
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Cerrar Sesión");
-        alert.setHeaderText("¿Está seguro de que desea cerrar la sesión actual?");
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
-
-        java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
-            cerrarSesion();
+        SesionManager sesion = SesionManager.getInstance();
+        if ("MEDICO".equals(sesion.getRol())) {
+            abrirPerfilMedico();
+        } else {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Cerrar Sesión");
+            alert.setHeaderText("¿Está seguro de que desea cerrar la sesión actual?");
+            alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
+            java.util.Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                cerrarSesion();
+            }
         }
+    }
+
+    private void abrirPerfilMedico() {
+        SesionManager sesion = SesionManager.getInstance();
+        MedicoDAO medicoDAO = new MedicoDAO();
+        int idMedico = medicoDAO.obtenerIdMedicoPorIdPersona(sesion.getIdPersona());
+        if (idMedico <= 0) return;
+
+        double precioActual = medicoDAO.obtenerPrecioConsulta(idMedico);
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Perfil del Médico");
+        dialog.setHeaderText(sesion.getNombrePersona());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/main/hopecare.css").toExternalForm());
+
+        TextField txtPrecio = new TextField(String.format("%.0f", precioActual));
+        txtPrecio.setPromptText("Precio de consulta ($)");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label("Precio de consulta ($):"), 0, 0);
+        grid.add(txtPrecio, 1, 0);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == ButtonType.OK) {
+                try {
+                    double nuevoPrecio = Double.parseDouble(txtPrecio.getText().trim());
+                    if (nuevoPrecio < 0) throw new NumberFormatException();
+                    medicoDAO.actualizarPrecioConsulta(idMedico, nuevoPrecio);
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Perfil");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Precio de consulta actualizado a $" + String.format("%.0f", nuevoPrecio));
+                    alert.showAndWait();
+                } catch (NumberFormatException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Ingrese un precio válido.");
+                    alert.showAndWait();
+                }
+            }
+            return null;
+        });
+
+        dialog.showAndWait();
     }
 
     private void cerrarSesion() {

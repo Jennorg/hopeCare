@@ -188,6 +188,30 @@ public class MedicoDAO {
         }
     }
 
+    public double obtenerPrecioConsulta(int idMedico) {
+        String sql = "SELECT precio_consulta FROM medico WHERE id_medico = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("precio_consulta");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0.0;
+    }
+
+    public boolean actualizarPrecioConsulta(int idMedico, double precio) {
+        String sql = "UPDATE medico SET precio_consulta = ? WHERE id_medico = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, precio);
+            ps.setInt(2, idMedico);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
     public int obtenerIdMedicoPorIdPersona(int idPersona) {
         String sql = "SELECT id_medico FROM medico WHERE id_persona = ?";
         try (Connection conn = DatabaseConnection.getConnection();

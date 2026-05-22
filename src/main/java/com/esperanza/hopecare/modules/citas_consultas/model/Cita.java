@@ -15,6 +15,9 @@ public class Cita {
     private String pacienteDocumento;
     private String medicoNombre;
     private double precio;
+    private int consultaId;
+    private String consultaDiagnostico;
+    private LocalDateTime consultaFecha;
 
     public Cita() {}
 
@@ -49,4 +52,10 @@ public class Cita {
     public void setMedicoNombre(String medicoNombre) { this.medicoNombre = medicoNombre; }
     public double getPrecio() { return precio; }
     public void setPrecio(double precio) { this.precio = precio; }
+    public int getConsultaId() { return consultaId; }
+    public void setConsultaId(int consultaId) { this.consultaId = consultaId; }
+    public String getConsultaDiagnostico() { return consultaDiagnostico; }
+    public void setConsultaDiagnostico(String consultaDiagnostico) { this.consultaDiagnostico = consultaDiagnostico; }
+    public LocalDateTime getConsultaFecha() { return consultaFecha; }
+    public void setConsultaFecha(LocalDateTime consultaFecha) { this.consultaFecha = consultaFecha; }
 }
