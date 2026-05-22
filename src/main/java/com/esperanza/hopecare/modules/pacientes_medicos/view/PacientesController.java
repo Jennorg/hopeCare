@@ -1,5 +1,6 @@
 package com.esperanza.hopecare.modules.pacientes_medicos.view;
 
+import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
 import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
 import javafx.collections.FXCollections;
@@ -39,6 +40,16 @@ public class PacientesController {
         configurarColumnas();
         cargarPacientes();
         configurarFiltroReactivo();
+        aplicarPermisos();
+    }
+
+    private void aplicarPermisos() {
+        SesionManager sesion = SesionManager.getInstance();
+        if (sesion.isMedico()) {
+            btnAgregar.setVisible(false);
+            btnAgregar.setManaged(false);
+            colAcciones.setVisible(false);
+        }
     }
 
     private void configurarColumnas() {
@@ -98,7 +109,7 @@ public class PacientesController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+                if (empty || SesionManager.getInstance().isMedico()) {
                     setGraphic(null);
                 } else {
                     Paciente p = getTableView().getItems().get(getIndex());

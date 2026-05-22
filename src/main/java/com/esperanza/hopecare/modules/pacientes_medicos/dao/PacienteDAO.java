@@ -5,8 +5,11 @@ import com.esperanza.hopecare.common.db.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class PacienteDAO {
+    private static final Logger LOGGER = Logger.getLogger(PacienteDAO.class.getName());
 
     public List<Paciente> listarTodos() {
         List<Paciente> lista = new ArrayList<>();
@@ -36,7 +39,9 @@ public class PacienteDAO {
                 p.setGenero(rs.getString("genero"));
                 lista.add(p);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            LOGGER.log(Level.SEVERE, "Error al listar todos los pacientes", e); 
+        }
         return lista;
     }
 
@@ -69,7 +74,9 @@ public class PacienteDAO {
                 p.setGenero(rs.getString("genero"));
                 lista.add(p);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            LOGGER.log(Level.SEVERE, "Error al listar pacientes activos", e); 
+        }
         return lista;
     }
 
@@ -83,7 +90,9 @@ public class PacienteDAO {
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            LOGGER.log(Level.SEVERE, "Error al verificar existencia de documento", e); 
+        }
         return false;
     }
 
@@ -97,7 +106,9 @@ public class PacienteDAO {
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            LOGGER.log(Level.SEVERE, "Error al verificar existencia de historia clínica", e); 
+        }
         return false;
     }
 
@@ -109,14 +120,21 @@ public class PacienteDAO {
         }
     }
 
+    /**
+     * Inserta un nuevo paciente realizando una transacción atómica.
+     * Primero crea el registro en la tabla base 'persona' para obtener su ID generado,
+     * y luego crea el registro vinculado en la tabla 'paciente'.
+     * Si alguna operación falla, se realiza un rollback para mantener la integridad.
+     */
     public boolean insertar(Paciente p) {
         String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // Inicia transacción
             
+            // 1. Registro de datos personales
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
                 psP.setString(1, p.getNombre().trim());
                 psP.setString(2, p.getApellido().trim());
@@ -138,6 +156,7 @@ public class PacienteDAO {
                 }
             }
             
+            // 2. Registro de datos clínicos vinculados
             try (PreparedStatement psPac = conn.prepareStatement(sqlPaciente, Statement.RETURN_GENERATED_KEYS)) {
                 psPac.setInt(1, p.getIdPersona());
                 psPac.setString(2, p.getHistoriaClinica().trim());
@@ -153,20 +172,25 @@ public class PacienteDAO {
                 }
             }
             
-            conn.commit();
+            conn.commit(); // Finaliza con éxito
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de inserción", ex); }
             }
-            e.printStackTrace();
+            // Logueamos a nivel INFO si es un error de restricción único para no ensuciar el log de errores graves
+            if (e.getMessage().contains("UNIQUE constraint failed")) {
+                LOGGER.log(Level.INFO, "Intento de inserción con datos duplicados: {0}", e.getMessage());
+            } else {
+                LOGGER.log(Level.SEVERE, "Error al insertar paciente", e);
+            }
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ex) { ex.printStackTrace(); }
+                } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error al cerrar conexión en inserción", ex); }
             }
         }
     }
@@ -194,9 +218,9 @@ public class PacienteDAO {
             
             try (PreparedStatement psPac = conn.prepareStatement(sqlPaciente)) {
                 psPac.setString(1, p.getHistoriaClinica().trim());
-                setStringOrNull(psPac, 2, p.getAlergias());
-                setStringOrNull(psPac, 3, p.getGrupoSanguineo());
-                setStringOrNull(psPac, 4, p.getContactoEmergencia());
+                setStringOrNull(psPac, 3, p.getAlergias());
+                setStringOrNull(psPac, 4, p.getGrupoSanguineo());
+                setStringOrNull(psPac, 5, p.getContactoEmergencia());
                 psPac.setInt(5, p.getIdPaciente());
                 psPac.executeUpdate();
             }
@@ -205,16 +229,20 @@ public class PacienteDAO {
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de actualización", ex); }
             }
-            e.printStackTrace();
+            if (e.getMessage().contains("UNIQUE constraint failed")) {
+                LOGGER.log(Level.INFO, "Intento de actualización con datos duplicados: {0}", e.getMessage());
+            } else {
+                LOGGER.log(Level.SEVERE, "Error al actualizar paciente", e);
+            }
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ex) { ex.printStackTrace(); }
+                } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error al cerrar conexión en actualización", ex); }
             }
         }
     }
@@ -256,7 +284,7 @@ public class PacienteDAO {
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de eliminación", ex); }
             }
             throw e; // rethrow to allow handling constraint violations in the UI
         } finally {
@@ -264,7 +292,7 @@ public class PacienteDAO {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ex) { ex.printStackTrace(); }
+                } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error al cerrar conexión en eliminación", ex); }
             }
         }
     }
@@ -276,7 +304,7 @@ public class PacienteDAO {
             ps.setInt(1, idPaciente);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error al dar de alta (baja lógica) paciente", e);
             return false;
         }
     }
@@ -288,7 +316,7 @@ public class PacienteDAO {
             ps.setInt(1, idPaciente);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error al reactivar paciente", e);
             return false;
         }
     }

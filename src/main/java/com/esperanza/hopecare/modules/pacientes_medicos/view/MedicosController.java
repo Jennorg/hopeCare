@@ -1,5 +1,6 @@
 package com.esperanza.hopecare.modules.pacientes_medicos.view;
 
+import com.esperanza.hopecare.common.session.SesionManager;
 import com.esperanza.hopecare.modules.pacientes_medicos.dao.MedicoDAO;
 import com.esperanza.hopecare.modules.pacientes_medicos.model.Medico;
 import javafx.collections.FXCollections;
@@ -36,6 +37,25 @@ public class MedicosController {
         configurarColumnas();
         cargarMedicos();
         configurarFiltroReactivo();
+        aplicarPermisos();
+    }
+
+    /**
+     * Aplica restricciones visuales basadas en el rol del usuario autenticado.
+     * - MEDICOS: Acceso de solo lectura (sin creación ni edición).
+     * - RECEPCIONISTAS: Pueden editar pero no registrar nuevos médicos.
+     * - ADMINS: Tienen acceso total.
+     */
+    private void aplicarPermisos() {
+        SesionManager sesion = SesionManager.getInstance();
+        if (sesion.isMedico()) {
+            btnAgregar.setVisible(false);
+            btnAgregar.setManaged(false);
+            colAcciones.setVisible(false);
+        } else if (sesion.isRecepcionista()) {
+            btnAgregar.setVisible(false);
+            btnAgregar.setManaged(false);
+        }
     }
 
     private void configurarColumnas() {
@@ -122,7 +142,7 @@ public class MedicosController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+                if (empty || SesionManager.getInstance().isMedico()) {
                     setGraphic(null);
                 } else {
                     setGraphic(container);

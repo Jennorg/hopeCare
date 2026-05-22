@@ -5,8 +5,11 @@ import com.esperanza.hopecare.common.db.DatabaseConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MedicoDAO {
+    private static final Logger LOGGER = Logger.getLogger(MedicoDAO.class.getName());
 
     public List<Medico> listarTodos() {
         List<Medico> lista = new ArrayList<>();
@@ -38,7 +41,9 @@ public class MedicoDAO {
                 m.setNombreEspecialidad(rs.getString("nombre_especialidad"));
                 lista.add(m);
             }
-        } catch (SQLException ex) { ex.printStackTrace(); }
+        } catch (SQLException ex) { 
+            LOGGER.log(Level.SEVERE, "Error al listar todos los médicos", ex); 
+        }
         return lista;
     }
 
@@ -52,7 +57,9 @@ public class MedicoDAO {
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            LOGGER.log(Level.SEVERE, "Error al verificar existencia de documento", e); 
+        }
         return false;
     }
 
@@ -66,7 +73,9 @@ public class MedicoDAO {
             if (rs.next()) {
                 return rs.getInt(1) > 0;
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { 
+            LOGGER.log(Level.SEVERE, "Error al verificar existencia de registro médico", e); 
+        }
         return false;
     }
 
@@ -126,16 +135,20 @@ public class MedicoDAO {
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de inserción de médico", ex); }
             }
-            e.printStackTrace();
+            if (e.getMessage().contains("UNIQUE constraint failed")) {
+                LOGGER.log(Level.INFO, "Intento de inserción de médico con datos duplicados: {0}", e.getMessage());
+            } else {
+                LOGGER.log(Level.SEVERE, "Error al insertar médico", e);
+            }
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ex) { ex.printStackTrace(); }
+                } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error al cerrar conexión en inserción de médico", ex); }
             }
         }
     }
@@ -174,16 +187,20 @@ public class MedicoDAO {
             return true;
         } catch (SQLException e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+                try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de actualización de médico", ex); }
             }
-            e.printStackTrace();
+            if (e.getMessage().contains("UNIQUE constraint failed")) {
+                LOGGER.log(Level.INFO, "Intento de actualización de médico con datos duplicados: {0}", e.getMessage());
+            } else {
+                LOGGER.log(Level.SEVERE, "Error al actualizar médico", e);
+            }
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ex) { ex.printStackTrace(); }
+                } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error al cerrar conexión en actualización de médico", ex); }
             }
         }
     }
@@ -195,7 +212,7 @@ public class MedicoDAO {
             ps.setInt(1, idMedico);
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error al dar de baja lógica al médico", e);
             return false;
         }
     }
