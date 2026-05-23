@@ -4,13 +4,13 @@ module com.esperanza.hopecare {
     requires java.desktop;
     requires java.sql;
 
-    opens com.esperanza.hopecare.main to javafx.fxml;
-    opens com.esperanza.hopecare.modules.citas_consultas.view to javafx.fxml;
-    opens com.esperanza.hopecare.modules.Auth.view to javafx.fxml;
-    opens com.esperanza.hopecare.modules.pacientes_medicos.view to javafx.fxml;
-    opens com.esperanza.hopecare.modules.citas_consultas.model to javafx.base;
-    opens com.esperanza.hopecare.modules.pacientes_medicos.model to javafx.base;
-    opens com.esperanza.hopecare.common.model to javafx.base;
+    exports com.esperanza.hopecare;
+    exports com.esperanza.hopecare.controller;
+    exports com.esperanza.hopecare.model;
+    exports com.esperanza.hopecare.dao;
+    exports com.esperanza.hopecare.service;
+    exports com.esperanza.hopecare.util;
 
-    exports com.esperanza.hopecare.main;
+    opens com.esperanza.hopecare.controller to javafx.fxml;
+    opens com.esperanza.hopecare.model to javafx.base;
 }

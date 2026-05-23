@@ -1,0 +1,107 @@
+package com.esperanza.hopecare.controller;
+import com.esperanza.hopecare.util.DatabaseConnection;
+import com.esperanza.hopecare.common.events.EventBus;
+import com.esperanza.hopecare.common.events.NuevaConsultaEvent;
+
+import com.esperanza.hopecare.dao.CitaDAO;
+import com.esperanza.hopecare.dao.ConsultaDAO;
+import com.esperanza.hopecare.model.Cita;
+import com.esperanza.hopecare.model.Consulta;
+import com.esperanza.hopecare.controller.IConsultaView;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+public class ConsultaPresenter {
+    private final IConsultaView view;
+    private final ConsultaDAO consultaDAO;
+    private final CitaDAO citaDAO;
+    private int idConsultaActual = -1;
+    private int idPacienteActual = -1;
+    private int idMedicoFiltro = -1;
+    private List<Cita> citasCargadas;
+
+    public ConsultaPresenter(IConsultaView view) {
+        this.view = view;
+        this.consultaDAO = new ConsultaDAO();
+        this.citaDAO = new CitaDAO();
+    }
+
+    public void setFiltroMedico(int idMedico) {
+        this.idMedicoFiltro = idMedico;
+    }
+
+    public void cargarCitasPendientes() {
+        List<Cita> todas = citaDAO.obtenerCitasPorEstadoConNombres("PROGRAMADA");
+        if (idMedicoFiltro > 0) {
+            citasCargadas = new java.util.ArrayList<>();
+            for (Cita c : todas) {
+                if (c.getIdMedico() == idMedicoFiltro) {
+                    citasCargadas.add(c);
+                }
+            }
+        } else {
+            citasCargadas = todas;
+        }
+        view.mostrarCitasPendientes(citasCargadas);
+        view.actualizarEstadoAcciones(false);
+    }
+
+    public void seleccionarCita() {
+        int idCita = view.getIdCitaSeleccionada();
+        if (idCita <= 0) {
+            view.mostrarError("Seleccione una cita.");
+            return;
+        }
+        idConsultaActual = -1;
+        idPacienteActual = -1;
+        if (citasCargadas != null) {
+            for (Cita c : citasCargadas) {
+                if (c.getIdCita() == idCita) {
+                    idPacienteActual = c.getIdPaciente();
+                    break;
+                }
+            }
+        }
+        view.limpiarFormulario();
+        view.actualizarEstadoAcciones(false);
+        view.mostrarExito("Cita cargada, puede registrar la consulta.");
+    }
+
+    public void registrarConsulta() {
+        int idCita = view.getIdCitaSeleccionada();
+        String diagnostico = limpiarTexto(view.getDiagnostico());
+        String sintomas = limpiarTexto(view.getSintomas());
+        String tratamiento = limpiarTexto(view.getTratamiento());
+
+        if (idCita <= 0) {
+            view.mostrarError("Seleccione una cita primero.");
+            return;
+        }
+        if (sintomas.isEmpty() || diagnostico.isEmpty()) {
+            view.mostrarError("Síntomas y diagnóstico son obligatorios.");
+            return;
+        }
+        double precio = view.getPrecio();
+        if (precio < 0) {
+            view.mostrarError("El precio no puede ser negativo.");
+            return;
+        }
+        Consulta consulta = new Consulta(idCita, diagnostico, sintomas, tratamiento, precio);
+        consulta.setFechaConsulta(java.time.LocalDateTime.now());
+        int idConsulta = consultaDAO.insertarConsultaYActualizarEstado(consulta);
+        if (idConsulta > 0) {
+            idConsultaActual = idConsulta;
+            EventBus.getInstance().post(new NuevaConsultaEvent(idConsulta, idCita));
+            view.actualizarEstadoAcciones(true);
+            view.mostrarExito("Consulta registrada correctamente.");
+            cargarCitasPendientes();
+        } else {
+            view.mostrarError("Error al registrar la consulta.");
+        }
+    }
+
+    private String limpiarTexto(String valor) {
+        return valor == null ? "" : valor.trim();
+    }
+}
