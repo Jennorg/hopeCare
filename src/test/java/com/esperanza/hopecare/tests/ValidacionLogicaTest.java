@@ -1,6 +1,6 @@
 package com.esperanza.hopecare.tests;
 
-import com.esperanza.hopecare.common.utils.ValidadorDatos;
+import com.esperanza.hopecare.util.ValidadorDatos;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

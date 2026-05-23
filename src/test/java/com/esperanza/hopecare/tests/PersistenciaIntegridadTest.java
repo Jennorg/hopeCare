@@ -1,8 +1,8 @@
 package com.esperanza.hopecare.tests;
 
-import com.esperanza.hopecare.common.db.DatabaseConnection;
-import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
-import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
+import com.esperanza.hopecare.util.DatabaseConnection;
+import com.esperanza.hopecare.dao.PacienteDAO;
+import com.esperanza.hopecare.model.Paciente;
 import org.junit.jupiter.api.*;
 
 import java.sql.Connection;

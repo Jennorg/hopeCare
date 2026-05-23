@@ -1,16 +1,10 @@
 module com.esperanza.hopecare {
     requires javafx.controls;
     requires javafx.fxml;
-    
     requires java.desktop;
-    
     requires java.sql;
 
-    opens com.esperanza.hopecare.main to javafx.fxml;
-    opens com.esperanza.hopecare.modules.pacientes_medicos.view to javafx.fxml;
-
-    opens com.esperanza.hopecare.modules.pacientes_medicos.model to javafx.base;
-    opens com.esperanza.hopecare.common.model to javafx.base;
-
-    exports com.esperanza.hopecare.main;
+    exports com.esperanza.hopecare;
+    opens com.esperanza.hopecare.controller to javafx.fxml;
+    opens com.esperanza.hopecare.model to javafx.base;
 }
