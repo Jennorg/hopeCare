@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS medico (
     id_persona INTEGER NOT NULL,
     id_especialidad INTEGER NOT NULL,
     registro_medico TEXT UNIQUE NOT NULL,
+    precio_consulta REAL DEFAULT 0.0,
     fecha_contratacion TEXT,
     activo INTEGER DEFAULT 1,
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),

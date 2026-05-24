@@ -6,8 +6,8 @@ public class LoginDTO {
     private boolean exitoso;
     private String nombreRol;
     private String rol;
+    private int idPersona = -1;
     private String mensaje;
-    private int idPersona;
 
     public LoginDTO() {}
     public LoginDTO(String nombreUsuario, String contrasena) {
@@ -24,8 +24,8 @@ public class LoginDTO {
     public void setNombreRol(String v) { this.nombreRol = v; }
     public String getRol() { return rol; }
     public void setRol(String v) { this.rol = v; }
-    public String getMensaje() { return mensaje; }
-    public void setMensaje(String v) { this.mensaje = v; }
     public int getIdPersona() { return idPersona; }
     public void setIdPersona(int v) { this.idPersona = v; }
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String v) { this.mensaje = v; }
 }

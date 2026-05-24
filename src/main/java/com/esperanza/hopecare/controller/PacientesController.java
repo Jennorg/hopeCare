@@ -26,7 +26,7 @@ public class PacientesController {
     @FXML private TableColumn<Paciente, String> colGrupoSangre;
     @FXML private TableColumn<Paciente, String> colAlergias;
     @FXML private TableColumn<Paciente, String> colContacto;
-    @FXML private TableColumn<Paciente, String> colEstado;
+    @FXML private TableColumn<Paciente, Integer> colEstado;
     @FXML private TableColumn<Paciente, Void> colAcciones;
 
     @FXML private Button btnAgregar;
@@ -64,17 +64,18 @@ public class PacientesController {
         colAlergias.setCellValueFactory(new PropertyValueFactory<>("alergias"));
         colContacto.setCellValueFactory(new PropertyValueFactory<>("contactoEmergencia"));
 
-        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
-        colEstado.setCellFactory(column -> new TableCell<Paciente, String>() {
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("activo"));
+        colEstado.setCellFactory(column -> new TableCell<Paciente, Integer>() {
             @Override
-            protected void updateItem(String item, boolean empty) {
+            protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item);
-                    if ("Activo".equals(item)) {
+                    boolean activo = item == 1;
+                    setText(activo ? "Activo" : "Dado de Alta");
+                    if (activo) {
                         setStyle("-fx-text-fill: #0d9488; -fx-font-weight: bold; -fx-alignment: center;");
                     } else {
                         setStyle("-fx-text-fill: #64748b; -fx-font-weight: bold; -fx-alignment: center;");

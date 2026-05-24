@@ -23,7 +23,7 @@ public class MedicosController {
     @FXML private TableColumn<Medico, Double> colPrecio;
     @FXML private TableColumn<Medico, String> colTelefono;
     @FXML private TableColumn<Medico, String> colEmail;
-    @FXML private TableColumn<Medico, Boolean> colEstado;
+    @FXML private TableColumn<Medico, Integer> colEstado;
     @FXML private TableColumn<Medico, Void> colAcciones;
 
     @FXML private Button btnAgregar;
@@ -83,15 +83,16 @@ public class MedicosController {
 
         // Format state column with Teal and Red colors
         colEstado.setCellValueFactory(new PropertyValueFactory<>("activo"));
-        colEstado.setCellFactory(column -> new TableCell<Medico, Boolean>() {
+        colEstado.setCellFactory(column -> new TableCell<Medico, Integer>() {
             @Override
-            protected void updateItem(Boolean item, boolean empty) {
+            protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || getTableRow().getItem() == null) {
                     setText(null);
                     setStyle(null);
                 } else {
                     boolean activo = getTableRow().getItem().getActivo() == 1;
+
                     setText(activo ? "ACTIVO" : "INACTIVO");
                     if (activo) {
                         setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");

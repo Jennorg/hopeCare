@@ -29,5 +29,6 @@ CREATE TABLE IF NOT EXISTS consulta (
     tratamiento TEXT,
     notas_medicas TEXT,
     fecha_consulta DATETIME DEFAULT CURRENT_TIMESTAMP,
-    precio REAL NOT NULL DEFAULT 0.0
+    precio REAL NOT NULL DEFAULT 0.0,
+    facturado INTEGER DEFAULT 0
 );

@@ -37,6 +37,8 @@
                 <FlowPane fx:id="navLinks" styleClass="nav-links" alignment="CENTER" columnHalignment="CENTER" hgap="20" vgap="8">
                     <Hyperlink fx:id="linkPacientes" text="Pacientes" styleClass="nav-link" onAction="#navigateToPacientes"/>
                     <Hyperlink fx:id="linkMedicos" text="Médicos" styleClass="nav-link" onAction="#navigateToMedicos"/>
+                    <Hyperlink fx:id="linkCitas" text="Citas" styleClass="nav-link" onAction="#navigateToCitas"/>
+                    <Hyperlink fx:id="linkFacturacion" text="Facturación" styleClass="nav-link" onAction="#navigateToFacturacion"/>
                 </FlowPane>
 
                 <Pane fx:id="spacer2" HBox.hgrow="ALWAYS" />
@@ -70,6 +72,12 @@
             </Tab>
             <Tab fx:id="tabMedicos" text="" closable="false">
                 <fx:include source="medicos.fxml"/>
+            </Tab>
+            <Tab fx:id="tabCitas" text="" closable="false">
+                <fx:include source="citas.fxml"/>
+            </Tab>
+            <Tab fx:id="tabFacturacion" text="" closable="false">
+                <fx:include source="facturacion.fxml"/>
             </Tab>
         </TabPane>
     </center>

@@ -55,6 +55,9 @@ public class HopecareApp extends Application {
         // 3. Inicializar Citas
         inicializarModulo("Citas", "/citas_schema.sql", "cita", DatabaseConnection::getCitasConnection);
 
+        // 4. Inicializar Facturación
+        inicializarModulo("Facturación", "/facturacion_schema.sql", "factura", DatabaseConnection::getFacturacionConnection);
+
         // Cargar datos de prueba si están vacías
         verificarYCargarDatosPrueba();
     }

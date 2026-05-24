@@ -19,12 +19,17 @@ public class MainController {
     @FXML private TabPane mainTabPane;
     @FXML private Tab tabPacientes;
     @FXML private Tab tabMedicos;
+    @FXML private Tab tabCitas;
+    @FXML private Tab tabFacturacion;
+    
     @FXML private Label lblBreadcrumb;
     @FXML private Label lblUserName;
     @FXML private Label lblUserRole;
 
     @FXML private Hyperlink linkPacientes;
     @FXML private Hyperlink linkMedicos;
+    @FXML private Hyperlink linkCitas;
+    @FXML private Hyperlink linkFacturacion;
 
     @FXML private HBox headerTop;
     @FXML private FlowPane navLinks;
@@ -48,6 +53,16 @@ public class MainController {
                 ajustarNavbar(newVal.doubleValue());
             }
         });
+        
+        aplicarPermisos();
+    }
+    
+    private void aplicarPermisos() {
+        SesionManager sesion = SesionManager.getInstance();
+        if (sesion.isMedico()) {
+            // Un médico quizás no debería ver facturación? 
+            // O sí para ver qué se le debe. Por ahora dejamos todos.
+        }
     }
 
     @FXML
@@ -63,9 +78,23 @@ public class MainController {
         lblBreadcrumb.setText("Inicio > Médicos");
         actualizarEnlacesActivos(linkMedicos);
     }
+    
+    @FXML
+    private void navigateToCitas() {
+        mainTabPane.getSelectionModel().select(tabCitas);
+        lblBreadcrumb.setText("Inicio > Citas");
+        actualizarEnlacesActivos(linkCitas);
+    }
+    
+    @FXML
+    private void navigateToFacturacion() {
+        mainTabPane.getSelectionModel().select(tabFacturacion);
+        lblBreadcrumb.setText("Inicio > Facturación");
+        actualizarEnlacesActivos(linkFacturacion);
+    }
 
     private void actualizarEnlacesActivos(Hyperlink activeLink) {
-        Hyperlink[] links = {linkPacientes, linkMedicos};
+        Hyperlink[] links = {linkPacientes, linkMedicos, linkCitas, linkFacturacion};
         for (Hyperlink link : links) {
             if (link != null) {
                 link.getStyleClass().remove("active");
@@ -118,11 +147,6 @@ public class MainController {
         }
      }
 
-    /**
-     * Gestiona el cierre de sesión del usuario.
-     * Limpia el estado del SesionManager y retorna al usuario a la pantalla de login,
-     * reemplazando el contenido de la ventana actual.
-     */
     @FXML
     private void onUserProfileClick() {
         try {

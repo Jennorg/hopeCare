@@ -72,6 +72,29 @@ public class LoginController {
         }
     }
 
+    @FXML
+    private void handleSignup() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/esperanza/hopecare/view/signup.fxml")
+            );
+            Parent root = loader.load();
+
+            Stage stage = (Stage) txtUsuario.getScene().getWindow();
+            Scene scene = new Scene(root, 900, 700);
+            scene.getStylesheets().add(
+                getClass().getResource("/com/esperanza/hopecare/css/hopecare.css")
+                          .toExternalForm()
+            );
+            stage.setTitle("HopeCare – Registro");
+            stage.setScene(scene);
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("No se pudo cargar la pantalla de registro.");
+        }
+    }
+
     private void abrirPrincipal() {
         try {
             FXMLLoader loader = new FXMLLoader(

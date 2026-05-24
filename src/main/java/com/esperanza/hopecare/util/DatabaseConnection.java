@@ -9,6 +9,7 @@ public class DatabaseConnection {
     private static final String AUTH_DB = "jdbc:sqlite:hopecare_auth.db";
     private static final String CLINICA_DB = "jdbc:sqlite:hopecare_clinica.db";
     private static final String CITAS_DB = "jdbc:sqlite:hopecare_citas.db";
+    private static final String FACTURACION_DB = "jdbc:sqlite:hopecare_facturacion.db";
 
     /**
      * Obtiene una conexión a la base de datos de Autenticación.
@@ -29,6 +30,25 @@ public class DatabaseConnection {
      */
     public static Connection getCitasConnection() throws SQLException {
         return DriverManager.getConnection(CITAS_DB);
+    }
+
+    /**
+     * Obtiene una conexión a la base de datos de Facturación.
+     */
+    public static Connection getFacturacionConnection() throws SQLException {
+        return DriverManager.getConnection(FACTURACION_DB);
+    }
+
+    /**
+     * Obtiene una conexión a la base de datos de Facturación con acceso a Clínica y Citas.
+     */
+    public static Connection getFacturacionUnifiedConnection() throws SQLException {
+        Connection conn = DriverManager.getConnection(FACTURACION_DB);
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("ATTACH DATABASE 'hopecare_clinica.db' AS clinica");
+            stmt.execute("ATTACH DATABASE 'hopecare_citas.db' AS citas");
+        }
+        return conn;
     }
 
     /**

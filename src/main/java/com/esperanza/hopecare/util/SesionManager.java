@@ -7,7 +7,7 @@ public class SesionManager {
     private String rol;
     private String nombreRol;
     private int idUsuario;
-    private int idPersona;
+    private int idPersona = -1;
 
     private SesionManager() {}
 
@@ -29,8 +29,16 @@ public class SesionManager {
         this.nombreUsuario = nombreUsuario;
         this.nombrePersona = nombrePersona;
         this.rol = rol;
-        this.nombreRol = rol; // Support both naming conventions
+        this.nombreRol = rol;
         this.idUsuario = idUsuario;
+        this.idPersona = idPersona;
+    }
+
+    public void iniciarSesion(String nombreUsuario, String nombreRol, int idPersona) {
+        this.nombreUsuario = nombreUsuario;
+        this.nombrePersona = nombreRol;
+        this.rol = nombreRol;
+        this.nombreRol = nombreRol;
         this.idPersona = idPersona;
     }
 
