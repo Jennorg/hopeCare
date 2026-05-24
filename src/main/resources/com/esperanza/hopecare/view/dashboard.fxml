@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent; -fx-padding: 0;" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.esperanza.hopecare.controller.DashboardController">
+<VBox spacing="20">
+<padding><Insets top="24" right="24" bottom="24" left="24" /></padding>
+
+    <!-- Fila 1: KPIs principales -->
+    <HBox spacing="20">
+        <VBox fx:id="cardCitasHoy" styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity" onMouseClicked="#mostrarDetalleCitasHoy" style="-fx-cursor: hand;">
+            <Label text="CITAS HOY" styleClass="section-title"/>
+            <Label fx:id="lblCitasHoy" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </VBox>
+        <VBox fx:id="cardAtendidos" styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity" onMouseClicked="#mostrarDetalleAtendidos" style="-fx-cursor: hand;">
+            <Label text="ATENDIDOS HOY" styleClass="section-title"/>
+            <Label fx:id="lblAtendidosHoy" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </VBox>
+        <VBox fx:id="cardIngresos" styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity" onMouseClicked="#mostrarDetalleFacturas" style="-fx-cursor: hand;">
+            <Label text="INGRESOS DEL MES" styleClass="section-title"/>
+            <Label fx:id="lblIngresosMes" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </VBox>
+        <VBox styleClass="card" HBox.hgrow="ALWAYS" maxHeight="Infinity">
+            <Label text="ASISTENCIA" styleClass="section-title"/>
+            <Label fx:id="lblAsistencia" style="-fx-font-size: 36px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+            <ProgressBar fx:id="barAsistencia" prefWidth="Infinity" progress="0" style="-fx-accent: #0d9488; -fx-pref-height: 8;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Fila 2: Estado de Citas + Alertas -->
+    <HBox spacing="20">
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="ESTADO DE CITAS DEL MES" styleClass="section-title"/>
+            <HBox spacing="12" alignment="CENTER">
+                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" onMouseClicked="#mostrarDetalleCitasHoy" style="-fx-cursor: hand; -fx-background-color: #dbeafe; -fx-background-radius: 8; -fx-padding: 8;">
+                    <Label text="PROGRAMADAS" style="-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #1e40af; -fx-letter-spacing: 0.5px;"/>
+                    <Label fx:id="lblProgramadas" style="-fx-font-size: 26px; -fx-font-weight: 700; -fx-text-fill: #1e40af;"/>
+                </VBox>
+                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" onMouseClicked="#mostrarDetalleConsultas" style="-fx-cursor: hand; -fx-background-color: #dcfce7; -fx-background-radius: 8; -fx-padding: 8;">
+                    <Label text="ATENDIDAS" style="-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #166534; -fx-letter-spacing: 0.5px;"/>
+                    <Label fx:id="lblAtendidas" style="-fx-font-size: 26px; -fx-font-weight: 700; -fx-text-fill: #166534;"/>
+                </VBox>
+                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #fee2e2; -fx-background-radius: 8; -fx-padding: 8;">
+                    <Label text="CANCELADAS" style="-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #991b1b; -fx-letter-spacing: 0.5px;"/>
+                    <Label fx:id="lblCanceladas" style="-fx-font-size: 26px; -fx-font-weight: 700; -fx-text-fill: #991b1b;"/>
+                </VBox>
+                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" maxWidth="Infinity" style="-fx-background-color: #fef3c7; -fx-background-radius: 8; -fx-padding: 8;">
+                    <Label text="NO ASISTIO" style="-fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #92400e; -fx-letter-spacing: 0.5px;"/>
+                    <Label fx:id="lblNoAsistio" style="-fx-font-size: 26px; -fx-font-weight: 700; -fx-text-fill: #92400e;"/>
+                </VBox>
+            </HBox>
+        </VBox>
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="ALERTAS Y PENDIENTES" styleClass="section-title"/>
+            <VBox spacing="8">
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label fx:id="lblStockBajo" style="-fx-font-weight: 600; -fx-text-fill: #dc2626;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label fx:id="lblLabPendientes" style="-fx-font-weight: 600; -fx-text-fill: #d97706;"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label fx:id="lblFacturasPendientes" style="-fx-font-weight: 600; -fx-text-fill: #d97706;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </HBox>
+
+    <!-- Fila 3: Resumen Financiero + Registros Recientes -->
+    <HBox spacing="20">
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="RESUMEN FINANCIERO DEL MES" styleClass="section-title"/>
+            <GridPane hgap="12" vgap="8">
+                <columnConstraints>
+                    <ColumnConstraints prefWidth="100"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label text="Consultas:" style="-fx-font-weight: 600; -fx-text-fill: #64748b;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="lblIngConsultas" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #0d9488;" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Farmacia:" style="-fx-font-weight: 600; -fx-text-fill: #64748b;" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="lblIngFarmacia" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #0d9488;" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                <Label text="Laboratorio:" style="-fx-font-weight: 600; -fx-text-fill: #64748b;" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <Label fx:id="lblIngLaboratorio" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #0d9488;" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            </GridPane>
+        </VBox>
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="REGISTROS RECIENTES" styleClass="section-title"/>
+            <ListView fx:id="listRegistros" prefHeight="100" style="-fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Fila 4: Registro de Pacientes y M&#233;dicos -->
+    <HBox spacing="20">
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="REGISTRO DE PACIENTES" styleClass="section-title"/>
+            <ListView fx:id="listPacientes" prefHeight="140" style="-fx-background-color: white; -fx-background-insets: 0; -fx-border-color: #e2e8f0; -fx-border-radius: 6; -fx-background-radius: 6;"/>
+        </VBox>
+        <VBox styleClass="card" HBox.hgrow="ALWAYS">
+            <Label text="REGISTRO DE M&#201;DICOS" styleClass="section-title"/>
+            <ListView fx:id="listMedicos" prefHeight="140" style="-fx-background-color: white; -fx-background-insets: 0; -fx-border-color: #e2e8f0; -fx-border-radius: 6; -fx-background-radius: 6;"/>
+        </VBox>
+    </HBox>
+
+    <!-- Fila 5: Totales del Sistema -->
+    <HBox styleClass="card" spacing="20" alignment="CENTER">
+        <HBox spacing="6" alignment="CENTER">
+            <Label text="Pacientes:" style="-fx-font-weight: 600; -fx-text-fill: #94a3b8; -fx-font-size: 13px;"/>
+            <Label fx:id="lblTotalPacientes" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </HBox>
+        <Label text="|" style="-fx-text-fill: #e2e8f0; -fx-font-size: 18px;"/>
+        <HBox spacing="6" alignment="CENTER">
+            <Label text="Medicos:" style="-fx-font-weight: 600; -fx-text-fill: #94a3b8; -fx-font-size: 13px;"/>
+            <Label fx:id="lblTotalMedicos" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </HBox>
+        <Label text="|" style="-fx-text-fill: #e2e8f0; -fx-font-size: 18px;"/>
+        <HBox spacing="6" alignment="CENTER">
+            <Label text="Medicamentos:" style="-fx-font-weight: 600; -fx-text-fill: #94a3b8; -fx-font-size: 13px;"/>
+            <Label fx:id="lblTotalMedicamentos" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </HBox>
+        <Label text="|" style="-fx-text-fill: #e2e8f0; -fx-font-size: 18px;"/>
+        <HBox spacing="6" alignment="CENTER">
+            <Label text="Examenes:" style="-fx-font-weight: 600; -fx-text-fill: #94a3b8; -fx-font-size: 13px;"/>
+            <Label fx:id="lblTotalExamenes" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #0d9488;"/>
+        </HBox>
+    </HBox>
+
+</VBox>
+</ScrollPane>
