@@ -17,7 +17,7 @@ public class PacienteDAO {
                    + "per.nombre, per.apellido, per.documento_identidad, per.fecha_nacimiento, per.telefono, per.email, per.direccion, per.genero "
                    + "FROM paciente p "
                    + "JOIN persona per ON p.id_persona = per.id_persona";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -52,7 +52,7 @@ public class PacienteDAO {
                    + "FROM paciente p "
                    + "JOIN persona per ON p.id_persona = per.id_persona "
                    + "WHERE p.activo = 1";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -82,7 +82,7 @@ public class PacienteDAO {
 
     public boolean existeDocumento(String documento, int excluirIdPersona) {
         String sql = "SELECT COUNT(*) FROM persona WHERE documento_identidad = ? AND id_persona != ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, documento);
             ps.setInt(2, excluirIdPersona);
@@ -98,7 +98,7 @@ public class PacienteDAO {
 
     public boolean existeHistoriaClinica(String historiaClinica, int excluirIdPaciente) {
         String sql = "SELECT COUNT(*) FROM paciente WHERE historia_clinica = ? AND id_paciente != ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, historiaClinica);
             ps.setInt(2, excluirIdPaciente);
@@ -114,7 +114,7 @@ public class PacienteDAO {
 
     public int obtenerIdPacientePorIdPersona(int idPersona) {
         String sql = "SELECT id_paciente FROM paciente WHERE id_persona = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
             ResultSet rs = ps.executeQuery();
@@ -133,7 +133,7 @@ public class PacienteDAO {
                    + "FROM paciente p "
                    + "JOIN persona per ON p.id_persona = per.id_persona "
                    + "WHERE p.id_persona = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
             ResultSet rs = ps.executeQuery();
@@ -175,7 +175,7 @@ public class PacienteDAO {
         String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, activo) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getClinicaConnection();
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
@@ -242,7 +242,7 @@ public class PacienteDAO {
         String sqlPaciente = "UPDATE paciente SET historia_clinica = ?, alergias = ?, grupo_sanguineo = ?, contacto_emergencia = ?, activo = ? WHERE id_paciente = ?";
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getClinicaConnection();
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona)) {
@@ -296,7 +296,7 @@ public class PacienteDAO {
         String sqlPersona = "DELETE FROM persona WHERE id_persona = ?";
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getClinicaConnection();
             conn.setAutoCommit(false);
             
             int idPersona = -1;
@@ -342,7 +342,7 @@ public class PacienteDAO {
 
     public boolean darDeAlta(int idPaciente) {
         String sql = "UPDATE paciente SET activo = 0 WHERE id_paciente = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPaciente);
             return ps.executeUpdate() > 0;
@@ -354,7 +354,7 @@ public class PacienteDAO {
 
     public boolean reactivar(int idPaciente) {
         String sql = "UPDATE paciente SET activo = 1 WHERE id_paciente = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPaciente);
             return ps.executeUpdate() > 0;

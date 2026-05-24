@@ -14,7 +14,7 @@ public class EspecialidadDAO {
     public List<Especialidad> listarTodas() {
         List<Especialidad> lista = new ArrayList<>();
         String sql = "SELECT id_especialidad, nombre_especialidad FROM especialidad ORDER BY nombre_especialidad";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {

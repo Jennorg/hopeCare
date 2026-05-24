@@ -8,45 +8,57 @@ import java.sql.Statement;
 public class CargarDatosPrueba {
 
     public static void main(String[] args) {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            conn.setAutoCommit(false);
+        try (Connection connClinica = DatabaseConnection.getClinicaConnection();
+             Connection connAuth = DatabaseConnection.getAuthConnection();
+             Connection connCitas = DatabaseConnection.getCitasConnection()) {
+            
+            connClinica.setAutoCommit(false);
+            connAuth.setAutoCommit(false);
+            connCitas.setAutoCommit(false);
+            
             try {
-                // Insertar Roles
-                insertarRol(conn, "ADMIN");
-                insertarRol(conn, "RECEPCIONISTA");
-                insertarRol(conn, "MEDICO");
+                // 1. Insertar Roles (Auth)
+                insertarRol(connAuth, "ADMIN");
+                insertarRol(connAuth, "RECEPCIONISTA");
+                insertarRol(connAuth, "MEDICO");
 
-                // Insertar Especialidades
-                insertarEspecialidad(conn, "Medicina General");
-                insertarEspecialidad(conn, "Pediatría");
-                insertarEspecialidad(conn, "Traumatología");
+                // 2. Insertar Especialidades (Clinica)
+                insertarEspecialidad(connClinica, "Medicina General");
+                insertarEspecialidad(connClinica, "Pediatría");
+                insertarEspecialidad(connClinica, "Traumatología");
 
-                // Insertar Personas para Usuarios
-                int pAdmin = insertarPersona(conn, "Admin", "Sistema", "00000001", null, null, "admin@hopecare.com", null, null);
-                int pRecep = insertarPersona(conn, "Recep", "Sistema", "00000002", null, null, "recep@hopecare.com", null, null);
-                int pMed = insertarPersona(conn, "Medico", "Sistema", "00000003", null, null, "medico@hopecare.com", null, null);
+                // 3. Insertar Personas para Usuarios (Clinica)
+                int pAdmin = insertarPersona(connClinica, "Admin", "Sistema", "00000001", null, null, "admin@hopecare.com", null, null);
+                int pRecep = insertarPersona(connClinica, "Recep", "Sistema", "00000002", null, null, "recep@hopecare.com", null, null);
+                int pMed = insertarPersona(connClinica, "Medico", "Sistema", "00000003", null, null, "medico@hopecare.com", null, null);
 
-                // Insertar Usuarios (Contraseña simple para prueba)
-                insertarUsuario(conn, "admin", "admin123", 1, pAdmin);
-                insertarUsuario(conn, "recep", "recep123", 2, pRecep);
-                insertarUsuario(conn, "medico", "medico123", 3, pMed);
+                // 4. Insertar Usuarios (Auth)
+                insertarUsuario(connAuth, "admin", "admin123", 1, pAdmin, "ADMIN");
+                insertarUsuario(connAuth, "recep", "recep123", 2, pRecep, "RECEPCIONISTA");
+                insertarUsuario(connAuth, "medico", "medico123", 3, pMed, "MEDICO");
 
-                // Insertar Pacientes de prueba
-                int pp1 = insertarPersona(conn, "Juan", "Pérez", "12345678", "1980-01-15", "123456789", "juan.perez@email.com", "Calle 123 #45-67", "M");
-                insertarPaciente(conn, pp1, "HC001", "Ninguna", "O+", "María Pérez - 987654321");
+                // 5. Insertar Pacientes de prueba (Clinica)
+                int pp1 = insertarPersona(connClinica, "Juan", "Pérez", "12345678", "1980-01-15", "123456789", "juan.perez@email.com", "Calle 123 #45-67", "M");
+                insertarPaciente(connClinica, pp1, "HC001", "Ninguna", "O+", "María Pérez - 987654321");
 
-                // Insertar Médico de prueba
-                int pm1 = insertarPersona(conn, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
-                insertarMedico(conn, pm1, 1, "RM12345", 50000.0);
+                // 6. Insertar Médico de prueba (Clinica)
+                int pm1 = insertarPersona(connClinica, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
+                insertarMedico(connClinica, pm1, 1, "RM12345", 50000.0);
 
-                conn.commit();
-                System.out.println("Datos de prueba (incluyendo usuarios) insertados correctamente.");
+                connClinica.commit();
+                connAuth.commit();
+                connCitas.commit();
+                System.out.println("Datos de prueba insertados correctamente en bases de datos separadas.");
 
             } catch (SQLException e) {
-                conn.rollback();
+                connClinica.rollback();
+                connAuth.rollback();
+                connCitas.rollback();
                 e.printStackTrace();
             } finally {
-                conn.setAutoCommit(true);
+                connClinica.setAutoCommit(true);
+                connAuth.setAutoCommit(true);
+                connCitas.setAutoCommit(true);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -61,18 +73,15 @@ public class CargarDatosPrueba {
         }
     }
 
-    /**
-     * Inserta un usuario en la base de datos vinculándolo a un rol y una persona.
-     * La contraseña se guarda de forma plana para facilitar pruebas de desarrollo.
-     */
-    private static void insertarUsuario(Connection conn, String user, String pass, int idRol, int idPersona) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona) VALUES (?, ?, ?, ?, ?)";
+    private static void insertarUsuario(Connection conn, String user, String pass, int idRol, int idPersona, String nombreRol) throws SQLException {
+        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user);
             ps.setString(2, pass);
             ps.setString(3, Hasher.hash(pass));
             ps.setInt(4, idRol);
             ps.setInt(5, idPersona);
+            ps.setString(6, nombreRol);
             ps.executeUpdate();
         }
     }

@@ -11,7 +11,7 @@ public class HorarioAtencionDAO {
     public HorarioAtencion obtenerHorarioPorMedicoYDia(int idMedico, int diaSemana) {
         String sql = "SELECT id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo " +
                      "FROM horario_atencion WHERE id_medico = ? AND dia_semana = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idMedico);
             pstmt.setInt(2, diaSemana);
@@ -34,7 +34,7 @@ public class HorarioAtencionDAO {
         List<HorarioAtencion> lista = new ArrayList<>();
         String sql = "SELECT id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo " +
                      "FROM horario_atencion WHERE id_medico = ? ORDER BY dia_semana";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idMedico);
             ResultSet rs = pstmt.executeQuery();

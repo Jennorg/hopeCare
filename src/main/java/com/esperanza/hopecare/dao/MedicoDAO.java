@@ -19,7 +19,7 @@ public class MedicoDAO {
                    + "FROM medico m "
                    + "JOIN persona p ON m.id_persona = p.id_persona "
                    + "JOIN especialidad e ON m.id_especialidad = e.id_especialidad";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -49,7 +49,7 @@ public class MedicoDAO {
 
     public boolean existeDocumento(String documento, int excluirIdPersona) {
         String sql = "SELECT COUNT(*) FROM persona WHERE documento_identidad = ? AND id_persona != ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, documento);
             ps.setInt(2, excluirIdPersona);
@@ -65,7 +65,7 @@ public class MedicoDAO {
 
     public boolean existeRegistroMedico(String registro, int excluirIdMedico) {
         String sql = "SELECT COUNT(*) FROM medico WHERE registro_medico = ? AND id_medico != ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, registro);
             ps.setInt(2, excluirIdMedico);
@@ -92,7 +92,7 @@ public class MedicoDAO {
         String sqlMedico = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getClinicaConnection();
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
@@ -158,7 +158,7 @@ public class MedicoDAO {
         String sqlMedico = "UPDATE medico SET id_especialidad = ?, registro_medico = ?, precio_consulta = ?, activo = ? WHERE id_medico = ?";
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getClinicaConnection();
             conn.setAutoCommit(false);
             
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona)) {
@@ -207,7 +207,7 @@ public class MedicoDAO {
 
     public double obtenerPrecioConsulta(int idMedico) {
         String sql = "SELECT precio_consulta FROM medico WHERE id_medico = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMedico);
             ResultSet rs = ps.executeQuery();
@@ -220,7 +220,7 @@ public class MedicoDAO {
 
     public boolean actualizarPrecioConsulta(int idMedico, double precio) {
         String sql = "UPDATE medico SET precio_consulta = ? WHERE id_medico = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, precio);
             ps.setInt(2, idMedico);
@@ -231,7 +231,7 @@ public class MedicoDAO {
 
     public int obtenerIdMedicoPorIdPersona(int idPersona) {
         String sql = "SELECT id_medico FROM medico WHERE id_persona = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
             ResultSet rs = ps.executeQuery();
@@ -244,7 +244,7 @@ public class MedicoDAO {
 
     public boolean eliminarMedicoLogico(int idMedico) {
         String sql = "UPDATE medico SET activo = 0 WHERE id_medico = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMedico);
             return ps.executeUpdate() == 1;

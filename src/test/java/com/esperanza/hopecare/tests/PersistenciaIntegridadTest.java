@@ -22,7 +22,7 @@ public class PersistenciaIntegridadTest {
     public static void setUp() throws SQLException {
         pacienteDAO = new PacienteDAO();
         // Limpiar base de datos para pruebas
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              Statement stmt = conn.createStatement()) {
             stmt.execute("DELETE FROM paciente");
             stmt.execute("DELETE FROM persona");

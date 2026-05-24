@@ -13,7 +13,7 @@ public class ConsultaDAO {
         PreparedStatement pstmtInsert = null;
         PreparedStatement pstmtUpdate = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getCitasConnection();
             conn.setAutoCommit(false);
 
             pstmtInsert = conn.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS);
@@ -59,7 +59,7 @@ public class ConsultaDAO {
 
     public Consulta obtenerConsultaPorId(int idConsulta) {
         String sql = "SELECT id_consulta, id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio FROM consulta WHERE id_consulta = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idConsulta);
             ResultSet rs = ps.executeQuery();
@@ -88,7 +88,7 @@ public class ConsultaDAO {
 
     public boolean actualizarConsulta(Consulta consulta) {
         String sql = "UPDATE consulta SET diagnostico = ?, sintomas = ?, tratamiento = ?, notas_medicas = ?, precio = ? WHERE id_consulta = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, consulta.getDiagnostico());
             ps.setString(2, consulta.getSintomas());
@@ -104,7 +104,7 @@ public class ConsultaDAO {
     public void insertarSiNoExiste(int idCita, double precio) {
         String sqlCheck = "SELECT COUNT(*) FROM consulta WHERE id_cita = ?";
         String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, '', '', '', '', datetime('now', 'localtime'), ?)";
-        try (Connection conn = DatabaseConnection.getConnection()) {
+        try (Connection conn = DatabaseConnection.getCitasConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(sqlCheck)) {
                 ps.setInt(1, idCita);
                 ResultSet rs = ps.executeQuery();
