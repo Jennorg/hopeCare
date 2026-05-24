@@ -1,6 +1,7 @@
 package com.esperanza.hopecare.main;
 
 import com.esperanza.hopecare.common.db.DatabaseConnection;
+import com.esperanza.hopecare.common.db.CargarDatosPrueba;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -54,11 +55,12 @@ public class HopecareApp extends Application {
                 System.out.println("Base de datos vacía. Creando esquema...");
                 ejecutarScriptSQL(conn, "/sisgeho_schema.sql");
                 System.out.println("Esquema creado. Insertando datos de prueba...");
-                com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
+                CargarDatosPrueba.main(new String[]{});
             } else {
+                System.out.println("Base de datos existente.");
                 if (baseDatosVacia(stmt)) {
                     System.out.println("Insertando datos de prueba...");
-                    com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
+                    CargarDatosPrueba.main(new String[]{});
                 }
             }
         } catch (Exception e) {

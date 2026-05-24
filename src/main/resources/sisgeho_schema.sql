@@ -83,3 +83,25 @@ CREATE TABLE IF NOT EXISTS consulta (
     precio REAL NOT NULL DEFAULT 0.0,
     FOREIGN KEY (id_cita) REFERENCES cita(id_cita)
 );
+
+CREATE TABLE IF NOT EXISTS factura (
+    id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_paciente INTEGER NOT NULL,
+    fecha_emision DATETIME DEFAULT CURRENT_TIMESTAMP,
+    subtotal REAL NOT NULL,
+    impuesto REAL DEFAULT 0,
+    total REAL NOT NULL,
+    estado_pago TEXT NOT NULL,
+    forma_pago TEXT,
+    FOREIGN KEY (id_paciente) REFERENCES paciente(id_paciente)
+);
+
+CREATE TABLE IF NOT EXISTS detalle_factura (
+    id_detalle_factura INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_factura INTEGER NOT NULL,
+    concepto TEXT NOT NULL,
+    id_referencia INTEGER,
+    tipo_referencia TEXT,
+    monto REAL NOT NULL,
+    FOREIGN KEY (id_factura) REFERENCES factura(id_factura)
+);

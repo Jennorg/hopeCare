@@ -25,6 +25,7 @@ public class CargarDatosPrueba {
             insertarUsuarios(conn);
             insertarCitas(conn);
             insertarConsultas(conn);
+            insertarFacturas(conn);
 
             conn.commit();
             System.out.println("Datos de prueba insertados correctamente.");
@@ -159,6 +160,30 @@ public class CargarDatosPrueba {
             ps.setInt(1, 1); ps.setString(2, "Gripe"); ps.setString(3, "Fiebre, tos"); ps.setString(4, "Reposo y analgesicos"); ps.setDouble(5, 50000.0); ps.executeUpdate();
             ps.setInt(1, 2); ps.setString(2, "Revision sin novedades"); ps.setString(3, "Asintomatico"); ps.setString(4, "Ninguno"); ps.setDouble(5, 45000.0); ps.executeUpdate();
             ps.setInt(1, 3); ps.setString(2, "Control anual normal"); ps.setString(3, "Fatiga leve"); ps.setString(4, "Ejercicio moderado"); ps.setDouble(5, 80000.0); ps.executeUpdate();
+        }
+    }
+
+    private static void insertarFacturas(Connection conn) throws SQLException {
+        String sqlF = "INSERT INTO factura (id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago, forma_pago) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sqlF)) {
+            ps.setInt(1, 3);
+            ps.setString(2, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            ps.setDouble(3, 80000.0);
+            ps.setDouble(4, 15200.0);
+            ps.setDouble(5, 95200.0);
+            ps.setString(6, "PAGADO");
+            ps.setString(7, "EFECTIVO");
+            ps.executeUpdate();
+        }
+
+        String sqlD = "INSERT INTO detalle_factura (id_factura, concepto, id_referencia, tipo_referencia, monto) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sqlD)) {
+            ps.setInt(1, 1);
+            ps.setString(2, "Consulta médica #3");
+            ps.setInt(3, 3);
+            ps.setString(4, "CONSULTA");
+            ps.setDouble(5, 80000.0);
+            ps.executeUpdate();
         }
     }
 }

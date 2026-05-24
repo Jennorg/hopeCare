@@ -1,6 +1,7 @@
 package com.esperanza.hopecare.main;
 
 import com.esperanza.hopecare.common.session.SesionManager;
+import com.esperanza.hopecare.modules.facturacion.view.FacturacionController;
 import com.esperanza.hopecare.modules.pacientes_medicos.dao.MedicoDAO;
 import com.esperanza.hopecare.modules.pacientes_medicos.dao.PacienteDAO;
 import com.esperanza.hopecare.modules.pacientes_medicos.model.Paciente;
@@ -24,10 +25,12 @@ public class MainController {
     @FXML private TabPane innerTabPane;
     @FXML private Tab tabCitas;
     @FXML private Tab tabMisCitas;
+    @FXML private Tab tabFacturacion;
     @FXML private Label lblBreadcrumb;
     @FXML private Label lblUserName;
     @FXML private Label lblUserRole;
 
+    @FXML private Hyperlink linkFacturacion;
     @FXML private Hyperlink linkCitas;
     @FXML private Hyperlink linkMisCitas;
 
@@ -36,6 +39,8 @@ public class MainController {
     @FXML private FlowPane headerMiddle;
     @FXML private Pane spacer1;
     @FXML private Pane spacer2;
+
+    private FacturacionController facturacionController;
 
     @FXML
     public void initialize() {
@@ -47,10 +52,13 @@ public class MainController {
 
         if ("PACIENTE".equals(rol)) {
             mainTabPane.getTabs().remove(tabCitas);
+            mainTabPane.getTabs().remove(tabFacturacion);
             mainTabPane.getSelectionModel().select(tabMisCitas);
             lblBreadcrumb.setText("Inicio > Mis Citas");
             linkCitas.setVisible(false);
             linkCitas.setManaged(false);
+            linkFacturacion.setVisible(false);
+            linkFacturacion.setManaged(false);
         } else {
             mainTabPane.getTabs().remove(tabMisCitas);
             mainTabPane.getSelectionModel().select(tabCitas);
@@ -96,7 +104,17 @@ public class MainController {
         actualizarEnlacesActivos(linkMisCitas);
     }
 
+    @FXML
+    private void navigateToFacturacion() {
+        mainTabPane.getSelectionModel().select(tabFacturacion);
+        if (facturacionController != null) {
+            facturacionController.refrescar();
+        }
+        actualizarEnlacesActivos(linkFacturacion);
+    }
+
     private void actualizarEnlacesActivos(Hyperlink activeLink) {
+        if (linkFacturacion != null) linkFacturacion.getStyleClass().remove("active");
         if (linkCitas != null) linkCitas.getStyleClass().remove("active");
         if (linkMisCitas != null) linkMisCitas.getStyleClass().remove("active");
         if (activeLink != null) activeLink.getStyleClass().add("active");

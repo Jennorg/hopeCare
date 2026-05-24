@@ -25,6 +25,40 @@ public class PacienteDAO {
                 p.setAlergias(rs.getString("alergias"));
                 p.setGrupoSanguineo(rs.getString("grupo_sanguineo"));
                 p.setContactoEmergencia(rs.getString("contacto_emergencia"));
+                p.setActivo(rs.getInt("activo"));
+                p.setNombre(rs.getString("nombre"));
+                p.setApellido(rs.getString("apellido"));
+                p.setDocumentoIdentidad(rs.getString("documento_identidad"));
+                p.setFechaNacimiento(rs.getString("fecha_nacimiento"));
+                p.setTelefono(rs.getString("telefono"));
+                p.setEmail(rs.getString("email"));
+                p.setDireccion(rs.getString("direccion"));
+                p.setGenero(rs.getString("genero"));
+                lista.add(p);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return lista;
+    }
+
+    public List<Paciente> listarActivos() {
+        List<Paciente> lista = new ArrayList<>();
+        String sql = "SELECT p.id_paciente, p.id_persona, p.historia_clinica, p.alergias, p.grupo_sanguineo, p.contacto_emergencia, p.activo, "
+                   + "per.nombre, per.apellido, per.documento_identidad, per.fecha_nacimiento, per.telefono, per.email, per.direccion, per.genero "
+                   + "FROM paciente p "
+                   + "JOIN persona per ON p.id_persona = per.id_persona "
+                   + "WHERE p.activo = 1";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Paciente p = new Paciente();
+                p.setIdPaciente(rs.getInt("id_paciente"));
+                p.setIdPersona(rs.getInt("id_persona"));
+                p.setHistoriaClinica(rs.getString("historia_clinica"));
+                p.setAlergias(rs.getString("alergias"));
+                p.setGrupoSanguineo(rs.getString("grupo_sanguineo"));
+                p.setContactoEmergencia(rs.getString("contacto_emergencia"));
+                p.setActivo(rs.getInt("activo"));
                 p.setNombre(rs.getString("nombre"));
                 p.setApellido(rs.getString("apellido"));
                 p.setDocumentoIdentidad(rs.getString("documento_identidad"));
