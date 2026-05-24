@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 
 public class MainController {
     @FXML private TabPane mainTabPane;
+    @FXML private Tab tabDashboard;
     @FXML private Tab tabPacientes;
     @FXML private Tab tabMedicos;
     @FXML private Tab tabCitas;
@@ -26,6 +27,7 @@ public class MainController {
     @FXML private Label lblUserName;
     @FXML private Label lblUserRole;
 
+    @FXML private Hyperlink linkDashboard;
     @FXML private Hyperlink linkPacientes;
     @FXML private Hyperlink linkMedicos;
     @FXML private Hyperlink linkCitas;
@@ -43,9 +45,9 @@ public class MainController {
         lblUserName.setText(sesion.getNombreUsuario());
         lblUserRole.setText(sesion.getNombreRol());
 
-        mainTabPane.getSelectionModel().select(tabPacientes);
-        actualizarEnlacesActivos(linkPacientes);
-        lblBreadcrumb.setText("Inicio > Pacientes");
+        mainTabPane.getSelectionModel().select(tabDashboard);
+        actualizarEnlacesActivos(linkDashboard);
+        lblBreadcrumb.setText("Inicio > Dashboard");
 
         // Add listener for responsive window resizing
         mainTabPane.widthProperty().addListener((obs, oldVal, newVal) -> {
@@ -63,6 +65,13 @@ public class MainController {
             // Un médico quizás no debería ver facturación? 
             // O sí para ver qué se le debe. Por ahora dejamos todos.
         }
+    }
+
+    @FXML
+    private void navigateToDashboard() {
+        mainTabPane.getSelectionModel().select(tabDashboard);
+        lblBreadcrumb.setText("Inicio > Dashboard");
+        actualizarEnlacesActivos(linkDashboard);
     }
 
     @FXML
@@ -94,7 +103,7 @@ public class MainController {
     }
 
     private void actualizarEnlacesActivos(Hyperlink activeLink) {
-        Hyperlink[] links = {linkPacientes, linkMedicos, linkCitas, linkFacturacion};
+        Hyperlink[] links = {linkDashboard, linkPacientes, linkMedicos, linkCitas, linkFacturacion};
         for (Hyperlink link : links) {
             if (link != null) {
                 link.getStyleClass().remove("active");

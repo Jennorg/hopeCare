@@ -48,7 +48,6 @@ public class CargarDatosPrueba {
                 connClinica.commit();
                 connAuth.commit();
                 connCitas.commit();
-                System.out.println("Datos de prueba insertados correctamente en bases de datos separadas.");
 
             } catch (SQLException e) {
                 connClinica.rollback();
