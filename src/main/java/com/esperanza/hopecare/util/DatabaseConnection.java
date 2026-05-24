@@ -78,16 +78,16 @@ public class DatabaseConnection {
     }
 
     /**
-     * Compatibilidad hacia atrás (apunta a auth por defecto).
-     * @deprecated Usar métodos específicos por módulo.
-     */
-    /**
      * Obtiene una conexión a la base de datos del Dashboard (schema completo unificado).
      */
     public static Connection getDashboardConnection() throws SQLException {
         return DriverManager.getConnection(DASHBOARD_DB);
     }
 
+    /**
+     * Compatibilidad hacia atrás (apunta a auth por defecto).
+     * @deprecated Usar métodos específicos por módulo.
+     */
     @Deprecated
     public static Connection getConnection() throws SQLException {
         return getAuthConnection();
