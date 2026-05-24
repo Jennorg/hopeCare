@@ -13,7 +13,9 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
@@ -58,6 +60,10 @@ public class HopecareApp extends Application {
         // 4. Inicializar Facturación
         inicializarModulo("Facturación", "/facturacion_schema.sql", "factura", DatabaseConnection::getFacturacionConnection);
 
+        // 5. Inicializar Dashboard (schema completo unificado)
+        inicializarModulo("Dashboard", "/dashboard_schema.sql", "paciente", DatabaseConnection::getDashboardConnection);
+        verificarYCargarDatosDashboard();
+
         // Cargar datos de prueba si están vacías
         verificarYCargarDatosPrueba();
     }
@@ -85,9 +91,106 @@ public class HopecareApp extends Application {
             if (baseDatosVacia(stmt)) {
                 System.out.println("Insertando datos de prueba iniciales...");
                 CargarDatosPrueba.main(new String[]{});
+            } else {
+                // Also seed clinica data if persona table is empty
+                try (Connection connClinica = DatabaseConnection.getClinicaConnection();
+                     Statement stmtClinica = connClinica.createStatement()) {
+                    ResultSet rs = stmtClinica.executeQuery("SELECT count(*) FROM persona");
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        System.out.println("Personas faltan en Clínica. Insertando datos de prueba...");
+                        CargarDatosPrueba.main(new String[]{});
+                    }
+                }
             }
         } catch (Exception e) {
             System.err.println("Error al verificar datos de prueba: " + e.getMessage());
+        }
+    }
+
+    private void verificarYCargarDatosDashboard() {
+        try (Connection conn = DatabaseConnection.getDashboardConnection();
+             Statement stmt = conn.createStatement()) {
+            boolean necesitaPoblar = false;
+            try {
+                ResultSet rs = stmt.executeQuery("SELECT count(*) FROM paciente");
+                necesitaPoblar = rs.next() && rs.getInt(1) < 1;
+                if (!necesitaPoblar) {
+                    rs = stmt.executeQuery("SELECT count(*) FROM medico");
+                    necesitaPoblar = rs.next() && rs.getInt(1) < 1;
+                }
+                if (!necesitaPoblar) {
+                    rs = stmt.executeQuery("SELECT count(*) FROM cita");
+                    necesitaPoblar = rs.next() && rs.getInt(1) < 1;
+                }
+            } catch (SQLException e) {
+                necesitaPoblar = true;
+            }
+            if (necesitaPoblar) {
+                System.out.println("Poblando Dashboard con datos de prueba...");
+                conn.setAutoCommit(false);
+                try {
+                    stmt.execute("PRAGMA foreign_keys = OFF");
+                    stmt.execute("DELETE FROM detalle_factura");
+                    stmt.execute("DELETE FROM factura");
+                    stmt.execute("DELETE FROM consulta");
+                    stmt.execute("DELETE FROM cita");
+                    stmt.execute("DELETE FROM medicamento");
+                    stmt.execute("DELETE FROM medico");
+                    stmt.execute("DELETE FROM paciente");
+                    stmt.execute("DELETE FROM usuario");
+                    stmt.execute("DELETE FROM persona");
+                    stmt.execute("DELETE FROM especialidad");
+                    stmt.execute("DELETE FROM rol");
+                    stmt.execute("DELETE FROM sqlite_sequence");
+                    stmt.execute("PRAGMA foreign_keys = ON");
+                    insertarDatosDashboard(conn);
+                    conn.commit();
+                    System.out.println("Datos de Dashboard insertados correctamente.");
+                } catch (Exception e) {
+                    conn.rollback();
+                    throw e;
+                } finally {
+                    conn.setAutoCommit(true);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error al verificar datos de Dashboard: " + e.getMessage());
+        }
+    }
+
+    private int insertarPersona(Connection conn, String nombre, String apellido, String documento, String telefono, String email) throws Exception {
+        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad, telefono, email) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, nombre);
+            ps.setString(2, apellido);
+            ps.setString(3, documento);
+            ps.setString(4, telefono);
+            ps.setString(5, email);
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+            throw new SQLException("No se pudo obtener id de persona");
+        }
+    }
+
+    private void insertarDatosDashboard(Connection conn) throws Exception {
+        int idAdmin = insertarPersona(conn, "Admin", "Sistema", "00000001", "123456789", "admin@hopecare.com");
+        int idPac = insertarPersona(conn, "Juan", "Pérez", "12345678", "987654321", "juan@email.com");
+        int idMed = insertarPersona(conn, "Ana", "Martínez", "87654321", "678901234", "ana@email.com");
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("INSERT OR IGNORE INTO rol (nombre_rol) VALUES ('ADMIN')");
+            stmt.execute("INSERT OR IGNORE INTO rol (nombre_rol) VALUES ('RECEPCIONISTA')");
+            stmt.execute("INSERT OR IGNORE INTO rol (nombre_rol) VALUES ('MEDICO')");
+            stmt.execute("INSERT OR IGNORE INTO especialidad (nombre_especialidad) VALUES ('Medicina General')");
+            stmt.execute("INSERT INTO usuario (nombre_usuario, contrasena_hash, id_rol, id_persona) " +
+                         "VALUES ('admin', 'admin123', 1, " + idAdmin + ")");
+            stmt.execute("INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) " +
+                         "VALUES (" + idPac + ", 'HC001', 'Ninguna', 'O+', 'María Pérez - 987654321')");
+            stmt.execute("INSERT INTO medico (id_persona, id_especialidad, registro_medico, activo) " +
+                         "VALUES (" + idMed + ", 1, 'RM12345', 1)");
+            stmt.execute("INSERT INTO cita (id_paciente, id_medico, fecha_hora, estado, motivo, creada_por) " +
+                         "VALUES (1, 1, datetime('now', '+1 hour'), 'PROGRAMADA', 'Control general', 1)");
         }
     }
 
