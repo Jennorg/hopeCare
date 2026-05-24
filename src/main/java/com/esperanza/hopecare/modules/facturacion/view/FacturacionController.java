@@ -3,7 +3,7 @@ package com.esperanza.hopecare.modules.facturacion.view;
 import com.esperanza.hopecare.common.events.DatosFacturablesActualizadosEvent;
 import com.esperanza.hopecare.common.events.EventBus;
 import com.esperanza.hopecare.common.session.SesionManager;
-import com.esperanza.hopecare.modules.facturacion.dao.ConsultaDAO;
+import com.esperanza.hopecare.modules.facturacion.dao.FacturaConsultaDAO;
 import com.esperanza.hopecare.modules.facturacion.dao.FacturaDAO;
 import com.esperanza.hopecare.modules.facturacion.dto.FacturaDTO;
 import com.esperanza.hopecare.modules.facturacion.dto.FacturaResumenDTO;
@@ -69,7 +69,7 @@ private FacturacionService service;
     private FilteredList<PendienteDTO> citasFiltradas;
     private FilteredList<PendienteDTO> todosFiltrados;
 
-    private ConsultaDAO consultaDAO;
+    private FacturaConsultaDAO consultaDAO;
 
     private PacienteDAO pacienteDAO;
     private ObservableList<Paciente> pacientesList;
@@ -88,7 +88,7 @@ private FacturacionService service;
 
         service = new FacturacionService();
         facturaDAO = new FacturaDAO();
-        consultaDAO = new ConsultaDAO();
+        consultaDAO = new FacturaConsultaDAO();
         pacienteDAO = new PacienteDAO();
 
         configurarTablaPendientes(colCitaIdRef, colCitaPaciente, colCitaConcepto, colCitaMonto, colCitaFecha);

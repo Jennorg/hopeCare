@@ -2,7 +2,7 @@ package com.esperanza.hopecare.modules.facturacion.service;
 
 import com.esperanza.hopecare.modules.facturacion.dto.DetalleFacturaDTO;
 import com.esperanza.hopecare.modules.facturacion.dto.FacturaDTO;
-import com.esperanza.hopecare.modules.facturacion.dao.ConsultaDAO;
+import com.esperanza.hopecare.modules.facturacion.dao.FacturaConsultaDAO;
 import com.esperanza.hopecare.modules.facturacion.dao.FacturaDAO;
 import com.esperanza.hopecare.modules.facturacion.dao.DetalleFacturaDAO;
 import com.esperanza.hopecare.common.db.DatabaseConnection;
@@ -17,12 +17,12 @@ public class FacturacionService {
 
     private static final double TASA_IMPUESTO = 0.19;
 
-    private ConsultaDAO consultaDAO;
+    private FacturaConsultaDAO consultaDAO;
     private FacturaDAO facturaDAO;
     private DetalleFacturaDAO detalleFacturaDAO;
 
     public FacturacionService() {
-        this.consultaDAO = new ConsultaDAO();
+        this.consultaDAO = new FacturaConsultaDAO();
         this.facturaDAO = new FacturaDAO();
         this.detalleFacturaDAO = new DetalleFacturaDAO();
     }

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConsultaDAO {
+public class FacturaConsultaDAO {
     public List<Object[]> listarNoFacturadasPorPaciente(int idPaciente, Connection conn) throws SQLException {
         String sql = "SELECT c.id_consulta, c.precio "
                    + "FROM consulta c "
