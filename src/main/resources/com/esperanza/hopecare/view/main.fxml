@@ -39,16 +39,17 @@
                     <Hyperlink fx:id="linkPacientes" text="Pacientes" styleClass="nav-link" onAction="#navigateToPacientes"/>
                     <Hyperlink fx:id="linkMedicos" text="Médicos" styleClass="nav-link" onAction="#navigateToMedicos"/>
                     <Hyperlink fx:id="linkCitas" text="Citas" styleClass="nav-link" onAction="#navigateToCitas"/>
+                    <Hyperlink fx:id="linkConsultas" text="Consultas" styleClass="nav-link" onAction="#navigateToConsultas"/>
                     <Hyperlink fx:id="linkFacturacion" text="Facturación" styleClass="nav-link" onAction="#navigateToFacturacion"/>
                 </FlowPane>
 
                 <Pane fx:id="spacer2" HBox.hgrow="ALWAYS" />
 
                 <HBox fx:id="userSection" styleClass="user-section" spacing="12" alignment="CENTER_RIGHT">
-                    <HBox styleClass="user-info" spacing="10" alignment="CENTER" onMouseClicked="#onUserProfileClick">
+                    <HBox styleClass="user-info" spacing="10" alignment="CENTER" onMouseClicked="#onCerrarSesion" style="-fx-cursor: hand;">
                         <VBox alignment="CENTER_RIGHT">
                             <Label fx:id="lblUserName" text="Admin Principal" styleClass="user-name"/>
-                            <Label fx:id="lblUserRole" text="SISTEMAS" styleClass="user-role"/>
+                            <Label fx:id="lblUserRole" text="ADMIN" styleClass="user-role"/>
                         </VBox>
                         <StackPane prefWidth="32" prefHeight="32" alignment="CENTER">
                             <SVGPath content="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" scaleX="1.3" scaleY="1.3" styleClass="user-icon-svg"/>
@@ -61,13 +62,14 @@
             <FlowPane fx:id="headerMiddle" styleClass="header-middle" alignment="CENTER" columnHalignment="CENTER" managed="false" visible="false">
                 <!-- Links will move here dynamically -->
             </FlowPane>
+            
             <HBox styleClass="header-bottom">
-                <Label fx:id="lblBreadcrumb" text="Inicio > Pacientes" styleClass="breadcrumb"/>
+                <Label fx:id="lblBreadcrumb" text="Inicio > Dashboard" styleClass="breadcrumb"/>
             </HBox>
         </VBox>
     </top>
     <center>
-        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
+        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs" style="-fx-tab-max-height: 0; -fx-tab-min-height: 0;">
             <Tab fx:id="tabDashboard" text="" closable="false">
                 <fx:include source="dashboard.fxml"/>
             </Tab>
@@ -79,6 +81,9 @@
             </Tab>
             <Tab fx:id="tabCitas" text="" closable="false">
                 <fx:include source="citas.fxml"/>
+            </Tab>
+            <Tab fx:id="tabConsultas" text="" closable="false">
+                <fx:include source="consulta.fxml"/>
             </Tab>
             <Tab fx:id="tabFacturacion" text="" closable="false">
                 <fx:include source="facturacion.fxml"/>

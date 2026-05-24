@@ -12,7 +12,6 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.shape.SVGPath?>
 
 <VBox spacing="15" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.esperanza.hopecare.controller.ConsultaController">

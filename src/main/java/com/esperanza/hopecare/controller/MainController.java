@@ -21,16 +21,18 @@ public class MainController {
     @FXML private Tab tabPacientes;
     @FXML private Tab tabMedicos;
     @FXML private Tab tabCitas;
+    @FXML private Tab tabConsultas;
     @FXML private Tab tabFacturacion;
     
-    @FXML private Label lblBreadcrumb;
     @FXML private Label lblUserName;
     @FXML private Label lblUserRole;
+    @FXML private Label lblBreadcrumb;
 
     @FXML private Hyperlink linkDashboard;
     @FXML private Hyperlink linkPacientes;
     @FXML private Hyperlink linkMedicos;
     @FXML private Hyperlink linkCitas;
+    @FXML private Hyperlink linkConsultas;
     @FXML private Hyperlink linkFacturacion;
 
     @FXML private HBox headerTop;
@@ -58,12 +60,20 @@ public class MainController {
         
         aplicarPermisos();
     }
-    
+
     private void aplicarPermisos() {
         SesionManager sesion = SesionManager.getInstance();
-        if (sesion.isMedico()) {
-            // Un médico quizás no debería ver facturación? 
-            // O sí para ver qué se le debe. Por ahora dejamos todos.
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(sesion.getNombreRol());
+        
+        if (!isAdmin) {
+            linkDashboard.setVisible(false); linkDashboard.setManaged(false);
+            linkPacientes.setVisible(false); linkPacientes.setManaged(false);
+            linkMedicos.setVisible(false); linkMedicos.setManaged(false);
+            linkFacturacion.setVisible(false); linkFacturacion.setManaged(false);
+            
+            mainTabPane.getSelectionModel().select(tabCitas);
+            actualizarEnlacesActivos(linkCitas);
+            lblBreadcrumb.setText("Inicio > Citas");
         }
     }
 
@@ -87,14 +97,21 @@ public class MainController {
         lblBreadcrumb.setText("Inicio > Médicos");
         actualizarEnlacesActivos(linkMedicos);
     }
-    
+
     @FXML
     private void navigateToCitas() {
         mainTabPane.getSelectionModel().select(tabCitas);
         lblBreadcrumb.setText("Inicio > Citas");
         actualizarEnlacesActivos(linkCitas);
     }
-    
+
+    @FXML
+    private void navigateToConsultas() {
+        mainTabPane.getSelectionModel().select(tabConsultas);
+        lblBreadcrumb.setText("Inicio > Consultas");
+        actualizarEnlacesActivos(linkConsultas);
+    }
+
     @FXML
     private void navigateToFacturacion() {
         mainTabPane.getSelectionModel().select(tabFacturacion);
@@ -102,8 +119,25 @@ public class MainController {
         actualizarEnlacesActivos(linkFacturacion);
     }
 
+    @FXML
+    private void onCerrarSesion() {
+        try {
+            SesionManager.getInstance().cerrarSesion();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/login.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) mainTabPane.getScene().getWindow();
+            Scene scene = new Scene(root, 1280, 720);
+            scene.getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/css/hopecare.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("HopeCare - Login");
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void actualizarEnlacesActivos(Hyperlink activeLink) {
-        Hyperlink[] links = {linkDashboard, linkPacientes, linkMedicos, linkCitas, linkFacturacion};
+        Hyperlink[] links = {linkDashboard, linkPacientes, linkMedicos, linkCitas, linkConsultas, linkFacturacion};
         for (Hyperlink link : links) {
             if (link != null) {
                 link.getStyleClass().remove("active");
@@ -115,7 +149,7 @@ public class MainController {
     }
 
     private void ajustarNavbar(double width) {
-        if (width >= 960) {
+        if (width >= 1000) {
             if (!headerTop.getChildren().contains(navLinks)) {
                 headerMiddle.getChildren().clear();
                 headerMiddle.setVisible(false);
@@ -133,12 +167,6 @@ public class MainController {
             spacer1.setManaged(true);
             spacer2.setVisible(true);
             spacer2.setManaged(true);
-
-            if (width >= 1150) {
-                navLinks.setHgap(20);
-            } else {
-                navLinks.setHgap(10);
-            }
         } else {
             if (!headerMiddle.getChildren().contains(navLinks)) {
                 headerTop.getChildren().remove(navLinks);
@@ -151,25 +179,6 @@ public class MainController {
             spacer1.setManaged(true);
             spacer2.setVisible(false);
             spacer2.setManaged(false);
-
-            navLinks.setHgap(12);
         }
      }
-
-    @FXML
-    private void onUserProfileClick() {
-        try {
-            SesionManager.getInstance().cerrarSesion();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/login.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) mainTabPane.getScene().getWindow();
-            Scene scene = new Scene(root, 1280, 720);
-            scene.getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/css/hopecare.css").toExternalForm());
-            stage.setScene(scene);
-            stage.setTitle("HopeCare - Login");
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

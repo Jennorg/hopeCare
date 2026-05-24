@@ -11,10 +11,10 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.VBox?>
 
-<DialogPane prefWidth="550" 
+<DialogPane prefWidth="550"
             styleClass="form-dialog-pane"
             stylesheets="@../css/hopecare.css"
-            xmlns:fx="http://javafx.com/fxml/1" 
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.esperanza.hopecare.controller.PacienteFormController">
     <content>
         <VBox spacing="0">

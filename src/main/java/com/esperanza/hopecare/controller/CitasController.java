@@ -27,6 +27,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.Parent;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,16 +57,16 @@ public class CitasController implements ICitaView {
         SesionManager sesion = SesionManager.getInstance();
         rol = sesion.getRol();
 
-        if ("MEDICO".equalsIgnoreCase(rol)) {
+        if ("MEDICO".equals(rol)) {
             idMedicoLogueado = new MedicoDAO().obtenerIdMedicoPorIdPersona(sesion.getIdPersona());
-        } else if ("PACIENTE".equalsIgnoreCase(rol)) {
+        } else if ("PACIENTE".equals(rol)) {
             idPacienteLogueado = new PacienteDAO().obtenerIdPacientePorIdPersona(sesion.getIdPersona());
         }
 
         configurarTablaCitas();
         configurarFiltros();
 
-        if ("MEDICO".equalsIgnoreCase(rol)) {
+        if ("MEDICO".equals(rol)) {
             btnNuevaCita.setVisible(false);
             btnNuevaCita.setManaged(false);
         } else {
@@ -76,10 +77,10 @@ public class CitasController implements ICitaView {
     }
 
     private void cargarCitasPorRol() {
-        if ("MEDICO".equalsIgnoreCase(rol) && idMedicoLogueado > 0) {
+        if ("MEDICO".equals(rol) && idMedicoLogueado > 0) {
             List<Cita> citas = new CitaDAO().listarPorMedicoConNombres(idMedicoLogueado);
             mostrarCitasExistentes(citas);
-        } else if ("PACIENTE".equalsIgnoreCase(rol) && idPacienteLogueado > 0) {
+        } else if ("PACIENTE".equals(rol) && idPacienteLogueado > 0) {
             List<Cita> citas = new CitaDAO().listarPorPacienteConNombres(idPacienteLogueado);
             mostrarCitasExistentes(citas);
         } else {
@@ -121,7 +122,7 @@ public class CitasController implements ICitaView {
         tvCitas.setItems(citasFiltradas);
 
         tvCitas.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2 && !"PACIENTE".equalsIgnoreCase(rol)) {
+            if (e.getClickCount() == 2 && !"PACIENTE".equals(rol)) {
                 Cita sel = tvCitas.getSelectionModel().getSelectedItem();
                 if (sel != null) abrirDialogoEditarCita(sel);
             }
@@ -171,135 +172,476 @@ public class CitasController implements ICitaView {
         dialog.setTitle("Nueva Cita Médica");
         dialog.setHeaderText("Complete los datos para agendar una nueva cita");
         dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/css/hopecare.css").toExternalForm());
-        
+        dialog.getDialogPane().setStyle("-fx-border-color: #0d9488; -fx-border-width: 0 0 0 2;");
+
         PacienteDAO pacienteDAO = new PacienteDAO();
         MedicoDAO medicoDAO = new MedicoDAO();
+        EspecialidadDAO espDAO = new EspecialidadDAO();
 
-        ComboBox<Paciente> cbPacientes = new ComboBox<>();
-        cbPacientes.setPromptText("Seleccione paciente...");
-        cbPacientes.setMaxWidth(Double.MAX_VALUE);
-        cbPacientes.setItems(FXCollections.observableArrayList(pacienteDAO.listarTodos()));
+        ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarTodos());
+        ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
 
-        if ("PACIENTE".equalsIgnoreCase(rol)) {
-            for (Paciente p : cbPacientes.getItems()) {
+        final int[] idPacSeleccionado = {-1};
+
+        TextField txtBuscarPac = new TextField();
+        txtBuscarPac.setPromptText("Buscar paciente por nombre o cédula...");
+
+        FilteredList<Paciente> pacientesFiltrados = new FilteredList<>(pacientesList, p -> true);
+        TableView<Paciente> tvPacientes = new TableView<>();
+        tvPacientes.setPrefHeight(150);
+        tvPacientes.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<Paciente, String> colPacCedula = new TableColumn<>("Cédula");
+        colPacCedula.setCellValueFactory(new PropertyValueFactory<>("documentoIdentidad"));
+        TableColumn<Paciente, String> colPacNombre = new TableColumn<>("Nombre");
+        colPacNombre.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getNombre() + " " + cd.getValue().getApellido()));
+        tvPacientes.getColumns().addAll(colPacCedula, colPacNombre);
+        tvPacientes.setItems(pacientesFiltrados);
+
+        boolean esPaciente = "PACIENTE".equals(rol);
+        if (esPaciente) {
+            txtBuscarPac.setVisible(false);
+            txtBuscarPac.setManaged(false);
+            tvPacientes.setVisible(false);
+            tvPacientes.setManaged(false);
+            idPacSeleccionado[0] = idPacienteLogueado;
+        }
+
+        ComboBox<Especialidad> cbEsp = new ComboBox<>();
+        cbEsp.setPrefWidth(200);
+        List<Especialidad> especialidades = espDAO.listarTodas();
+        Especialidad todas = new Especialidad(0, "Todas");
+        cbEsp.getItems().add(todas);
+        cbEsp.getItems().addAll(especialidades);
+        cbEsp.setValue(todas);
+
+        TextField txtBuscarMed = new TextField();
+        txtBuscarMed.setPromptText("Buscar médico por nombre...");
+
+        FilteredList<Medico> medicosFiltrados = new FilteredList<>(medicosList, m -> true);
+        TableView<Medico> tvMedicos = new TableView<>();
+        tvMedicos.setPrefHeight(150);
+        tvMedicos.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<Medico, Number> colMedId = new TableColumn<>("ID");
+        colMedId.setCellValueFactory(new PropertyValueFactory<>("idMedico"));
+        TableColumn<Medico, String> colMedNombre = new TableColumn<>("Nombre");
+        colMedNombre.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getNombre() + " " + cd.getValue().getApellido()));
+        TableColumn<Medico, String> colMedEsp = new TableColumn<>("Especialidad");
+        colMedEsp.setCellValueFactory(new PropertyValueFactory<>("nombreEspecialidad"));
+        TableColumn<Medico, String> colMedReg = new TableColumn<>("Registro");
+        colMedReg.setCellValueFactory(new PropertyValueFactory<>("registroMedico"));
+        tvMedicos.getColumns().addAll(colMedId, colMedNombre, colMedEsp, colMedReg);
+        tvMedicos.setItems(medicosFiltrados);
+
+        final List<Integer> diasValidos = new ArrayList<>();
+        DatePicker dpFecha = new DatePicker();
+        dpFecha.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                if (empty || date.isBefore(LocalDate.now())) {
+                    setDisable(true);
+                    return;
+                }
+                if (!diasValidos.isEmpty() && !diasValidos.contains(date.getDayOfWeek().getValue())) {
+                    setDisable(true);
+                    setStyle("-fx-text-fill: #bbb;");
+                }
+            }
+        });
+
+        ComboBox<String> cbHorarios = new ComboBox<>();
+        cbHorarios.setPrefWidth(200);
+        cbHorarios.setDisable(true);
+
+        TextField txtPrecioCita = new TextField();
+        txtPrecioCita.setPromptText("Seleccione un médico");
+        txtPrecioCita.setPrefWidth(120);
+        txtPrecioCita.setEditable(false);
+        txtPrecioCita.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
+
+        Button btnBuscar = new Button("Buscar horarios");
+        btnBuscar.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600;");
+        Button btnReservar = new Button("Reservar cita");
+        btnReservar.setStyle("-fx-background-color: #115e59; -fx-text-fill: white; -fx-font-weight: 600;");
+        btnReservar.setDisable(true);
+
+        if (esPaciente && idPacienteLogueado > 0) {
+            for (Paciente p : pacientesList) {
                 if (p.getIdPaciente() == idPacienteLogueado) {
-                    cbPacientes.setValue(p);
-                    cbPacientes.setDisable(true);
+                    idPacSeleccionado[0] = idPacienteLogueado;
                     break;
                 }
             }
         }
 
-        ComboBox<Medico> cbMedicos = new ComboBox<>();
-        cbMedicos.setPromptText("Seleccione médico...");
-        cbMedicos.setMaxWidth(Double.MAX_VALUE);
-        cbMedicos.setItems(FXCollections.observableArrayList(medicoDAO.listarTodos()));
+        txtBuscarPac.textProperty().addListener((obs, old, val) -> {
+            String texto = val.toLowerCase().trim();
+            pacientesFiltrados.setPredicate(p -> {
+                if (texto.isEmpty()) return true;
+                String nc = (p.getNombre() + " " + p.getApellido()).toLowerCase();
+                String doc = p.getDocumentoIdentidad() != null ? p.getDocumentoIdentidad().toLowerCase() : "";
+                return nc.contains(texto) || doc.contains(texto);
+            });
+        });
 
-        DatePicker dpFecha = new DatePicker(LocalDate.now());
-        ComboBox<String> cbHorarios = new ComboBox<>();
-        cbHorarios.setPromptText("Seleccione horario...");
-        cbHorarios.setMaxWidth(Double.MAX_VALUE);
-        
-        TextField txtPrecioCita = new TextField();
-        txtPrecioCita.setEditable(false);
-        txtPrecioCita.setPromptText("Precio consulta");
+        Runnable filtrarMedicos = () -> {
+            String texto = txtBuscarMed.getText().toLowerCase().trim();
+            Especialidad esp = cbEsp.getValue();
+            medicosFiltrados.setPredicate(m -> {
+                boolean coincideNombre = texto.isEmpty() ||
+                    (m.getNombre() + " " + m.getApellido()).toLowerCase().contains(texto);
+                boolean coincideEsp = esp == null || esp.getIdEspecialidad() == 0 ||
+                    m.getIdEspecialidad() == esp.getIdEspecialidad();
+                return coincideNombre && coincideEsp;
+            });
+        };
 
-        Button btnBuscar = new Button("Verificar Disponibilidad");
-        btnBuscar.setMaxWidth(Double.MAX_VALUE);
-        Button btnReservar = new Button("Agendar Cita");
-        btnReservar.setMaxWidth(Double.MAX_VALUE);
-        btnReservar.setDisable(true);
-        btnReservar.getStyleClass().add("button-primary");
+        cbEsp.setOnAction(e -> filtrarMedicos.run());
+        txtBuscarMed.textProperty().addListener((obs, old, val) -> filtrarMedicos.run());
+
+        final int[] idMedSeleccionado = {-1};
+
+        if (!esPaciente) {
+            tvPacientes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+                idPacSeleccionado[0] = sel != null ? sel.getIdPaciente() : -1;
+            });
+        }
 
         CitaPresenter dialogPresenter = new CitaPresenter(new ICitaView() {
             @Override public void mostrarCitasExistentes(List<Cita> citas) {}
             @Override public void mostrarHorariosDisponibles(List<LocalTime> bloques) {
                 cbHorarios.getItems().clear();
                 if (bloques.isEmpty()) {
-                    mostrarMensajeError("No hay horarios disponibles para el día seleccionado.");
+                    cbHorarios.setDisable(true);
+                    btnReservar.setDisable(true);
+                    cbHorarios.getItems().add("No hay horarios disponibles");
                 } else {
                     for (LocalTime t : bloques) cbHorarios.getItems().add(t.toString());
+                    cbHorarios.setDisable(false);
+                    btnReservar.setDisable(false);
                 }
-                cbHorarios.setDisable(bloques.isEmpty());
-                btnReservar.setDisable(bloques.isEmpty());
             }
-            @Override public void mostrarDiasDisponibles(List<Integer> diasSemana) {}
-            @Override public int getDiaSeleccionado() { return dpFecha.getValue() != null ? dpFecha.getValue().getDayOfWeek().getValue() : -1; }
+            @Override public void mostrarDiasDisponibles(List<Integer> diasSemana) {
+                diasValidos.clear();
+                diasValidos.addAll(diasSemana);
+                dpFecha.setValue(null);
+                if (!diasSemana.isEmpty()) {
+                    LocalDate today = LocalDate.now();
+                    for (int i = 0; i < 14; i++) {
+                        LocalDate d = today.plusDays(i);
+                        if (diasSemana.contains(d.getDayOfWeek().getValue())) {
+                            dpFecha.setValue(d);
+                            break;
+                        }
+                    }
+                }
+            }
+            @Override public int getDiaSeleccionado() { return 0; }
             @Override public void mostrarMensajeError(String mensaje) {
-                Alert alert = new Alert(Alert.AlertType.WARNING, mensaje);
+                Alert alert = new Alert(Alert.AlertType.ERROR, mensaje);
                 alert.showAndWait();
             }
             @Override public void mostrarMensajeExito(String mensaje) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, mensaje);
                 alert.showAndWait();
-                dialog.setResult(null);
                 dialog.close();
             }
             @Override public void limpiarCampos() {}
-            @Override public int getIdPacienteSeleccionado() { 
-                return cbPacientes.getValue() != null ? cbPacientes.getValue().getIdPaciente() : -1; 
-            }
-            @Override public int getIdMedicoSeleccionado() { 
-                return cbMedicos.getValue() != null ? cbMedicos.getValue().getIdMedico() : -1; 
-            }
+            @Override public int getIdPacienteSeleccionado() { return idPacSeleccionado[0]; }
+            @Override public int getIdMedicoSeleccionado() { return idMedSeleccionado[0]; }
             @Override public LocalDate getFechaSeleccionada() { return dpFecha.getValue(); }
             @Override public LocalTime getHoraSeleccionada() {
                 String s = cbHorarios.getValue();
                 return s != null ? LocalTime.parse(s) : null;
             }
             @Override public double getPrecio() {
-                try { return Double.parseDouble(txtPrecioCita.getText()); } catch (Exception e) { return 0.0; }
+                try {
+                    return Double.parseDouble(txtPrecioCita.getText().trim().isEmpty() ? "0" : txtPrecioCita.getText().trim());
+                } catch (NumberFormatException e) {
+                    return 0.0;
+                }
             }
         });
 
-        cbMedicos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+        tvMedicos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            idMedSeleccionado[0] = sel != null ? sel.getIdMedico() : -1;
             if (sel != null) {
-                txtPrecioCita.setText(String.format("%.2f", sel.getPrecioConsulta()));
-                cbHorarios.getItems().clear();
-                btnReservar.setDisable(true);
+                txtPrecioCita.setText(String.valueOf((int) sel.getPrecioConsulta()));
+                dialogPresenter.cargarDiasDisponibles(sel.getIdMedico());
+            } else {
+                txtPrecioCita.clear();
+                diasValidos.clear();
+                dpFecha.setValue(null);
             }
         });
 
         btnBuscar.setOnAction(e -> {
-            Medico med = cbMedicos.getValue();
-            LocalDate fecha = dpFecha.getValue();
-            if (med != null && fecha != null) {
-                dialogPresenter.actualizarHorariosDisponibles(med.getIdMedico(), fecha);
-            } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING, "Seleccione médico y fecha.");
+            if (idMedSeleccionado[0] <= 0) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Seleccione un médico");
                 alert.showAndWait();
+                return;
+            }
+            if (dpFecha.getValue() == null) {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Seleccione una fecha");
+                alert.showAndWait();
+                return;
+            }
+            dialogPresenter.actualizarHorariosDisponibles(idMedSeleccionado[0], dpFecha.getValue());
+        });
+
+        btnReservar.setOnAction(e -> {
+            dialogPresenter.reservarCita();
+        });
+
+        Button btnNuevoPac = new Button("Registrar Paciente");
+        btnNuevoPac.getStyleClass().add("button-secondary");
+        btnNuevoPac.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600; -fx-font-size: 11px; -fx-padding: 6 12;");
+        btnNuevoPac.setOnAction(ev -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/paciente_form.fxml"));
+                Parent root = loader.load();
+                Dialog<ButtonType> pacDialog = new Dialog<>();
+                pacDialog.getDialogPane().setContent(root);
+                pacDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+                pacDialog.showAndWait().ifPresent(btn -> {
+                    if (btn == ButtonType.OK) {
+                        pacientesList.setAll(pacienteDAO.listarTodos());
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
 
-        btnReservar.setOnAction(e -> dialogPresenter.reservarCita());
+        Button btnNuevoMed = new Button("Registrar Médico");
+        btnNuevoMed.getStyleClass().add("button-secondary");
+        btnNuevoMed.setStyle("-fx-background-color: #0d9488; -fx-text-fill: white; -fx-font-weight: 600; -fx-font-size: 11px; -fx-padding: 6 12;");
+        btnNuevoMed.setOnAction(ev -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/medico_form.fxml"));
+                Parent root = loader.load();
+                Dialog<ButtonType> medDialog = new Dialog<>();
+                medDialog.getDialogPane().setContent(root);
+                medDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+                medDialog.showAndWait().ifPresent(btn -> {
+                    if (btn == ButtonType.OK) {
+                        medicosList.setAll(medicoDAO.listarTodos());
+                    }
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
+        Label lblPacSection = new Label("Seleccionar paciente:");
+        lblPacSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
 
-        grid.add(new Label("Paciente:"), 0, 0);
-        grid.add(cbPacientes, 1, 0);
-        grid.add(new Label("Médico:"), 0, 1);
-        grid.add(cbMedicos, 1, 1);
-        grid.add(new Label("Fecha:"), 0, 2);
-        grid.add(dpFecha, 1, 2);
-        grid.add(btnBuscar, 1, 3);
-        grid.add(new Label("Horario:"), 0, 4);
-        grid.add(cbHorarios, 1, 4);
-        grid.add(new Label("Precio:"), 0, 5);
-        grid.add(txtPrecioCita, 1, 5);
-        grid.add(btnReservar, 1, 6);
+        HBox HBoxPacSearch = new HBox(10, txtBuscarPac, btnNuevoPac);
+        HBox.setHgrow(txtBuscarPac, javafx.scene.layout.Priority.ALWAYS);
 
-        dialog.getDialogPane().setContent(grid);
+        VBox pacienteSection = new VBox(5,
+            lblPacSection,
+            HBoxPacSearch,
+            tvPacientes
+        );
+        if (esPaciente) {
+            pacienteSection.setVisible(false);
+            pacienteSection.setManaged(false);
+        }
+
+        HBox filtrosMedicos = new HBox(10, cbEsp, txtBuscarMed, btnNuevoMed);
+        HBox.setHgrow(txtBuscarMed, javafx.scene.layout.Priority.ALWAYS);
+        Label lblMedSection = new Label("Seleccionar médico:");
+        lblMedSection.setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
+        VBox medicoSection = new VBox(5,
+            lblMedSection,
+            filtrosMedicos,
+            tvMedicos
+        );
+
+        HBox tablesRow = new HBox(20, pacienteSection, medicoSection);
+        HBox.setHgrow(pacienteSection, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(medicoSection, javafx.scene.layout.Priority.ALWAYS);
+
+        GridPane horarioGrid = new GridPane();
+        horarioGrid.setHgap(10);
+        horarioGrid.setVgap(10);
+        horarioGrid.add(new Label("Fecha:"), 0, 0);
+        horarioGrid.add(dpFecha, 1, 0);
+        horarioGrid.add(btnBuscar, 2, 0);
+        horarioGrid.add(new Label("Horario:"), 0, 1);
+        horarioGrid.add(cbHorarios, 1, 1);
+        horarioGrid.add(btnReservar, 2, 1);
+        horarioGrid.add(new Label("Costo ($):"), 0, 2);
+        horarioGrid.add(txtPrecioCita, 1, 2);
+
+        VBox content = new VBox(15, tablesRow, horarioGrid);
+        content.setStyle("-fx-padding: 15;");
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setPrefWidth(900);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+
         dialog.showAndWait();
+
         cargarCitasPorRol();
     }
 
     private void abrirDialogoEditarCita(Cita cita) {
-        // Implementation omitted for brevity in this fix attempt, 
-        // focusing on structural correctness first.
+        CitaDAO citaDAO = new CitaDAO();
+        MedicoDAO medicoDAO = new MedicoDAO();
+        List<Medico> medicos = medicoDAO.listarTodos();
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Cita #" + cita.getIdCita());
+        dialog.setHeaderText("Paciente: " + cita.getPacienteNombre());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/css/hopecare.css").toExternalForm());
+
+        Label lblMedicoActual = new Label("Médico: " + cita.getMedicoNombre());
+        Label lblFechaActual = new Label("Fecha/Hora: " + cita.getFechaHora().format(dtf));
+        Label lblEstadoActual = new Label("Estado: " + cita.getEstado());
+
+        ComboBox<Medico> cbMedico = new ComboBox<>();
+        cbMedico.setPrefWidth(300);
+        cbMedico.getItems().addAll(medicos);
+        for (Medico m : medicos) {
+            if (m.getIdMedico() == cita.getIdMedico()) {
+                cbMedico.setValue(m);
+                break;
+            }
+        }
+
+        DatePicker dpFecha = new DatePicker(cita.getFechaHora().toLocalDate());
+
+        ObservableList<String> slots = FXCollections.observableArrayList();
+        for (int h = 7; h <= 19; h++) {
+            slots.add(String.format("%02d:00", h));
+            slots.add(String.format("%02d:30", h));
+        }
+        ComboBox<String> cbHora = new ComboBox<>(slots);
+        cbHora.setValue(cita.getFechaHora().toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
+
+        ComboBox<String> cbEstado = new ComboBox<>();
+        cbEstado.getItems().addAll("PROGRAMADA", "CANCELADA", "ATENDIDA", "NO_ASISTIO");
+        cbEstado.setValue(cita.getEstado());
+
+        TextField txtPrecio = new TextField();
+        txtPrecio.setPromptText("Seleccione médico y estado ATENDIDA");
+        txtPrecio.setPrefWidth(150);
+        txtPrecio.setEditable(false);
+        txtPrecio.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #115e59; -fx-font-weight: 600;");
+
+        Runnable actualizarPrecioEdit = () -> {
+            if ("ATENDIDA".equals(cbEstado.getValue()) && cbMedico.getValue() != null) {
+                txtPrecio.setText(String.valueOf((int) cbMedico.getValue().getPrecioConsulta()));
+            } else {
+                txtPrecio.clear();
+            }
+        };
+
+        cbEstado.valueProperty().addListener((obs, old, val) -> actualizarPrecioEdit.run());
+        cbMedico.valueProperty().addListener((obs, old, val) -> actualizarPrecioEdit.run());
+        actualizarPrecioEdit.run();
+
+        Button btnGuardar = new Button("Guardar cambios");
+
+        btnGuardar.setOnAction(e -> {
+            Medico medSel = cbMedico.getValue();
+            LocalDate nuevaFecha = dpFecha.getValue();
+            String horaStr = cbHora.getValue();
+            String nuevoEstado = cbEstado.getValue();
+
+            if (medSel == null || nuevaFecha == null || horaStr == null || nuevoEstado == null) {
+                mostrarMensajeError("Complete todos los campos.");
+                return;
+            }
+
+            double precio = 0.0;
+            if ("ATENDIDA".equals(nuevoEstado)) {
+                try {
+                    precio = Double.parseDouble(txtPrecio.getText().trim().isEmpty() ? "0" : txtPrecio.getText().trim());
+                    if (precio < 0) throw new NumberFormatException();
+                } catch (NumberFormatException ex) {
+                    mostrarMensajeError("Ingrese un costo de consulta válido (número positivo).");
+                    return;
+                }
+            }
+
+            LocalTime nuevaHora = LocalTime.parse(horaStr);
+            LocalDateTime nuevaFechaHora = LocalDateTime.of(nuevaFecha, nuevaHora);
+
+            cita.setIdMedico(medSel.getIdMedico());
+            cita.setMedicoNombre(medSel.getNombre() + " " + medSel.getApellido());
+            cita.setFechaHora(nuevaFechaHora);
+            cita.setEstado(nuevoEstado);
+
+            if (citaDAO.actualizarCita(cita)) {
+                if ("ATENDIDA".equals(nuevoEstado)) {
+                    new ConsultaDAO().insertarSiNoExiste(cita.getIdCita(), precio);
+                }
+                mostrarMensajeExito("Cita actualizada correctamente.");
+                dialog.close();
+                cargarCitasPorRol();
+            } else {
+                mostrarMensajeError("Error al actualizar la cita.");
+            }
+        });
+
+        VBox infoSection = new VBox(5,
+            new Label("— Información actual —"),
+            lblMedicoActual, lblFechaActual, lblEstadoActual
+        );
+        infoSection.setPadding(new Insets(0, 0, 10, 0));
+
+        GridPane editGrid = new GridPane();
+        editGrid.setHgap(10);
+        editGrid.setVgap(8);
+        editGrid.add(new Label("Nuevo médico:"), 0, 0);
+        editGrid.add(cbMedico, 1, 0);
+        editGrid.add(new Label("Nueva fecha:"), 0, 1);
+        editGrid.add(dpFecha, 1, 1);
+        editGrid.add(new Label("Nuevo horario:"), 0, 2);
+        editGrid.add(cbHora, 1, 2);
+        editGrid.add(new Label("Nuevo estado:"), 0, 3);
+        editGrid.add(cbEstado, 1, 3);
+        editGrid.add(new Label("Costo consulta ($):"), 0, 4);
+        editGrid.add(txtPrecio, 1, 4);
+
+        Button btnEliminar = new Button("Eliminar cita");
+        btnEliminar.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white; -fx-font-weight: 700; -fx-padding: 8 16; -fx-cursor: hand;");
+        btnEliminar.setOnAction(ev -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Eliminar cita");
+            confirm.setHeaderText("¿Está seguro de eliminar la cita #" + cita.getIdCita() + "?");
+            confirm.setContentText("Paciente: " + cita.getPacienteNombre() + "\nMédico: " + cita.getMedicoNombre() + "\nFecha: " + cita.getFechaHora().format(dtf) + "\n\nEsta acción no se puede deshacer.");
+            confirm.getDialogPane().getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/css/hopecare.css").toExternalForm());
+            confirm.showAndWait().ifPresent(r -> {
+                if (r == ButtonType.OK) {
+                    if (citaDAO.eliminarCita(cita.getIdCita())) {
+                        mostrarMensajeExito("Cita eliminada correctamente.");
+                        dialog.close();
+                        cargarCitasPorRol();
+                    } else {
+                        mostrarMensajeError("Error al eliminar la cita.");
+                    }
+                }
+            });
+        });
+
+        HBox buttonRow = new HBox(10, btnGuardar, btnEliminar);
+
+        VBox content = new VBox(12, infoSection, new Label("— Editar —"), editGrid, buttonRow);
+        content.setPadding(new Insets(15));
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setPrefWidth(450);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+
+        dialog.showAndWait();
     }
 
     @Override

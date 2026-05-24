@@ -159,7 +159,7 @@
 .user-avatar {
     -fx-fill: #cbd5e1;
     -fx-stroke: #e2e8f0;
-    -fx-stroke-width: 2;
+    -stroke-width: 2;
 }
 
 .user-icon-svg {
@@ -819,7 +819,7 @@
 }
 
 .form-header-medico {
-    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e); /* Teal! Matches patient style exactly! */
+    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e);
     -fx-padding: 22 26 22 26;
 }
 
@@ -832,7 +832,7 @@
 
 .form-header-subtitle {
     -fx-font-size: 12px;
-    -fx-text-fill: #ccfbf1; /* Harmonious light teal text */
+    -fx-text-fill: #ccfbf1;
 }
 
 .form-header-subtitle-teal {
@@ -845,155 +845,6 @@
     -fx-font-weight: 600;
     -fx-font-size: 13px;
 }
-
-/* =========================================================================
-   PREMIUM ALERTS & DIALOG PANES (INFORMATIONAL & ERROR PANELS)
-   ========================================================================= */
-
-/* Common dialog pane base customizations */
-.dialog-pane {
-    -fx-background-color: #ffffff;
-    -fx-background-radius: 12px;
-    -fx-border-radius: 12px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 4);
-}
-
-.dialog-pane > .header-panel {
-    -fx-padding: 20 24 20 24;
-}
-
-.dialog-pane > .header-panel > .label {
-    -fx-text-fill: #ffffff;
-    -fx-font-size: 15px;
-    -fx-font-weight: 700;
-    -fx-font-family: 'Segoe UI', -apple-system, sans-serif;
-}
-
-.dialog-pane > .content-interface {
-    -fx-padding: 22 24 22 24;
-}
-
-.dialog-pane > .content-interface .label {
-    -fx-text-fill: #334155;
-    -fx-font-size: 13px;
-    -fx-font-family: 'Segoe UI', -apple-system, sans-serif;
-}
-
-.dialog-pane > .button-bar > .container {
-    -fx-background-color: #f8fafc;
-    -fx-padding: 12 24 12 24;
-    -fx-border-color: #e2e8f0;
-    -fx-border-width: 1 0 0 0;
-}
-
-/* --- 1. ERROR ALERTS (.error) --- */
-.dialog-pane.error {
-    -fx-border-color: #fca5a5;
-    -fx-border-width: 1.5px;
-}
-.dialog-pane.error > .header-panel {
-    -fx-background-color: linear-gradient(to right, #ef4444, #b91c1c);
-}
-.dialog-pane.error .dialog-icon {
-    -fx-text-fill: #ef4444;
-}
-
-/* --- 2. INFORMATION ALERTS (.information) --- */
-.dialog-pane.information {
-    -fx-border-color: #99f6e4;
-    -fx-border-width: 1.5px;
-}
-.dialog-pane.information > .header-panel {
-    -fx-background-color: linear-gradient(to right, #0d9488, #0f766e);
-}
-.dialog-pane.information .dialog-icon {
-    -fx-text-fill: #0d9488;
-}
-
-/* --- 3. WARNING ALERTS (.warning) --- */
-.dialog-pane.warning {
-    -fx-border-color: #fde68a;
-    -fx-border-width: 1.5px;
-}
-.dialog-pane.warning > .header-panel {
-    -fx-background-color: linear-gradient(to right, #f59e0b, #d97706);
-}
-.dialog-pane.warning .dialog-icon {
-    -fx-text-fill: #f59e0b;
-}
-
-/* --- 4. CONFIRMATION ALERTS (.confirmation) --- */
-.dialog-pane.confirmation {
-    -fx-border-color: #bfdbfe;
-    -fx-border-width: 1.5px;
-}
-.dialog-pane.confirmation > .header-panel {
-    -fx-background-color: linear-gradient(to right, #3b82f6, #1d4ed8);
-}
-.dialog-pane.confirmation .dialog-icon {
-    -fx-text-fill: #3b82f6;
-}
-
-/* =========================================================================
-   REUSABLE INLINE CALLOUT PANELS (ALERT BOXES)
-   ========================================================================= */
-
-.alert-panel {
-    -fx-background-radius: 8px;
-    -fx-border-radius: 8px;
-    -fx-border-width: 1px;
-    -fx-padding: 12 16 12 16;
-    -fx-spacing: 12px;
-    -fx-alignment: center-left;
-}
-
-/* Info Callout Style */
-.alert-panel-info {
-    -fx-background-color: #ecfeff;
-    -fx-border-color: #a5f3fc;
-}
-.alert-panel-info .label {
-    -fx-text-fill: #083344;
-    -fx-font-weight: 500;
-    -fx-font-size: 13px;
-}
-
-/* Error Callout Style */
-.alert-panel-error {
-    -fx-background-color: #fef2f2;
-    -fx-border-color: #fca5a5;
-}
-.alert-panel-error .label {
-    -fx-text-fill: #450a0a;
-    -fx-font-weight: 500;
-    -fx-font-size: 13px;
-}
-
-/* Success Callout Style */
-.alert-panel-success {
-    -fx-background-color: #f0fdf4;
-    -fx-border-color: #bbf7d0;
-}
-.alert-panel-success .label {
-    -fx-text-fill: #052e16;
-    -fx-font-weight: 500;
-    -fx-font-size: 13px;
-}
-
-/* Warning Callout Style */
-.alert-panel-warning {
-    -fx-background-color: #fffbeb;
-    -fx-border-color: #fde68a;
-}
-.alert-panel-warning .label {
-    -fx-text-fill: #451a03;
-    -fx-font-weight: 500;
-    -fx-font-size: 13px;
-}
-
-/* =========================================================================
-   DYNAMIC VALIDATION LABELS (AUTHENTICATION ENTRANCES)
-   ========================================================================= */
 
 .msg-error {
     -fx-text-fill: #b91c1c;
@@ -1016,5 +867,3 @@
     -fx-font-weight: 600;
     -fx-alignment: center-left;
 }
-
-

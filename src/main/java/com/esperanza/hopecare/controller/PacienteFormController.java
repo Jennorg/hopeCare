@@ -36,7 +36,7 @@ public class PacienteFormController {
         txtNombre.setText(p.getNombre());
         txtApellido.setText(p.getApellido());
         txtDocumento.setText(p.getDocumentoIdentidad());
-        
+
         if (p.getFechaNacimiento() != null && !p.getFechaNacimiento().trim().isEmpty()) {
             try {
                 dpFechaNac.setValue(LocalDate.parse(p.getFechaNacimiento()));
@@ -65,7 +65,7 @@ public class PacienteFormController {
 
     public boolean validar() {
         mensajeError = "";
-        
+
         // 1. Validar campos obligatorios
         if (txtNombre.getText() == null || txtNombre.getText().trim().isEmpty()) {
             mensajeError = "El nombre es obligatorio.";
@@ -83,13 +83,13 @@ public class PacienteFormController {
             mensajeError = "El número de historia clínica es obligatorio.";
             return false;
         }
-        
+
         // 2. Validar tipos/formatos y longitud de caracteres
         String nombre = txtNombre.getText().trim();
         String apellido = txtApellido.getText().trim();
         String documento = txtDocumento.getText().trim();
         String historia = txtHistoria.getText().trim();
-        
+
         if (nombre.length() > 50) {
             mensajeError = "El nombre no puede tener más de 50 caracteres.";
             return false;
@@ -98,7 +98,7 @@ public class PacienteFormController {
             mensajeError = "El nombre solo puede contener letras y espacios.";
             return false;
         }
-        
+
         if (apellido.length() > 50) {
             mensajeError = "El apellido no puede tener más de 50 caracteres.";
             return false;
@@ -107,7 +107,7 @@ public class PacienteFormController {
             mensajeError = "El apellido solo puede contener letras y espacios.";
             return false;
         }
-        
+
         if (documento.length() < 5 || documento.length() > 20) {
             mensajeError = "La cédula debe tener entre 5 y 20 caracteres.";
             return false;
@@ -116,7 +116,7 @@ public class PacienteFormController {
             mensajeError = "La cédula solo puede contener números y guiones.";
             return false;
         }
-        
+
         if (historia.length() > 50) {
             mensajeError = "El número de historia clínica no puede superar los 50 caracteres.";
             return false;
@@ -125,7 +125,7 @@ public class PacienteFormController {
             mensajeError = "La historia clínica solo puede contener letras, números y guiones.";
             return false;
         }
-        
+
         // 3. Validaciones de campos opcionales
         if (dpFechaNac.getValue() != null) {
             if (dpFechaNac.getValue().isAfter(LocalDate.now())) {
@@ -133,7 +133,7 @@ public class PacienteFormController {
                 return false;
             }
         }
-        
+
         if (txtTelefono.getText() != null && !txtTelefono.getText().trim().isEmpty()) {
             String telefono = txtTelefono.getText().trim();
             if (telefono.length() > 20) {
@@ -145,7 +145,7 @@ public class PacienteFormController {
                 return false;
             }
         }
-        
+
         if (txtEmail.getText() != null && !txtEmail.getText().trim().isEmpty()) {
             String email = txtEmail.getText().trim();
             if (email.length() > 100) {
@@ -157,28 +157,28 @@ public class PacienteFormController {
                 return false;
             }
         }
-        
+
         if (txtDireccion.getText() != null && !txtDireccion.getText().trim().isEmpty()) {
             if (txtDireccion.getText().trim().length() > 250) {
                 mensajeError = "La dirección no puede superar los 250 caracteres.";
                 return false;
             }
         }
-        
+
         if (txtAlergias.getText() != null && !txtAlergias.getText().trim().isEmpty()) {
             if (txtAlergias.getText().trim().length() > 250) {
                 mensajeError = "Las alergias no pueden superar los 250 caracteres.";
                 return false;
             }
         }
-        
+
         if (txtContacto.getText() != null && !txtContacto.getText().trim().isEmpty()) {
             if (txtContacto.getText().trim().length() > 150) {
                 mensajeError = "El contacto de emergencia no puede superar los 150 caracteres.";
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -190,7 +190,7 @@ public class PacienteFormController {
         p.setNombre(txtNombre.getText().trim());
         p.setApellido(txtApellido.getText().trim());
         p.setDocumentoIdentidad(txtDocumento.getText().trim());
-        
+
         if (dpFechaNac.getValue() != null) {
             p.setFechaNacimiento(dpFechaNac.getValue().toString());
         } else {
