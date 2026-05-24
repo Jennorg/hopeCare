@@ -91,7 +91,7 @@ public class MedicosController {
                     setText(null);
                     setStyle(null);
                 } else {
-                    boolean activo = getTableRow().getItem().isActivo();
+                    boolean activo = getTableRow().getItem().getActivo() == 1;
                     setText(activo ? "ACTIVO" : "INACTIVO");
                     if (activo) {
                         setStyle("-fx-text-fill: #0d9488; -fx-font-weight: 600;");
@@ -188,7 +188,7 @@ public class MedicosController {
     }
 
     private void eliminarMedico(Medico selected) {
-        if (!selected.isActivo()) {
+        if (selected.getActivo() == 0) {
             mostrarAlerta("Información", "El médico seleccionado ya se encuentra inactivo.", Alert.AlertType.INFORMATION);
             return;
         }

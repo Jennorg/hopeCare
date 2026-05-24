@@ -73,7 +73,7 @@ public class MedicoFormController {
         txtDireccion.setText(m.getDireccion());
         txtRegistro.setText(m.getRegistroMedico());
         txtPrecio.setText(m.getIdMedico() > 0 ? String.valueOf(m.getPrecioConsulta()) : "50.0");
-        chkActivo.setSelected(m.getIdMedico() == 0 || m.isActivo());
+        chkActivo.setSelected(m.getIdMedico() == 0 || m.getActivo() == 1);
 
         if (m.getIdEspecialidad() > 0) {
             for (Especialidad e : cbEspecialidad.getItems()) {
@@ -245,7 +245,7 @@ public class MedicoFormController {
 
         m.setRegistroMedico(txtRegistro.getText().trim());
         m.setPrecioConsulta(Double.parseDouble(txtPrecio.getText().trim()));
-        m.setActivo(chkActivo.isSelected());
+        m.setActivo(chkActivo.isSelected() ? 1 : 0);
         return m;
     }
 }
