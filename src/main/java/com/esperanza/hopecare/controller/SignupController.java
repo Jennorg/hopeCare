@@ -86,7 +86,7 @@ public class SignupController implements Initializable {
     private List<String> cargarEspecialidades() {
         List<String> lista = new ArrayList<>();
         String sql = "SELECT nombre_especialidad FROM especialidad ORDER BY nombre_especialidad";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {

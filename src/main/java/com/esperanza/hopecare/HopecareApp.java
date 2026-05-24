@@ -56,6 +56,7 @@ public class HopecareApp extends Application {
         
         // 3. Inicializar Citas
         inicializarModulo("Citas", "/citas_schema.sql", "cita", DatabaseConnection::getCitasConnection);
+        migrarCitasDatabase();
 
         // 4. Inicializar Facturación
         inicializarModulo("Facturación", "/facturacion_schema.sql", "factura", DatabaseConnection::getFacturacionConnection);
@@ -66,6 +67,84 @@ public class HopecareApp extends Application {
 
         // Cargar datos de prueba si están vacías
         verificarYCargarDatosPrueba();
+    }
+
+    private void migrarCitasDatabase() {
+        try (Connection conn = DatabaseConnection.getCitasConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            // Asegurar que todas las tablas existan (por si el script inicial se saltó)
+            stmt.execute("CREATE TABLE IF NOT EXISTS horario_atencion (" +
+                         "id_horario INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                         "id_medico INTEGER NOT NULL, " +
+                         "dia_semana INTEGER NOT NULL, " +
+                         "hora_inicio TEXT NOT NULL, " +
+                         "hora_fin TEXT NOT NULL, " +
+                         "activo INTEGER DEFAULT 1)");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS cita (" +
+                         "id_cita INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                         "id_paciente INTEGER NOT NULL, " +
+                         "id_medico INTEGER NOT NULL, " +
+                         "fecha_hora DATETIME NOT NULL, " +
+                         "estado TEXT NOT NULL, " +
+                         "motivo TEXT, " +
+                         "creada_por INTEGER NOT NULL, " +
+                         "fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP)");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS consulta (" +
+                         "id_consulta INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                         "id_cita INTEGER NOT NULL UNIQUE, " +
+                         "diagnostico TEXT, sintomas TEXT, tratamiento TEXT, notas_medicas TEXT, " +
+                         "fecha_consulta DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                         "precio REAL NOT NULL DEFAULT 0.0, facturado INTEGER DEFAULT 0)");
+
+            // Verificar y agregar columna intervalo_minutos
+            boolean tieneIntervalo = false;
+            try (ResultSet rs = stmt.executeQuery("PRAGMA table_info(horario_atencion)")) {
+                while (rs.next()) {
+                    if ("intervalo_minutos".equalsIgnoreCase(rs.getString("name"))) {
+                        tieneIntervalo = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!tieneIntervalo) {
+                System.out.println("Migrando tabla horario_atencion: agregando columna intervalo_minutos...");
+                stmt.execute("ALTER TABLE horario_atencion ADD COLUMN intervalo_minutos INTEGER DEFAULT 30");
+            }
+
+            // Asegurar que existan horarios si la tabla está vacía
+            try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM horario_atencion")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    System.out.println("Poblando horarios por defecto para médicos existentes...");
+                    try (Connection connClinica = DatabaseConnection.getClinicaConnection();
+                         Statement stmtClinica = connClinica.createStatement();
+                         ResultSet rsMed = stmtClinica.executeQuery("SELECT id_medico FROM medico WHERE activo = 1")) {
+                        
+                        String sqlIns = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos) VALUES (?, ?, ?, ?, ?)";
+                        try (PreparedStatement ps = conn.prepareStatement(sqlIns)) {
+                            while (rsMed.next()) {
+                                int idMed = rsMed.getInt(1);
+                                for (int dia = 1; dia <= 5; dia++) { // Lunes a Viernes
+                                    ps.setInt(1, idMed);
+                                    ps.setInt(2, dia);
+                                    ps.setString(3, "08:00");
+                                    ps.setString(4, "12:00");
+                                    ps.setInt(5, 30);
+                                    ps.addBatch();
+                                }
+                            }
+                            ps.executeBatch();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error durante la migración de la base de datos de Citas: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void inicializarModulo(String nombre, String schemaPath, String tablaControl, ConnectionSupplier connSupplier) {

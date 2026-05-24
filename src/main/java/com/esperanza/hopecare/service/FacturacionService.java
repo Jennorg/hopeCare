@@ -34,7 +34,7 @@ public class FacturacionService {
     public FacturaDTO previsualizarFactura(int idPaciente, String tipo) {
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getFacturacionUnifiedConnection();
             List<DetalleFacturaDTO> detallesPendientes = obtenerDetallesPendientes(idPaciente, conn);
 
             if (detallesPendientes.isEmpty()) {
@@ -63,7 +63,7 @@ public class FacturacionService {
     public FacturaDTO generarFactura(int idPaciente, String tipo) {
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getFacturacionUnifiedConnection();
             conn.setAutoCommit(false);
 
             List<DetalleFacturaDTO> detallesPendientes = obtenerDetallesPendientes(idPaciente, conn);

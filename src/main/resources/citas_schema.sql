@@ -2,9 +2,10 @@
 CREATE TABLE IF NOT EXISTS horario_atencion (
     id_horario INTEGER PRIMARY KEY AUTOINCREMENT,
     id_medico INTEGER NOT NULL,
-    dia_semana TEXT NOT NULL, -- Lunes, Martes...
+    dia_semana INTEGER NOT NULL, -- 1=Lunes, 2=Martes, ..., 7=Domingo
     hora_inicio TEXT NOT NULL,
     hora_fin TEXT NOT NULL,
+    intervalo_minutos INTEGER DEFAULT 30,
     activo INTEGER DEFAULT 1
 );
 

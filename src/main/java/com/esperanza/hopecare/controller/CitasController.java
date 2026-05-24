@@ -174,75 +174,74 @@ public class CitasController implements ICitaView {
         
         PacienteDAO pacienteDAO = new PacienteDAO();
         MedicoDAO medicoDAO = new MedicoDAO();
-        EspecialidadDAO espDAO = new EspecialidadDAO();
 
-        ObservableList<Paciente> pacientesList = FXCollections.observableArrayList(pacienteDAO.listarTodos());
-        ObservableList<Medico> medicosList = FXCollections.observableArrayList(medicoDAO.listarTodos());
-
-        final int[] idPacSeleccionado = {-1};
-
-        TextField txtBuscarPac = new TextField();
-        txtBuscarPac.setPromptText("Buscar paciente...");
-
-        FilteredList<Paciente> pacientesFiltrados = new FilteredList<>(pacientesList, p -> true);
-        TableView<Paciente> tvPacientes = new TableView<>();
-        tvPacientes.setPrefHeight(150);
-        TableColumn<Paciente, String> colPacNombre = new TableColumn<>("Nombre");
-        colPacNombre.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getNombre() + " " + cd.getValue().getApellido()));
-        tvPacientes.getColumns().add(colPacNombre);
-        tvPacientes.setItems(pacientesFiltrados);
+        ComboBox<Paciente> cbPacientes = new ComboBox<>();
+        cbPacientes.setPromptText("Seleccione paciente...");
+        cbPacientes.setMaxWidth(Double.MAX_VALUE);
+        cbPacientes.setItems(FXCollections.observableArrayList(pacienteDAO.listarTodos()));
 
         if ("PACIENTE".equalsIgnoreCase(rol)) {
-            idPacSeleccionado[0] = idPacienteLogueado;
+            for (Paciente p : cbPacientes.getItems()) {
+                if (p.getIdPaciente() == idPacienteLogueado) {
+                    cbPacientes.setValue(p);
+                    cbPacientes.setDisable(true);
+                    break;
+                }
+            }
         }
 
-        ComboBox<Especialidad> cbEsp = new ComboBox<>();
-        cbEsp.getItems().addAll(espDAO.listarTodas());
+        ComboBox<Medico> cbMedicos = new ComboBox<>();
+        cbMedicos.setPromptText("Seleccione médico...");
+        cbMedicos.setMaxWidth(Double.MAX_VALUE);
+        cbMedicos.setItems(FXCollections.observableArrayList(medicoDAO.listarTodos()));
 
-        TextField txtBuscarMed = new TextField();
-        txtBuscarMed.setPromptText("Buscar médico...");
-
-        FilteredList<Medico> medicosFiltrados = new FilteredList<>(medicosList, m -> true);
-        TableView<Medico> tvMedicos = new TableView<>();
-        tvMedicos.setPrefHeight(150);
-        TableColumn<Medico, String> colMedNombre = new TableColumn<>("Médico");
-        colMedNombre.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().getNombre() + " " + cd.getValue().getApellido()));
-        tvMedicos.getColumns().add(colMedNombre);
-        tvMedicos.setItems(medicosFiltrados);
-
-        DatePicker dpFecha = new DatePicker();
+        DatePicker dpFecha = new DatePicker(LocalDate.now());
         ComboBox<String> cbHorarios = new ComboBox<>();
+        cbHorarios.setPromptText("Seleccione horario...");
+        cbHorarios.setMaxWidth(Double.MAX_VALUE);
+        
         TextField txtPrecioCita = new TextField();
         txtPrecioCita.setEditable(false);
+        txtPrecioCita.setPromptText("Precio consulta");
 
-        Button btnBuscar = new Button("Buscar horarios");
-        Button btnReservar = new Button("Reservar cita");
+        Button btnBuscar = new Button("Verificar Disponibilidad");
+        btnBuscar.setMaxWidth(Double.MAX_VALUE);
+        Button btnReservar = new Button("Agendar Cita");
+        btnReservar.setMaxWidth(Double.MAX_VALUE);
         btnReservar.setDisable(true);
-
-        final int[] idMedSeleccionado = {-1};
+        btnReservar.getStyleClass().add("button-primary");
 
         CitaPresenter dialogPresenter = new CitaPresenter(new ICitaView() {
             @Override public void mostrarCitasExistentes(List<Cita> citas) {}
             @Override public void mostrarHorariosDisponibles(List<LocalTime> bloques) {
                 cbHorarios.getItems().clear();
-                for (LocalTime t : bloques) cbHorarios.getItems().add(t.toString());
+                if (bloques.isEmpty()) {
+                    mostrarMensajeError("No hay horarios disponibles para el día seleccionado.");
+                } else {
+                    for (LocalTime t : bloques) cbHorarios.getItems().add(t.toString());
+                }
                 cbHorarios.setDisable(bloques.isEmpty());
                 btnReservar.setDisable(bloques.isEmpty());
             }
             @Override public void mostrarDiasDisponibles(List<Integer> diasSemana) {}
             @Override public int getDiaSeleccionado() { return dpFecha.getValue() != null ? dpFecha.getValue().getDayOfWeek().getValue() : -1; }
             @Override public void mostrarMensajeError(String mensaje) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, mensaje);
+                Alert alert = new Alert(Alert.AlertType.WARNING, mensaje);
                 alert.showAndWait();
             }
             @Override public void mostrarMensajeExito(String mensaje) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, mensaje);
                 alert.showAndWait();
+                dialog.setResult(null);
                 dialog.close();
             }
             @Override public void limpiarCampos() {}
-            @Override public int getIdPacienteSeleccionado() { return idPacSeleccionado[0]; }
-            @Override public int getIdMedicoSeleccionado() { return idMedSeleccionado[0]; }
+            @Override public int getIdPacienteSeleccionado() { 
+                return cbPacientes.getValue() != null ? cbPacientes.getValue().getIdPaciente() : -1; 
+            }
+            @Override public int getIdMedicoSeleccionado() { 
+                return cbMedicos.getValue() != null ? cbMedicos.getValue().getIdMedico() : -1; 
+            }
             @Override public LocalDate getFechaSeleccionada() { return dpFecha.getValue(); }
             @Override public LocalTime getHoraSeleccionada() {
                 String s = cbHorarios.getValue();
@@ -253,28 +252,46 @@ public class CitasController implements ICitaView {
             }
         });
 
-        tvMedicos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-            idMedSeleccionado[0] = sel != null ? sel.getIdMedico() : -1;
-            if (sel != null) txtPrecioCita.setText(String.valueOf(sel.getPrecioConsulta()));
+        cbMedicos.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            if (sel != null) {
+                txtPrecioCita.setText(String.format("%.2f", sel.getPrecioConsulta()));
+                cbHorarios.getItems().clear();
+                btnReservar.setDisable(true);
+            }
         });
 
-        if (!"PACIENTE".equalsIgnoreCase(rol)) {
-            tvPacientes.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
-                idPacSeleccionado[0] = sel != null ? sel.getIdPaciente() : -1;
-            });
-        }
-
         btnBuscar.setOnAction(e -> {
-            if (idMedSeleccionado[0] > 0 && dpFecha.getValue() != null) {
-                dialogPresenter.actualizarHorariosDisponibles(idMedSeleccionado[0], dpFecha.getValue());
+            Medico med = cbMedicos.getValue();
+            LocalDate fecha = dpFecha.getValue();
+            if (med != null && fecha != null) {
+                dialogPresenter.actualizarHorariosDisponibles(med.getIdMedico(), fecha);
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Seleccione médico y fecha.");
+                alert.showAndWait();
             }
         });
 
         btnReservar.setOnAction(e -> dialogPresenter.reservarCita());
 
-        VBox content = new VBox(10, new Label("Paciente:"), txtBuscarPac, tvPacientes, new Label("Médico:"), txtBuscarMed, tvMedicos, new Label("Fecha:"), dpFecha, btnBuscar, new Label("Horario:"), cbHorarios, btnReservar);
-        content.setPadding(new Insets(10));
-        dialog.getDialogPane().setContent(content);
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+
+        grid.add(new Label("Paciente:"), 0, 0);
+        grid.add(cbPacientes, 1, 0);
+        grid.add(new Label("Médico:"), 0, 1);
+        grid.add(cbMedicos, 1, 1);
+        grid.add(new Label("Fecha:"), 0, 2);
+        grid.add(dpFecha, 1, 2);
+        grid.add(btnBuscar, 1, 3);
+        grid.add(new Label("Horario:"), 0, 4);
+        grid.add(cbHorarios, 1, 4);
+        grid.add(new Label("Precio:"), 0, 5);
+        grid.add(txtPrecioCita, 1, 5);
+        grid.add(btnReservar, 1, 6);
+
+        dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
         dialog.showAndWait();
         cargarCitasPorRol();

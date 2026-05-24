@@ -43,7 +43,14 @@ public class CargarDatosPrueba {
 
                 // 6. Insertar Médico de prueba (Clinica)
                 int pm1 = insertarPersona(connClinica, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
-                insertarMedico(connClinica, pm1, 1, "RM12345", 50000.0);
+                int idMed1 = insertarMedico(connClinica, pm1, 1, "RM12345", 50000.0);
+
+                // 7. Insertar Horarios para el médico (Citas)
+                insertarHorario(connCitas, idMed1, 1, "08:00", "12:00", 30); // Lunes
+                insertarHorario(connCitas, idMed1, 2, "08:00", "12:00", 30); // Martes
+                insertarHorario(connCitas, idMed1, 3, "08:00", "12:00", 30); // Miércoles
+                insertarHorario(connCitas, idMed1, 4, "08:00", "12:00", 30); // Jueves
+                insertarHorario(connCitas, idMed1, 5, "08:00", "12:00", 30); // Viernes
 
                 connClinica.commit();
                 connAuth.commit();
@@ -112,26 +119,42 @@ public class CargarDatosPrueba {
         }
     }
 
-    private static void insertarPaciente(Connection conn, int idPersona, String historiaClinica, String alergias, String grupoSanguineo, String contactoEmergencia) throws SQLException {
+    private static void insertarPaciente(Connection conn, int idPersona, String historiaClinica, String allergic, String grupoSanguineo, String contactoEmergencia) throws SQLException {
         String sql = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
             ps.setString(2, historiaClinica);
-            ps.setString(3, alergias);
+            ps.setString(3, allergic);
             ps.setString(4, grupoSanguineo);
             ps.setString(5, contactoEmergencia);
             ps.executeUpdate();
         }
     }
 
-    private static void insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico, double precioConsulta) throws SQLException {
+    private static int insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico, double precioConsulta) throws SQLException {
         String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, idPersona);
             ps.setInt(2, idEspecialidad);
             ps.setString(3, registroMedico);
             ps.setDouble(4, precioConsulta);
             ps.setInt(5, 1);
+            ps.executeUpdate();
+            var rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+            throw new SQLException("No se pudo obtener id_medico");
+        }
+    }
+
+    private static void insertarHorario(Connection conn, int idMedico, int diaSemana, String inicio, String fin, int intervalo) throws SQLException {
+        String sql = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            ps.setInt(2, diaSemana);
+            ps.setString(3, inicio);
+            ps.setString(4, fin);
+            ps.setInt(5, intervalo);
+            ps.setInt(6, 1);
             ps.executeUpdate();
         }
     }

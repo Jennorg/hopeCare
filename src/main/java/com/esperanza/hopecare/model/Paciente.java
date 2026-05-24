@@ -29,4 +29,10 @@ public class Paciente extends Persona {
 
     public int getActivo() { return activo; }
     public void setActivo(int activo) { this.activo = activo; }
+
+    @Override
+    public String toString() {
+        return (getNombre() != null ? getNombre() + " " + getApellido() : "Paciente #" + idPaciente)
+               + (getDocumentoIdentidad() != null ? " (" + getDocumentoIdentidad() + ")" : "");
+    }
 }
