@@ -104,8 +104,8 @@ public class MedicosController {
 
         colAcciones.setCellFactory(col -> new TableCell<Medico, Void>() {
             private final Button btnEdit = new Button();
-            private final Button btnDelete = new Button();
-            private final javafx.scene.layout.HBox container = new javafx.scene.layout.HBox(8, btnEdit, btnDelete);
+            private final Button btnToggleStatus = new Button();
+            private final javafx.scene.layout.HBox container = new javafx.scene.layout.HBox(8, btnEdit, btnToggleStatus);
 
             {
                 container.setAlignment(javafx.geometry.Pos.CENTER);
@@ -117,13 +117,6 @@ public class MedicosController {
                 btnEdit.setGraphic(editIcon);
                 btnEdit.setTooltip(new Tooltip("Editar Médico"));
 
-                btnDelete.getStyleClass().add("button-action-delete");
-                javafx.scene.shape.SVGPath deleteIcon = new javafx.scene.shape.SVGPath();
-                deleteIcon.setContent("M2 4h12M4 4v10a1 1 0 001 1h6a1 1 0 001-1V4M6 4V2h4v2");
-                deleteIcon.getStyleClass().add("svg-icon");
-                btnDelete.setGraphic(deleteIcon);
-                btnDelete.setTooltip(new Tooltip("Dar de Baja"));
-
                 btnEdit.setOnAction(e -> {
                     Medico m = getTableView().getItems().get(getIndex());
                     if (m != null) {
@@ -131,10 +124,10 @@ public class MedicosController {
                     }
                 });
 
-                btnDelete.setOnAction(e -> {
+                btnToggleStatus.setOnAction(e -> {
                     Medico m = getTableView().getItems().get(getIndex());
                     if (m != null) {
-                        eliminarMedico(m);
+                        gestionarEstadoMedico(m);
                     }
                 });
             }
@@ -145,6 +138,24 @@ public class MedicosController {
                 if (empty || SesionManager.getInstance().isMedico()) {
                     setGraphic(null);
                 } else {
+                    Medico m = getTableRow().getItem();
+                    if (m != null) {
+                        boolean activo = m.isActivo();
+                        
+                        btnToggleStatus.getStyleClass().removeAll("button-action-delete", "button-action-reactivate");
+                        btnToggleStatus.getStyleClass().add(activo ? "button-action-delete" : "button-action-reactivate");
+                        
+                        javafx.scene.shape.SVGPath icon = new javafx.scene.shape.SVGPath();
+                        if (activo) {
+                            icon.setContent("M2 4h12M4 4v10a1 1 0 001 1h6a1 1 0 001-1V4M6 4V2h4v2");
+                            btnToggleStatus.setTooltip(new Tooltip("Dar de Baja"));
+                        } else {
+                            icon.setContent("M12 2v4M12 2l-3 3M12 2l3 3M4 12c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8"); // Refrescar/Reactivar
+                            btnToggleStatus.setTooltip(new Tooltip("Reactivar Médico"));
+                        }
+                        icon.getStyleClass().add("svg-icon");
+                        btnToggleStatus.setGraphic(icon);
+                    }
                     setGraphic(container);
                 }
             }
@@ -187,25 +198,25 @@ public class MedicosController {
         mostrarFormulario(false, null);
     }
 
-    private void eliminarMedico(Medico selected) {
-        if (!selected.isActivo()) {
-            mostrarAlerta("Información", "El médico seleccionado ya se encuentra inactivo.", Alert.AlertType.INFORMATION);
-            return;
-        }
+    private void gestionarEstadoMedico(Medico selected) {
+        boolean actualmenteActivo = selected.isActivo();
+        String accion = actualmenteActivo ? "desactivar" : "reactivar";
+        String titulo = actualmenteActivo ? "Confirmar Baja" : "Confirmar Reactivación";
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Confirmar Baja");
+        confirm.setTitle(titulo);
         confirm.setHeaderText(null);
-        confirm.setContentText("¿Está seguro de dar de baja (desactivar) al médico " + selected.getNombreCompleto() + "?\nNo se eliminará físicamente para conservar el historial de citas.");
+        confirm.setContentText("¿Está seguro de " + accion + " al médico " + selected.getNombreCompleto() + "?");
         
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
-                boolean ok = medicoDAO.eliminarMedicoLogico(selected.getIdMedico());
+                boolean ok = medicoDAO.cambiarEstadoActivo(selected.getIdMedico(), actualmenteActivo ? 0 : 1);
                 if (ok) {
-                    mostrarAlerta("Éxito", "Médico dado de baja correctamente.", Alert.AlertType.INFORMATION);
+                    String msgExito = actualmenteActivo ? "Médico desactivado correctamente." : "Médico reactivado correctamente.";
+                    mostrarAlerta("Éxito", msgExito, Alert.AlertType.INFORMATION);
                     cargarMedicos();
                 } else {
-                    mostrarAlerta("Error", "No se pudo desactivar el médico de la base de datos.", Alert.AlertType.ERROR);
+                    mostrarAlerta("Error", "No se pudo cambiar el estado del médico en la base de datos.", Alert.AlertType.ERROR);
                 }
             }
         });

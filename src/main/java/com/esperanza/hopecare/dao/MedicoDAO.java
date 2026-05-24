@@ -205,14 +205,15 @@ public class MedicoDAO {
         }
     }
 
-    public boolean eliminarMedicoLogico(int idMedico) {
-        String sql = "UPDATE medico SET activo = 0 WHERE id_medico = ?";
+    public boolean cambiarEstadoActivo(int idMedico, int activo) {
+        String sql = "UPDATE medico SET activo = ? WHERE id_medico = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idMedico);
+            ps.setInt(1, activo);
+            ps.setInt(2, idMedico);
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error al dar de baja lógica al médico", e);
+            LOGGER.log(Level.SEVERE, "Error al cambiar estado activo del médico", e);
             return false;
         }
     }

@@ -2,6 +2,7 @@ package com.esperanza.hopecare.util;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -86,8 +87,9 @@ public class CargarDatosPrueba {
 
     private static int insertarPersona(Connection conn, String nombre, String apellido, String documento,
                                   String fechaNacimiento, String telefono, String email, String direccion, String genero) throws SQLException {
-        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        // Primero intentamos insertar ignorando si ya existe el documento_identidad
+        String sqlIns = "INSERT OR IGNORE INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sqlIns)) {
             ps.setString(1, nombre);
             ps.setString(2, apellido);
             ps.setString(3, documento);
@@ -97,10 +99,17 @@ public class CargarDatosPrueba {
             ps.setString(7, direccion);
             ps.setString(8, genero);
             ps.executeUpdate();
-            var rs = ps.getGeneratedKeys();
-            if (rs.next()) return rs.getInt(1);
-            throw new SQLException("No se pudo obtener id_persona");
         }
+
+        // Luego buscamos el ID (ya sea el recién insertado o el existente)
+        String sqlSel = "SELECT id_persona FROM persona WHERE documento_identidad = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sqlSel)) {
+            ps.setString(1, documento);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        throw new SQLException("No se pudo obtener id_persona para " + documento);
     }
 
     private static void insertarPaciente(Connection conn, int idPersona, String historiaClinica, String alergias, String grupoSanguineo, String contactoEmergencia) throws SQLException {
