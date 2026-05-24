@@ -73,11 +73,7 @@ public class HopecareApp extends Application {
              Statement stmt = conn.createStatement()) {
 
             if (!tablaExiste(stmt, tablaControl)) {
-                System.out.println("Base de datos [" + nombre + "] vacía o inexistente. Creando esquema...");
                 ejecutarScriptSQL(conn, schemaPath);
-                System.out.println("Esquema [" + nombre + "] creado exitosamente.");
-            } else {
-                System.out.println("Base de datos [" + nombre + "] ya inicializada.");
             }
         } catch (Exception e) {
             System.err.println("Error al inicializar el módulo [" + nombre + "]: " + e.getMessage());
@@ -89,15 +85,12 @@ public class HopecareApp extends Application {
         try (Connection conn = DatabaseConnection.getAuthConnection();
              Statement stmt = conn.createStatement()) {
             if (baseDatosVacia(stmt)) {
-                System.out.println("Insertando datos de prueba iniciales...");
                 CargarDatosPrueba.main(new String[]{});
             } else {
-                // Also seed clinica data if persona table is empty
                 try (Connection connClinica = DatabaseConnection.getClinicaConnection();
                      Statement stmtClinica = connClinica.createStatement()) {
                     ResultSet rs = stmtClinica.executeQuery("SELECT count(*) FROM persona");
                     if (rs.next() && rs.getInt(1) == 0) {
-                        System.out.println("Personas faltan en Clínica. Insertando datos de prueba...");
                         CargarDatosPrueba.main(new String[]{});
                     }
                 }
@@ -126,7 +119,6 @@ public class HopecareApp extends Application {
                 necesitaPoblar = true;
             }
             if (necesitaPoblar) {
-                System.out.println("Poblando Dashboard con datos de prueba...");
                 conn.setAutoCommit(false);
                 try {
                     stmt.execute("PRAGMA foreign_keys = OFF");
@@ -145,7 +137,6 @@ public class HopecareApp extends Application {
                     stmt.execute("PRAGMA foreign_keys = ON");
                     insertarDatosDashboard(conn);
                     conn.commit();
-                    System.out.println("Datos de Dashboard insertados correctamente.");
                 } catch (Exception e) {
                     conn.rollback();
                     throw e;

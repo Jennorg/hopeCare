@@ -10,6 +10,7 @@ public class DatabaseConnection {
     private static final String CLINICA_DB = "jdbc:sqlite:hopecare_clinica.db";
     private static final String CITAS_DB = "jdbc:sqlite:hopecare_citas.db";
     private static final String FACTURACION_DB = "jdbc:sqlite:hopecare_facturacion.db";
+    private static final String DASHBOARD_DB = "jdbc:sqlite:hopecare_dashboard.db";
 
     /**
      * Obtiene una conexión a la base de datos de Autenticación.
@@ -80,6 +81,13 @@ public class DatabaseConnection {
      * Compatibilidad hacia atrás (apunta a auth por defecto).
      * @deprecated Usar métodos específicos por módulo.
      */
+    /**
+     * Obtiene una conexión a la base de datos del Dashboard (schema completo unificado).
+     */
+    public static Connection getDashboardConnection() throws SQLException {
+        return DriverManager.getConnection(DASHBOARD_DB);
+    }
+
     @Deprecated
     public static Connection getConnection() throws SQLException {
         return getAuthConnection();

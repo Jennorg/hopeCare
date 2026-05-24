@@ -35,6 +35,7 @@
                 <Pane fx:id="spacer1" HBox.hgrow="ALWAYS" />
 
                 <FlowPane fx:id="navLinks" styleClass="nav-links" alignment="CENTER" columnHalignment="CENTER" hgap="20" vgap="8">
+                    <Hyperlink fx:id="linkDashboard" text="Dashboard" styleClass="nav-link" onAction="#navigateToDashboard"/>
                     <Hyperlink fx:id="linkPacientes" text="Pacientes" styleClass="nav-link" onAction="#navigateToPacientes"/>
                     <Hyperlink fx:id="linkMedicos" text="Médicos" styleClass="nav-link" onAction="#navigateToMedicos"/>
                     <Hyperlink fx:id="linkCitas" text="Citas" styleClass="nav-link" onAction="#navigateToCitas"/>
@@ -67,6 +68,9 @@
     </top>
     <center>
         <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="main-tabs">
+            <Tab fx:id="tabDashboard" text="" closable="false">
+                <fx:include source="dashboard.fxml"/>
+            </Tab>
             <Tab fx:id="tabPacientes" text="" closable="false">
                 <fx:include source="pacientes.fxml"/>
             </Tab>
