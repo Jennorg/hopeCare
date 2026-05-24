@@ -20,7 +20,7 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.esperanza.hopecare.controller.LoginController"
             styleClass="auth-root"
-            stylesheets="@../../../main/hopecare.css">
+            stylesheets="@../css/hopecare.css">
 
     <center>
         <StackPane styleClass="auth-center-bg">

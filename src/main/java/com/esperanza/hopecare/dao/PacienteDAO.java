@@ -170,21 +170,14 @@ public class PacienteDAO {
         }
     }
 
-    /**
-     * Inserta un nuevo paciente realizando una transacción atómica.
-     * Primero crea el registro en la tabla base 'persona' para obtener su ID generado,
-     * y luego crea el registro vinculado en la tabla 'paciente'.
-     * Si alguna operación falla, se realiza un rollback para mantener la integridad.
-     */
     public boolean insertar(Paciente p) {
         String sqlPersona = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";
+        String sqlPaciente = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, activo) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
-            conn.setAutoCommit(false); // Inicia transacción
+            conn.setAutoCommit(false);
             
-            // 1. Registro de datos personales
             try (PreparedStatement psP = conn.prepareStatement(sqlPersona, Statement.RETURN_GENERATED_KEYS)) {
                 psP.setString(1, p.getNombre().trim());
                 psP.setString(2, p.getApellido().trim());
@@ -206,13 +199,13 @@ public class PacienteDAO {
                 }
             }
             
-            // 2. Registro de datos clínicos vinculados
             try (PreparedStatement psPac = conn.prepareStatement(sqlPaciente, Statement.RETURN_GENERATED_KEYS)) {
                 psPac.setInt(1, p.getIdPersona());
                 psPac.setString(2, p.getHistoriaClinica().trim());
                 setStringOrNull(psPac, 3, p.getAlergias());
                 setStringOrNull(psPac, 4, p.getGrupoSanguineo());
                 setStringOrNull(psPac, 5, p.getContactoEmergencia());
+                psPac.setInt(6, p.getActivo());
                 psPac.executeUpdate();
                 
                 try (ResultSet rs = psPac.getGeneratedKeys()) {
@@ -222,7 +215,7 @@ public class PacienteDAO {
                 }
             }
             
-            conn.commit(); // Finaliza con éxito
+            conn.commit();
             return true;
         } catch (SQLException e) {
             if (conn != null) {
@@ -246,7 +239,7 @@ public class PacienteDAO {
 
     public boolean actualizar(Paciente p) {
         String sqlPersona = "UPDATE persona SET nombre = ?, apellido = ?, documento_identidad = ?, fecha_nacimiento = ?, telefono = ?, email = ?, direccion = ?, genero = ? WHERE id_persona = ?";
-        String sqlPaciente = "UPDATE paciente SET historia_clinica = ?, alergias = ?, grupo_sanguineo = ?, contacto_emergencia = ? WHERE id_paciente = ?";
+        String sqlPaciente = "UPDATE paciente SET historia_clinica = ?, alergias = ?, grupo_sanguineo = ?, contacto_emergencia = ?, activo = ? WHERE id_paciente = ?";
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
@@ -270,7 +263,8 @@ public class PacienteDAO {
                 setStringOrNull(psPac, 2, p.getAlergias());
                 setStringOrNull(psPac, 3, p.getGrupoSanguineo());
                 setStringOrNull(psPac, 4, p.getContactoEmergencia());
-                psPac.setInt(5, p.getIdPaciente());
+                psPac.setInt(5, p.getActivo());
+                psPac.setInt(6, p.getIdPaciente());
                 psPac.executeUpdate();
             }
             

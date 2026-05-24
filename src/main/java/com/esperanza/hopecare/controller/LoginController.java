@@ -5,6 +5,7 @@ import com.esperanza.hopecare.service.AuthService;
 import com.esperanza.hopecare.util.SesionManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
@@ -76,7 +77,7 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/esperanza/hopecare/view/main.fxml")
             );
-            BorderPane root = loader.load();
+            Parent root = loader.load();
 
             Stage stage = (Stage) txtUsuario.getScene().getWindow();
             double x = stage.getX();

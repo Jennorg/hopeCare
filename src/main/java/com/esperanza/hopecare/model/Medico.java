@@ -1,16 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.esperanza.hopecare.model;
 
 import com.esperanza.hopecare.model.Persona;
-
-/**
- *
- * @author Jenfer
- */
-
 
 public class Medico extends Persona {
     private int idMedico;
@@ -18,7 +8,7 @@ public class Medico extends Persona {
     private String registroMedico;
     private String nombreEspecialidad;
     private double precioConsulta;
-    private boolean activo;
+    private int activo;
 
     public Medico() {}
 
@@ -43,8 +33,8 @@ public class Medico extends Persona {
     public double getPrecioConsulta() { return precioConsulta; }
     public void setPrecioConsulta(double precioConsulta) { this.precioConsulta = precioConsulta; }
 
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+    public int getActivo() { return activo; }
+    public void setActivo(int activo) { this.activo = activo; }
 
     @Override
     public String toString() {

@@ -66,12 +66,13 @@ public class CargarDatosPrueba {
      * La contraseña se guarda de forma plana para facilitar pruebas de desarrollo.
      */
     private static void insertarUsuario(Connection conn, String user, String pass, int idRol, int idPersona) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena, id_rol, id_persona) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user);
             ps.setString(2, pass);
-            ps.setInt(3, idRol);
-            ps.setInt(4, idPersona);
+            ps.setString(3, Hasher.hash(pass));
+            ps.setInt(4, idRol);
+            ps.setInt(5, idPersona);
             ps.executeUpdate();
         }
     }

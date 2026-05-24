@@ -1,7 +1,7 @@
 package com.esperanza.hopecare.controller;
 import com.esperanza.hopecare.util.DatabaseConnection;
-import com.esperanza.hopecare.common.events.EventBus;
-import com.esperanza.hopecare.common.events.NuevaConsultaEvent;
+import com.esperanza.hopecare.util.EventBus;
+import com.esperanza.hopecare.util.NuevaConsultaEvent;
 
 import com.esperanza.hopecare.dao.CitaDAO;
 import com.esperanza.hopecare.dao.ConsultaDAO;

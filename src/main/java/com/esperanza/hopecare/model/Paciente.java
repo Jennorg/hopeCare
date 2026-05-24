@@ -8,6 +8,7 @@ public class Paciente extends Persona {
     private String alergias;
     private String grupoSanguineo;
     private String contactoEmergencia;
+    private int activo;
 
     public Paciente() {}
 
@@ -25,4 +26,7 @@ public class Paciente extends Persona {
 
     public String getContactoEmergencia() { return contactoEmergencia; }
     public void setContactoEmergencia(String contactoEmergencia) { this.contactoEmergencia = contactoEmergencia; }
+
+    public int getActivo() { return activo; }
+    public void setActivo(int activo) { this.activo = activo; }
 }

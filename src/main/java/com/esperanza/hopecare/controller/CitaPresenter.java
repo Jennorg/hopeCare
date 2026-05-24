@@ -11,8 +11,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.esperanza.hopecare.common.events.EventBus;
-import com.esperanza.hopecare.common.events.NuevaCitaEvent;
+import com.esperanza.hopecare.util.EventBus;
+import com.esperanza.hopecare.util.NuevaCitaEvent;
 
 public class CitaPresenter {
     private ICitaView view;

@@ -4,6 +4,7 @@ import com.esperanza.hopecare.util.DatabaseConnection;
 import com.esperanza.hopecare.util.CargarDatosPrueba;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
@@ -27,7 +28,7 @@ public class HopecareApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/login.fxml"));
-        StackPane root = loader.load();
+        Parent root = loader.load();
 
         Scene scene = new Scene(root, 1280, 720);
         scene.getStylesheets().add(getClass().getResource("/com/esperanza/hopecare/css/hopecare.css").toExternalForm());
