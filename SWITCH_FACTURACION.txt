@@ -1,0 +1,760 @@
+===========================================================================
+  SWITCH DEL MÓDULO DE FACTURACIÓN
+  "AISLADO" ↔ "CONECTADO CON EL RESTO DEL SISTEMA"
+===========================================================================
+
+¿QUÉ ES ESTO?
+--------------
+HopeCare tiene 5 bases de datos separadas (auth, clinica, citas,
+facturacion, dashboard). El módulo de facturación necesita leer datos
+de otras bases (como citas y consultas) para saber qué está pendiente
+de cobrar.
+
+- MODO AISLADO = el módulo funciona SOLO, leyendo todo de una sola BD
+                  (commit 21191ae, rama Modulo/facturar)
+- MODO CONECTADO = el módulo lee datos de las otras BD del sistema
+                   mediante ATTACH de SQLite (commit HEAD, rama modulosDebug)
+
+CÓMO USAR ESTA GUÍA:
+--------------------
+Cada cambio está explicado como:
+
+  ARCHIVO: ruta/del/archivo.java
+  LÍNEA: XX
+  AISLADO:   (texto cuando funciona solo)
+  CONECTADO: (texto cuando está integrado)
+  QUÉ HACE:  (explicación simple)
+
+Si quieres AISLAR tu módulo: cambia CONECTADO → AISLADO
+Si quieres RECONECTARLO: cambia AISLADO → CONECTADO
+
+
+=====================================================================
+SECCIÓN 1: ARCHIVOS DE TU MÓDULO DE FACTURACIÓN
+=====================================================================
+
+
+-------------------------------------------------------------------
+1.1  FacturaDAO.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/dao/FacturaDAO.java
+
+--- 1.1.1 - PACKAGE ---
+LÍNEA: 1
+AISLADO:   package com.esperanza.hopecare.modules.facturacion.dao;
+CONECTADO: package com.esperanza.hopecare.dao;
+QUÉ HACE: Cambia el paquete donde vive la clase.
+
+--- 1.1.2 - IMPORT DatabaseConnection ---
+LÍNEA: 3
+AISLADO:   import com.esperanza.hopecare.common.db.DatabaseConnection;
+CONECTADO: import com.esperanza.hopecare.util.DatabaseConnection;
+QUÉ HACE: DatabaseConnection se movió de common.db a util.
+
+--- 1.1.3 - IMPORT FacturaResumenDTO ---
+LÍNEA: 4
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dto.FacturaResumenDTO;
+CONECTADO: import com.esperanza.hopecare.model.FacturaResumenDTO;
+QUÉ HACE: Los DTOs se movieron de modules.facturacion.dto a model.
+
+--- 1.1.4 - SQL listarTodasConPaciente (JOINs) ---
+LÍNEA: 35-37
+AISLADO:   JOIN paciente p ON f.id_paciente = p.id_paciente
+           JOIN persona per ON p.id_persona = per.id_persona
+CONECTADO: JOIN clinica.paciente p ON f.id_paciente = p.id_paciente
+           JOIN clinica.persona per ON p.id_persona = per.id_persona
+QUÉ HACE: En modo conectado, las tablas paciente y persona están en
+          la base "clinica", que se adjunta con ATTACH. Por eso se
+          les pone el prefijo "clinica.".
+
+--- 1.1.5 - Conexión listarTodasConPaciente ---
+LÍNEA: 40
+AISLADO:   Connection conn = DatabaseConnection.getConnection();
+CONECTADO: Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: getFacturacionUnifiedConnection() abre la BD de facturación
+          y además adjunta (ATTACH) las BD de clinica y citas.
+
+--- 1.1.6 - Conexión actualizarEstadoPago ---
+LÍNEA: 63-64
+AISLADO:   Connection conn = DatabaseConnection.getConnection();
+CONECTADO: Connection conn = DatabaseConnection.getFacturacionConnection();
+QUÉ HACE: Para solo actualizar factura (sin leer otras BD), alcanza
+          con abrir solo la BD de facturación. En modo aislado solo
+          había una BD.
+
+--- 1.1.7 - SQL listarPorIdPaciente (JOINs) ---
+LÍNEA: 77-79
+AISLADO:   JOIN paciente p ON f.id_paciente = p.id_paciente
+           JOIN persona per ON p.id_persona = per.id_persona
+CONECTADO: JOIN clinica.paciente p ON f.id_paciente = p.id_paciente
+           JOIN clinica.persona per ON p.id_persona = per.id_persona
+QUÉ HACE: Ídem 1.1.4, mismo cambio en otra consulta.
+
+--- 1.1.8 - Conexión listarPorIdPaciente ---
+LÍNEA: 83
+AISLADO:   Connection conn = DatabaseConnection.getConnection();
+CONECTADO: Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Ídem 1.1.5.
+
+--- 1.1.9 - Conexión eliminarFactura ---
+LÍNEA: 108
+AISLADO:   conn = DatabaseConnection.getConnection();
+CONECTADO: conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Necesita ATTACH para actualizar citas.consulta.
+
+--- 1.1.10 - SQL eliminarFactura ---
+LÍNEA: 112
+AISLADO:   UPDATE consulta SET facturado = 0 WHERE ...
+CONECTADO: UPDATE citas.consulta SET facturado = 0 WHERE ...
+QUÉ HACE: La tabla consulta está en la BD "citas", por eso lleva
+          el prefijo "citas.".
+
+--- 1.1.11 - SQL obtenerIdsPacientesConPendientes ---
+LÍNEA: 139-140
+AISLADO:   FROM consulta c JOIN cita ci ON c.id_cita = ci.id_cita
+CONECTADO: FROM citas.consulta c JOIN citas.cita ci ON c.id_cita = ci.id_cita
+QUÉ HACE: Tablas consulta y cita están en la BD "citas", necesitan
+          el prefijo "citas.".
+
+--- 1.1.12 - Conexión obtenerIdsPacientesConPendientes ---
+LÍNEA: 141
+AISLADO:   Connection conn = DatabaseConnection.getConnection();
+CONECTADO: Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Ídem 1.1.5.
+
+
+-------------------------------------------------------------------
+1.2  FacturaConsultaDAO.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/dao/FacturaConsultaDAO.java
+
+NOTA: En el modo AISLADO esta clase se llamaba "ConsultaDAO" y estaba
+en el paquete modules.facturacion.dao. Además del nombre, cambia TODO.
+
+--- 1.2.1 - NOMBRE DE LA CLASE ---
+AISLADO:   public class ConsultaDAO {
+CONECTADO: public class FacturaConsultaDAO {
+QUÉ HACE: Se renombró para no confundirse con el ConsultaDAO del
+          módulo de citas (que ya existía en el sistema).
+
+--- 1.2.2 - PACKAGE ---
+LÍNEA: 1
+AISLADO:   package com.esperanza.hopecare.modules.facturacion.dao;
+CONECTADO: package com.esperanza.hopecare.dao;
+QUÉ HACE: Mismo cambio que FacturaDAO.
+
+--- 1.2.3 - IMPORT PendienteDTO ---
+LÍNEA: 4
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dto.PendienteDTO;
+CONECTADO: import com.esperanza.hopecare.model.PendienteDTO;
+QUÉ HACE: PendienteDTO se movió de dto a model.
+
+--- 1.2.4 - IMPORT DatabaseConnection ---
+LÍNEA: 3
+AISLADO:   import com.esperanza.hopecare.common.db.DatabaseConnection;
+CONECTADO: import com.esperanza.hopecare.util.DatabaseConnection;
+QUÉ HACE: Mismo cambio que en FacturaDAO.
+
+--- 1.2.5 - SQL listarNoFacturadasPorPaciente ---
+LÍNEA: 17-19
+AISLADO:   FROM consulta c
+           JOIN cita ci ON c.id_cita = ci.id_cita
+CONECTADO: FROM citas.consulta c
+           JOIN citas.cita ci ON c.id_cita = ci.id_cita
+QUÉ HACE: Las tablas consulta y cita están en la BD "citas".
+
+--- 1.2.6 - SQL marcarFacturado (con Connection) ---
+LÍNEA: 33
+AISLADO:   UPDATE consulta SET facturado = 1 WHERE id_consulta = ?
+CONECTADO: UPDATE citas.consulta SET facturado = 1 WHERE id_consulta = ?
+QUÉ HACE: La tabla consulta está en la BD "citas".
+
+--- 1.2.7 - SQL marcarFacturado (sin Connection) ---
+LÍNEA: 42
+AISLADO:   UPDATE consulta SET facturado = 1 WHERE id_consulta = ?
+CONECTADO: UPDATE citas.consulta SET facturado = 1 WHERE id_consulta = ?
+QUÉ HACE: Ídem 1.2.6.
+
+--- 1.2.8 - Conexión marcarFacturado (sin Connection) ---
+LÍNEA: 43
+AISLADO:   Connection conn = DatabaseConnection.getConnection();
+CONECTADO: Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Necesita ATTACH a citas.
+
+--- 1.2.9 - SQL listarPendientesConPaciente (JOINs) ---
+LÍNEA: 54-60
+AISLADO:   FROM consulta c
+           JOIN cita ci ON c.id_cita = ci.id_cita
+           JOIN paciente p ON ci.id_paciente = p.id_paciente
+           JOIN persona per ON p.id_persona = per.id_persona
+CONECTADO: FROM citas.consulta c
+           JOIN citas.cita ci ON c.id_cita = ci.id_cita
+           JOIN clinica.paciente p ON ci.id_paciente = p.id_paciente
+           JOIN clinica.persona per ON p.id_persona = per.id_persona
+QUÉ HACE: consulta y cita están en BD "citas", paciente y persona
+          están en BD "clinica".
+
+--- 1.2.10 - Conexión listarPendientesConPaciente ---
+LÍNEA: 63
+AISLADO:   Connection conn = DatabaseConnection.getConnection();
+CONECTADO: Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Necesita ATTACH a clinica y citas.
+
+
+-------------------------------------------------------------------
+1.3  DetalleFacturaDAO.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/dao/DetalleFacturaDAO.java
+
+--- 1.3.1 - PACKAGE ---
+LÍNEA: 1
+AISLADO:   package com.esperanza.hopecare.modules.facturacion.dao;
+CONECTADO: package com.esperanza.hopecare.dao;
+
+--- 1.3.2 - IMPORT DetalleFacturaDTO ---
+LÍNEA: 3
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dto.DetalleFacturaDTO;
+CONECTADO: import com.esperanza.hopecare.model.DetalleFacturaDTO;
+
+
+-------------------------------------------------------------------
+1.4  FacturacionService.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/service/FacturacionService.java
+
+--- 1.4.1 - PACKAGE ---
+LÍNEA: 1
+AISLADO:   package com.esperanza.hopecare.modules.facturacion.service;
+CONECTADO: package com.esperanza.hopecare.service;
+
+--- 1.4.2 - IMPORT DetalleFacturaDTO ---
+LÍNEA: 3
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dto.DetalleFacturaDTO;
+CONECTADO: import com.esperanza.hopecare.model.DetalleFacturaDTO;
+
+--- 1.4.3 - IMPORT FacturaDTO ---
+LÍNEA: 4
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dto.FacturaDTO;
+CONECTADO: import com.esperanza.hopecare.model.FacturaDTO;
+
+--- 1.4.4 - IMPORT FacturaConsultaDAO ---
+LÍNEA: 5
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dao.ConsultaDAO;
+CONECTADO: import com.esperanza.hopecare.dao.FacturaConsultaDAO;
+QUÉ HACE: Cambia el nombre de la clase (ConsultaDAO → FacturaConsultaDAO)
+          y el paquete.
+
+--- 1.4.5 - IMPORT FacturaDAO ---
+LÍNEA: 6
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dao.FacturaDAO;
+CONECTADO: import com.esperanza.hopecare.dao.FacturaDAO;
+
+--- 1.4.6 - IMPORT DetalleFacturaDAO ---
+LÍNEA: 7
+AISLADO:   import com.esperanza.hopecare.modules.facturacion.dao.DetalleFacturaDAO;
+CONECTADO: import com.esperanza.hopecare.dao.DetalleFacturaDAO;
+
+--- 1.4.7 - IMPORT DatabaseConnection ---
+LÍNEA: 8
+AISLADO:   import com.esperanza.hopecare.common.db.DatabaseConnection;
+CONECTADO: import com.esperanza.hopecare.util.DatabaseConnection;
+
+--- 1.4.8 - IMPORT EventBus ---
+LÍNEA: 12
+AISLADO:   import com.esperanza.hopecare.common.events.EventBus;
+CONECTADO: import com.esperanza.hopecare.util.EventBus;
+
+--- 1.4.9 - IMPORT DatosFacturablesActualizadosEvent ---
+LÍNEA: 13
+AISLADO:   import com.esperanza.hopecare.common.events.DatosFacturablesActualizadosEvent;
+CONECTADO: import com.esperanza.hopecare.util.DatosFacturablesActualizadosEvent;
+
+--- 1.4.10 - TIPO consultaDAO ---
+LÍNEA: 20
+AISLADO:   private ConsultaDAO consultaDAO;
+CONECTADO: private FacturaConsultaDAO consultaDAO;
+QUÉ HACE: Cambia el tipo de la variable.
+
+--- 1.4.11 - CONSTRUCTOR consultaDAO ---
+LÍNEA: 25
+AISLADO:   this.consultaDAO = new ConsultaDAO();
+CONECTADO: this.consultaDAO = new FacturaConsultaDAO();
+QUÉ HACE: Cambia el constructor de la variable.
+
+--- 1.4.12 - Conexión en previsualizarFactura ---
+LÍNEA: 37
+AISLADO:   conn = DatabaseConnection.getConnection();
+CONECTADO: conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Necesita ATTACH para leer citas/consultas.
+
+--- 1.4.13 - Conexión en generarFactura ---
+LÍNEA: 66
+AISLADO:   conn = DatabaseConnection.getConnection();
+CONECTADO: conn = DatabaseConnection.getFacturacionUnifiedConnection();
+QUÉ HACE: Necesita ATTACH para leer y actualizar citas/consultas.
+
+--- 1.4.14 - Llamada marcarConceptoFacturado ---
+LÍNEA: 110
+AISLADO:   return consultaDAO.marcarFacturado(detalle.getIdReferencia(), conn);
+CONECTADO: return consultaDAO.marcarFacturado(detalle.getIdReferencia(), conn);
+QUÉ HACE: NO CAMBIA. El código es el mismo, porque el cambio está
+          DENTRO del DAO (que ya documentamos arriba).
+
+
+-------------------------------------------------------------------
+1.5  FacturacionController.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/controller/FacturacionController.java
+
+--- 1.5.1 - PACKAGE ---
+LÍNEA: 1
+AISLADO:   package com.esperanza.hopecare.modules.facturacion.view;
+CONECTADO: package com.esperanza.hopecare.controller;
+
+--- 1.5.2 a 1.5.13 - IMPORTS ---
+CADA LÍNEA DE IMPORT CAMBIA DE:
+AISLADO:   com.esperanza.hopecare.modules.facturacion.xxx
+           com.esperanza.hopecare.common.xxx
+           com.esperanza.hopecare.modules.pacientes_medicos.xxx
+CONECTADO: com.esperanza.hopecare.controller
+           com.esperanza.hopecare.util
+           com.esperanza.hopecare.dao
+           com.esperanza.hopecare.model
+           com.esperanza.hopecare.service
+
+Los imports que cambian son (líneas 3 a 14 en versión conectada):
+  - DatosFacturablesActualizadosEvent: util  ← common.events
+  - EventBus:                          util  ← common.events
+  - SesionManager:                     util  ← common.session
+  - FacturaConsultaDAO:                dao   ← modules.facturacion.dao
+  - FacturaDAO:                        dao   ← modules.facturacion.dao
+  - FacturaDTO:                        model ← modules.facturacion.dto
+  - FacturaResumenDTO:                 model ← modules.facturacion.dto
+  - PendienteDTO:                      model ← modules.facturacion.dto
+  - FacturacionService:                service ← modules.facturacion.service
+  - PacienteDAO:                       dao   ← modules.pacientes_medicos.dao
+  - Paciente:                          model ← modules.pacientes_medicos.model
+
+--- 1.5.14 - CSS path en abrirDialogoEditarEstado ---
+LÍNEA: 343 (aprox)
+AISLADO:   getClass().getResource("/com/esperanza/hopecare/main/hopecare.css")
+CONECTADO: getClass().getResource("/com/esperanza/hopecare/css/hopecare.css")
+QUÉ HACE: El archivo CSS se movió de carpeta.
+
+NOTA: Esta misma ruta CSS aparece 2 veces en el controlador.
+      Hay que cambiarla en AMBAS ocurrencias (diálogo editar estado
+      y en mostrarAyuda).
+
+--- 1.5.15 - TIPO consultaDAO ---
+LÍNEA: 72
+AISLADO:   private ConsultaDAO consultaDAO;
+CONECTADO: private FacturaConsultaDAO consultaDAO;
+
+--- 1.5.16 - CONSTRUCTOR consultaDAO ---
+LÍNEA: 92
+AISLADO:   consultaDAO = new ConsultaDAO();
+CONECTADO: consultaDAO = new FacturaConsultaDAO();
+
+
+-------------------------------------------------------------------
+1.6 a 1.9 - DTOs (4 archivos)
+-------------------------------------------------------------------
+
+ARCHIVOS:
+  src/main/java/com/esperanza/hopecare/model/FacturaDTO.java
+  src/main/java/com/esperanza/hopecare/model/DetalleFacturaDTO.java
+  src/main/java/com/esperanza/hopecare/model/FacturaResumenDTO.java
+  src/main/java/com/esperanza/hopecare/model/PendienteDTO.java
+
+--- 1.6-1.9.1 - PACKAGE ---
+LÍNEA: 1
+AISLADO:   package com.esperanza.hopecare.modules.facturacion.dto;
+CONECTADO: package com.esperanza.hopecare.model;
+QUÉ HACE: Se movieron de modules.facturacion.dto al paquete model
+          plano. El contenido de las clases es idéntico.
+
+
+-------------------------------------------------------------------
+1.10  facturacion.fxml
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/resources/com/esperanza/hopecare/view/facturacion.fxml
+
+--- 1.10.1 - RUTA DEL ARCHIVO ---
+AISLADO:   src/main/resources/com/esperanza/hopecare/modules/facturacion/view/facturacion.fxml
+CONECTADO: src/main/resources/com/esperanza/hopecare/view/facturacion.fxml
+QUÉ HACE: El FXML se movió de la ruta anidada modules/ a la ruta plana view/.
+
+--- 1.10.2 - CONTROLLER EN EL FXML ---
+LÍNEA: 8 (aprox, atributo fx:controller)
+AISLADO:   fx:controller="com.esperanza.hopecare.modules.facturacion.view.FacturacionController"
+CONECTADO: fx:controller="com.esperanza.hopecare.controller.FacturacionController"
+QUÉ HACE: El controlador cambió de paquete.
+
+NOTA: El contenido del FXML (los componentes visuales) es EXACTAMENTE
+      el mismo en ambos modos. Solo cambia la ruta del archivo y el
+      nombre del controlador.
+
+
+-------------------------------------------------------------------
+1.11  facturacion_schema.sql
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/resources/facturacion_schema.sql
+
+AISLADO:   ESTE ARCHIVO NO EXISTÍA
+CONECTADO: Existe como archivo separado con el schema de facturación
+
+QUÉ HACE: En modo aislado, las tablas factura y detalle_factura estaban
+          creadas dentro de sisgeho_schema.sql (una sola BD unificada).
+          En modo conectado, cada módulo tiene su propio schema.sql.
+
+CONTENIDO del archivo (es idéntico en ambos mundos, solo cambia DÓNDE está):
+  CREATE TABLE IF NOT EXISTS factura ( ... );
+  CREATE TABLE IF NOT EXISTS detalle_factura ( ... );
+
+PARA AISLAR:   Elimina este archivo (las tablas están en sisgeho_schema.sql)
+PARA CONECTAR: Crea este archivo con el contenido de arriba
+               (HopecareApp.java lo ejecuta al inicio)
+
+
+=====================================================================
+SECCIÓN 2: ARCHIVOS FUERA DE TU MÓDULO QUE TAMBIÉN CAMBIAN
+=====================================================================
+
+NOTA: Estos archivos no son de tu módulo, pero cambiaron para que tu
+      módulo funcionara conectado. Para aislar tu módulo, necesitas
+      revertir estos archivos a su versión del commit 21191ae.
+
+
+-------------------------------------------------------------------
+2.1  DatabaseConnection.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/util/DatabaseConnection.java
+
+CAMBIO MASIVO: En modo aislado había UNA sola clase DatabaseConnection
+con un solo método getConnection() que abría una sola BD.
+
+En modo conectado hay 5 BD separadas y métodos que adjuntan (ATTACH)
+unas BD con otras.
+
+AISLADO:   package com.esperanza.hopecare.common.db;
+           public class DatabaseConnection {
+               private static final String DB_URL = "jdbc:sqlite:sisgeho.db";
+               public static Connection getConnection() { ... }
+           }
+
+CONECTADO: package com.esperanza.hopecare.util;
+           public class DatabaseConnection {
+               getAuthConnection()
+               getClinicaConnection()
+               getCitasConnection()
+               getFacturacionConnection()
+               getFacturacionUnifiedConnection()  ← la que usa tu módulo
+               getAuthWithClinicaConnection()
+               getCitasUnifiedConnection()
+               getDashboardConnection()
+               getConnection()  @Deprecated
+           }
+
+CÓMO AISLAR: Reemplazar todo el archivo por la versión simple.
+CÓMO CONECTAR: Usar la versión actual con los 5 métodos.
+
+PARA REVERTIR: git show 21191ae:src/main/java/com/esperanza/hopecare/common/db/DatabaseConnection.java > src/main/java/com/esperanza/hopecare/util/DatabaseConnection.java
+
+
+-------------------------------------------------------------------
+2.2  HopecareApp.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/HopecareApp.java
+
+AISLADO:   package com.esperanza.hopecare.main;
+           - Inicializa 1 sola BD (sisgeho_schema.sql)
+           - Carga login de /modules/Auth/view/login.fxml
+           - CSS de /main/hopecare.css
+
+CONECTADO: package com.esperanza.hopecare;
+           - Inicializa 5 módulos separados (clinica, auth, citas,
+             facturacion, dashboard)
+           - Cada módulo tiene su propio schema.sql
+           - Tiene migración de BD citas (migrarCitasDatabase)
+           - Tiene seed de datos para dashboard
+           - Carga login de /view/login.fxml
+           - CSS de /css/hopecare.css
+
+CÓMO AISLAR: Reemplazar HopecareApp.java por la versión simple.
+CÓMO CONECTAR: Usar la versión actual multi-módulo.
+
+PARA REVERTIR: git show 21191ae:src/main/java/com/esperanza/hopecare/main/HopecareApp.java > src/main/java/com/esperanza/hopecare/HopecareApp.java
+
+
+-------------------------------------------------------------------
+2.3  module-info.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/module-info.java
+
+AISLADO:
+  module com.esperanza.hopecare {
+      requires javafx.controls;
+      requires javafx.fxml;
+      requires java.sql;
+
+      opens com.esperanza.hopecare.main to javafx.fxml;
+      opens com.esperanza.hopecare.modules.facturacion.view to javafx.fxml;
+      opens com.esperanza.hopecare.modules.Auth.view to javafx.fxml;
+
+      opens com.esperanza.hopecare.modules.citas_consultas.model to javafx.base;
+      opens com.esperanza.hopecare.modules.pacientes_medicos.model to javafx.base;
+      opens com.esperanza.hopecare.common.model to javafx.base;
+      opens com.esperanza.hopecare.modules.facturacion.dto to javafx.base;
+      opens com.esperanza.hopecare.modules.Auth.model to javafx.base;
+      opens com.esperanza.hopecare.modules.Auth.dto to javafx.base;
+
+      exports com.esperanza.hopecare.main;
+  }
+
+CONECTADO:
+  module com.esperanza.hopecare {
+      requires javafx.controls;
+      requires javafx.fxml;
+      requires java.desktop;   ← línea nueva
+      requires java.sql;
+
+      exports com.esperanza.hopecare;
+      exports com.esperanza.hopecare.controller;
+      exports com.esperanza.hopecare.model;
+      exports com.esperanza.hopecare.dao;
+      exports com.esperanza.hopecare.service;
+      exports com.esperanza.hopecare.util;
+
+      opens com.esperanza.hopecare.controller to javafx.fxml;
+      opens com.esperanza.hopecare.model to javafx.base;
+  }
+
+DIFERENCIAS CLAVE:
+  - Se agregó requires java.desktop
+  - Los opens ya NO usan rutas modules/... sino paquetes planos
+  - Exporta todos los paquetes planos
+
+
+-------------------------------------------------------------------
+2.4  CargarDatosPrueba.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/util/CargarDatosPrueba.java
+
+AISLADO:   package com.esperanza.hopecare.common.db;
+           - Insertaba en 1 sola BD
+
+CONECTADO: package com.esperanza.hopecare.util;
+           - Inserta en 3 BD separadas (clinica, auth, citas)
+           - Usa transacciones separadas por BD
+
+CAMBIO: Solo package y referencias a las conexiones.
+
+
+-------------------------------------------------------------------
+2.5  EventBus.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/util/EventBus.java
+
+AISLADO:   package com.esperanza.hopecare.common.events;
+CONECTADO: package com.esperanza.hopecare.util;
+
+NOTA: El contenido de la clase es idéntico.
+
+
+-------------------------------------------------------------------
+2.6  DatosFacturablesActualizadosEvent.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/util/DatosFacturablesActualizadosEvent.java
+
+AISLADO:   package com.esperanza.hopecare.common.events;
+CONECTADO: package com.esperanza.hopecare.util;
+
+NOTA: El contenido de la clase es idéntico.
+
+
+-------------------------------------------------------------------
+2.7  SesionManager.java
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/java/com/esperanza/hopecare/util/SesionManager.java
+
+AISLADO:   package com.esperanza.hopecare.common.session;
+CONECTADO: package com.esperanza.hopecare.util;
+
+NOTA: El contenido de la clase es idéntico.
+
+
+-------------------------------------------------------------------
+2.8  login.fxml
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/resources/com/esperanza/hopecare/view/login.fxml
+
+AISLADO:   src/main/resources/com/esperanza/hopecare/modules/Auth/view/login.fxml
+CONECTADO: src/main/resources/com/esperanza/hopecare/view/login.fxml
+
+NOTA: El contenido del FXML es similar pero el controlador cambia de
+      modules.Auth.view.LoginController a controller.LoginController.
+
+
+-------------------------------------------------------------------
+2.9  main.fxml
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/resources/com/esperanza/hopecare/view/main.fxml
+
+AISLADO:   src/main/resources/com/esperanza/hopecare/main/main.fxml
+           - Solo tenía la pestaña de facturación
+
+CONECTADO: src/main/resources/com/esperanza/hopecare/view/main.fxml
+           - Tiene pestañas para todos los módulos
+           - Más complejo con navbar responsive
+
+CÓMO AISLAR: Reemplazar por la versión simple (solo facturación).
+CÓMO CONECTAR: Usar la versión actual multi-tab.
+
+
+-------------------------------------------------------------------
+2.10  hopecare.css
+-------------------------------------------------------------------
+
+ARCHIVO: src/main/resources/com/esperanza/hopecare/css/hopecare.css
+
+AISLADO:   src/main/resources/com/esperanza/hopecare/main/hopecare.css
+CONECTADO: src/main/resources/com/esperanza/hopecare/css/hopecare.css
+
+NOTA: El contenido del CSS cambió significativamente (se agregaron
+      estilos para todos los módulos), pero la ruta es lo principal.
+
+
+=====================================================================
+SECCIÓN 3: RESUMEN RÁPIDO - GUÍA PASO A PASO
+=====================================================================
+
+Para ayudarte a hacer el switch manualmente, aquí está el checklist
+completo de TODO lo que tocar. Léelo en orden.
+
+Si ya tienes los archivos aislados en una carpeta separada, solo
+cópialos. Si no, usa git para obtenerlos:
+
+  git show 21191ae:ruta/archivo > ruta/archivo
+
+
+⏺  PARA AISLAR TU MÓDULO (volver al commit 21191ae):
+=====================================================================
+
+☐  1. FacturaDAO.java
+      - Package: dao → modules.facturacion.dao
+      - Import DatabaseConnection: util → common.db
+      - Import FacturaResumenDTO: model → modules.facturacion.dto
+      - SQL: quitar prefijos "clinica." y "citas."
+      - Conexiones: getFacturacionUnifiedConnection() → getConnection()
+                    getFacturacionConnection() → getConnection()
+
+☐  2. FacturaConsultaDAO.java
+      - Renombrar clase: FacturaConsultaDAO → ConsultaDAO
+      - Package: dao → modules.facturacion.dao
+      - Import PendienteDTO: model → modules.facturacion.dto
+      - Import DatabaseConnection: util → common.db
+      - SQL: quitar prefijos "citas." y "clinica."
+      - Conexión: getFacturacionUnifiedConnection() → getConnection()
+
+☐  3. DetalleFacturaDAO.java
+      - Package: dao → modules.facturacion.dao
+      - Import DetalleFacturaDTO: model → modules.facturacion.dto
+
+☐  4. FacturacionService.java
+      - Package: service → modules.facturacion.service
+      - Imports DTOs: model → modules.facturacion.dto
+      - Imports DAOs: dao → modules.facturacion.dao
+      - Tipo ConsultaDAO → FacturaConsultaDAO
+      - Import DatabaseConnection: util → common.db
+      - Import EventBus: util → common.events
+      - Import DatosFacturables: util → common.events
+      - Conexión: getFacturacionUnifiedConnection() → getConnection()
+
+☐  5. FacturacionController.java
+      - Package: controller → modules.facturacion.view
+      - TODOS los imports (cambian ~12 líneas)
+      - CSS path: /css/hopecare.css → /main/hopecare.css (2 veces)
+      - Tipo FacturaConsultaDAO → ConsultaDAO
+
+☐  6-9. DTOs (FacturaDTO, DetalleFacturaDTO, FacturaResumenDTO,
+          PendienteDTO)
+      - Package: model → modules.facturacion.dto
+
+☐ 10. facturacion.fxml
+      - Mover archivo a modules/facturacion/view/
+      - Cambiar fx:controller a modules.facturacion.view
+
+☐ 11. facturacion_schema.sql
+      - ELIMINAR este archivo
+      - Las tablas están en sisgeho_schema.sql
+
+☐ 12. DatabaseConnection.java
+      - Reemplazar por versión simple (solo getConnection())
+
+☐ 13. HopecareApp.java
+      - Reemplazar por versión simple (package main, 1 BD)
+
+☐ 14. module-info.java
+      - Cambiar a rutas modules/... con opens específicos
+
+☐ 15. CargarDatosPrueba.java
+      - Package: util → common.db
+
+☐ 16. EventBus.java → common.events
+☐ 17. DatosFacturablesActualizadosEvent.java → common.events
+☐ 18. SesionManager.java → common.session
+
+☐ 19. login.fxml → modules/Auth/view/
+☐ 20. main.fxml → reemplazar por versión solo facturación
+☐ 21. hopecare.css → mover a main/hopecare.css
+
+
+⏺  PARA RECONECTAR TU MÓDULO (volver al estado actual):
+=====================================================================
+Hacer TODO lo inverso. Usando esta misma guía al revés:
+  - Todo lo que dice AISLADO → cámbialo a CONECTADO
+  - Todo lo que dice CONECTADO → cámbialo a AISLADO
+
+Puedes obtener los archivos conectados directamente de git:
+
+  git show HEAD:src/main/java/com/esperanza/hopecare/dao/FacturaDAO.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/dao/FacturaConsultaDAO.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/dao/DetalleFacturaDAO.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/service/FacturacionService.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/controller/FacturacionController.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/model/FacturaDTO.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/model/DetalleFacturaDTO.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/model/FacturaResumenDTO.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/model/PendienteDTO.java
+  git show HEAD:src/main/resources/com/esperanza/hopecare/view/facturacion.fxml
+  git show HEAD:src/main/resources/facturacion_schema.sql
+  git show HEAD:src/main/java/com/esperanza/hopecare/util/DatabaseConnection.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/HopecareApp.java
+  git show HEAD:src/main/java/module-info.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/util/CargarDatosPrueba.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/util/EventBus.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/util/DatosFacturablesActualizadosEvent.java
+  git show HEAD:src/main/java/com/esperanza/hopecare/util/SesionManager.java
+
+
+=====================================================================
+FIN DEL DOCUMENTO
+Creado: 24 Mayo 2026
+Esperanza/HopeCare - Sistema de Gestión Hospitalaria
+=====================================================================
