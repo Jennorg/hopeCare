@@ -39,6 +39,7 @@ import java.util.List;
 public class CitasController implements ICitaView {
     @FXML private TableView<Cita> tvCitas;
     @FXML private Button btnNuevaCita;
+    @FXML private Button btnActualizarPerfil;
     @FXML private TextField txtBuscarCita;
     @FXML private DatePicker dpFechaDesde;
     @FXML private DatePicker dpFechaHasta;
@@ -69,6 +70,9 @@ public class CitasController implements ICitaView {
         if ("MEDICO".equals(rol)) {
             btnNuevaCita.setVisible(false);
             btnNuevaCita.setManaged(false);
+            
+            btnActualizarPerfil.setVisible(true);
+            btnActualizarPerfil.setManaged(true);
         } else {
             btnNuevaCita.setOnAction(e -> abrirDialogoNuevaCita());
         }
@@ -76,13 +80,71 @@ public class CitasController implements ICitaView {
         cargarCitasPorRol();
     }
 
+    @FXML
+    private void abrirPerfilMedico() {
+        if (idMedicoLogueado <= 0) return;
+        
+        try {
+            MedicoDAO medicoDAO = new MedicoDAO();
+            Medico m = medicoDAO.obtenerMedicoPorId(idMedicoLogueado);
+            
+            if (m == null) {
+                mostrarMensajeError("No se pudo cargar la información del médico.");
+                return;
+            }
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/medico_form.fxml"));
+            DialogPane pane = loader.load();
+            MedicoFormController formController = loader.getController();
+            formController.cargarMedico(m);
+            
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setDialogPane(pane);
+            dialog.setTitle("Mi Perfil - Actualizar Datos");
+            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+            
+            // Re-use existing validation logic if possible or just handle OK
+            final Button btnOk = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+            btnOk.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                if (!formController.validar()) {
+                    mostrarMensajeError(formController.getMensajeError());
+                    event.consume();
+                }
+            });
+
+            dialog.showAndWait().ifPresent(result -> {
+                if (result == ButtonType.OK) {
+                    Medico modificado = formController.obtenerMedicoModificado();
+                    if (medicoDAO.actualizarMedico(modificado)) {
+                        mostrarMensajeExito("Perfil actualizado correctamente.");
+                        cargarCitasPorRol(); // Refresh table if needed
+                    } else {
+                        mostrarMensajeError("Error al actualizar el perfil.");
+                    }
+                }
+            });
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            mostrarMensajeError("Error al abrir el formulario de perfil.");
+        }
+    }
+
     private void cargarCitasPorRol() {
-        if ("MEDICO".equals(rol) && idMedicoLogueado > 0) {
-            List<Cita> citas = new CitaDAO().listarPorMedicoConNombres(idMedicoLogueado);
-            mostrarCitasExistentes(citas);
-        } else if ("PACIENTE".equals(rol) && idPacienteLogueado > 0) {
-            List<Cita> citas = new CitaDAO().listarPorPacienteConNombres(idPacienteLogueado);
-            mostrarCitasExistentes(citas);
+        if ("MEDICO".equals(rol)) {
+            if (idMedicoLogueado > 0) {
+                List<Cita> citas = new CitaDAO().listarPorMedicoConNombres(idMedicoLogueado);
+                mostrarCitasExistentes(citas);
+            } else {
+                mostrarCitasExistentes(new ArrayList<>());
+            }
+        } else if ("PACIENTE".equals(rol)) {
+            if (idPacienteLogueado > 0) {
+                List<Cita> citas = new CitaDAO().listarPorPacienteConNombres(idPacienteLogueado);
+                mostrarCitasExistentes(citas);
+            } else {
+                mostrarCitasExistentes(new ArrayList<>());
+            }
         } else {
             presenter.cargarCitasExistentes();
         }

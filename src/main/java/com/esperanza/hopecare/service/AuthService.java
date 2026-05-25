@@ -7,6 +7,8 @@ import com.esperanza.hopecare.model.Persona;
 import com.esperanza.hopecare.util.DatabaseConnection;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class AuthService {
@@ -50,10 +52,12 @@ public class AuthService {
         if ("MEDICO".equals(dto.getRol()) && authDAO.registroMedicoExiste(dto.getRegistroMedico())) return "Este registro médico ya está registrado.";
 
         try (Connection connClinica = DatabaseConnection.getClinicaConnection();
-             Connection connAuth = DatabaseConnection.getAuthConnection()) {
+             Connection connAuth = DatabaseConnection.getAuthConnection();
+             Connection connCitas = DatabaseConnection.getCitasConnection()) {
             
             connClinica.setAutoCommit(false);
             connAuth.setAutoCommit(false);
+            connCitas.setAutoCommit(false);
             
             try {
                 Persona persona = new Persona();
@@ -75,14 +79,42 @@ public class AuthService {
 
                 if ("PACIENTE".equals(dto.getRol())) {
                     authDAO.insertarPaciente(connClinica, idPersona, "HC-" + System.currentTimeMillis());
+                } else if ("MEDICO".equals(dto.getRol())) {
+                    int idEspecialidad = authDAO.obtenerIdEspecialidad(connClinica, dto.getEspecialidad());
+                    authDAO.insertarMedico(connClinica, idPersona, idEspecialidad, dto.getRegistroMedico(), dto.getTarifa());
+                    
+                    // Obtener el ID del médico recién insertado
+                    int idMedico = -1;
+                    try (PreparedStatement psId = connClinica.prepareStatement("SELECT id_medico FROM medico WHERE id_persona = ?")) {
+                        psId.setInt(1, idPersona);
+                        ResultSet rs = psId.executeQuery();
+                        if (rs.next()) idMedico = rs.getInt(1);
+                    }
+                    
+                    if (idMedico > 0) {
+                        String sqlH = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos) VALUES (?, ?, ?, ?, ?)";
+                        try (PreparedStatement psH = connCitas.prepareStatement(sqlH)) {
+                            for (int dia = 1; dia <= 7; dia++) {
+                                psH.setInt(1, idMedico);
+                                psH.setInt(2, dia);
+                                psH.setString(3, "08:00");
+                                psH.setString(4, "12:00");
+                                psH.setInt(5, 30);
+                                psH.addBatch();
+                            }
+                            psH.executeBatch();
+                        }
+                    }
                 }
 
                 connClinica.commit();
                 connAuth.commit();
+                connCitas.commit();
                 return null;
             } catch (SQLException e) {
                 connClinica.rollback();
                 connAuth.rollback();
+                connCitas.rollback();
                 e.printStackTrace();
                 return "Error al registrar: " + e.getMessage();
             }

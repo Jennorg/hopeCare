@@ -118,4 +118,25 @@ public class AuthDAO {
             ps.executeUpdate();
         }
     }
+
+    public int obtenerIdEspecialidad(Connection conn, String nombre) throws SQLException {
+        String sql = "SELECT id_especialidad FROM especialidad WHERE nombre_especialidad = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 1; // Default to first specialty if not found
+    }
+
+    public void insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registro, double precio) throws SQLException {
+        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, 1)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPersona);
+            ps.setInt(2, idEspecialidad);
+            ps.setString(3, registro);
+            ps.setDouble(4, precio);
+            ps.executeUpdate();
+        }
+    }
 }

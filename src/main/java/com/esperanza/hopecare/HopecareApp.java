@@ -117,27 +117,37 @@ public class HopecareApp extends Application {
 
             // Asegurar que existan horarios si la tabla está vacía
             try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM horario_atencion")) {
-                if (rs.next() && rs.getInt(1) == 0) {
-                    System.out.println("Poblando horarios por defecto para médicos existentes...");
-                    try (Connection connClinica = DatabaseConnection.getClinicaConnection();
-                         Statement stmtClinica = connClinica.createStatement();
-                         ResultSet rsMed = stmtClinica.executeQuery("SELECT id_medico FROM medico WHERE activo = 1")) {
+                boolean tablaVacia = rs.next() && rs.getInt(1) == 0;
+                
+                System.out.println("Verificando integridad de horarios para médicos...");
+                try (Connection connClinica = DatabaseConnection.getClinicaConnection();
+                     Statement stmtClinica = connClinica.createStatement();
+                     ResultSet rsMed = stmtClinica.executeQuery("SELECT id_medico FROM medico WHERE activo = 1")) {
+                    
+                    String sqlCheck = "SELECT count(*) FROM horario_atencion WHERE id_medico = ? AND dia_semana = ?";
+                    String sqlIns = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos) VALUES (?, ?, ?, ?, ?)";
+                    
+                    try (PreparedStatement psCheck = conn.prepareStatement(sqlCheck);
+                         PreparedStatement psIns = conn.prepareStatement(sqlIns)) {
                         
-                        String sqlIns = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos) VALUES (?, ?, ?, ?, ?)";
-                        try (PreparedStatement ps = conn.prepareStatement(sqlIns)) {
-                            while (rsMed.next()) {
-                                int idMed = rsMed.getInt(1);
-                                for (int dia = 1; dia <= 5; dia++) { // Lunes a Viernes
-                                    ps.setInt(1, idMed);
-                                    ps.setInt(2, dia);
-                                    ps.setString(3, "08:00");
-                                    ps.setString(4, "12:00");
-                                    ps.setInt(5, 30);
-                                    ps.addBatch();
+                        while (rsMed.next()) {
+                            int idMed = rsMed.getInt(1);
+                            for (int dia = 1; dia <= 7; dia++) {
+                                psCheck.setInt(1, idMed);
+                                psCheck.setInt(2, dia);
+                                try (ResultSet rsC = psCheck.executeQuery()) {
+                                    if (rsC.next() && rsC.getInt(1) == 0) {
+                                        psIns.setInt(1, idMed);
+                                        psIns.setInt(2, dia);
+                                        psIns.setString(3, "08:00");
+                                        psIns.setString(4, "12:00");
+                                        psIns.setInt(5, 30);
+                                        psIns.addBatch();
+                                    }
                                 }
                             }
-                            ps.executeBatch();
                         }
+                        psIns.executeBatch();
                     }
                 }
             }

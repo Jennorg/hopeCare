@@ -217,6 +217,13 @@
                                styleClass="auth-field"/>
                     <Region minHeight="14"/>
 
+                    <Label text="Tarifa de consulta * ($)" styleClass="field-label"/>
+                    <Region minHeight="4"/>
+                    <TextField fx:id="txtTarifa"
+                               promptText="ej. 50.00"
+                               styleClass="auth-field"/>
+                    <Region minHeight="14"/>
+
                     <Label fx:id="lblMensaje3" text="" visible="false" managed="false" styleClass="msg-error" wrapText="true"/>
                     <Region minHeight="8"/>
 

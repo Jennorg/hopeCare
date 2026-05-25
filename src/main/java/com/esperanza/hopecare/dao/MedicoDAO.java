@@ -130,6 +130,27 @@ public class MedicoDAO {
                     }
                 }
             }
+
+            // Insertar horario por defecto (7 días) en la base de datos de Citas
+            if (m.getIdMedico() > 0) {
+                try (Connection connCitas = DatabaseConnection.getCitasConnection()) {
+                    String sqlH = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos) VALUES (?, ?, ?, ?, ?)";
+                    try (PreparedStatement psH = connCitas.prepareStatement(sqlH)) {
+                        for (int dia = 1; dia <= 7; dia++) {
+                            psH.setInt(1, m.getIdMedico());
+                            psH.setInt(2, dia);
+                            psH.setString(3, "08:00");
+                            psH.setString(4, "12:00");
+                            psH.setInt(5, 30);
+                            psH.addBatch();
+                        }
+                        psH.executeBatch();
+                    }
+                } catch (SQLException e) {
+                    LOGGER.log(Level.WARNING, "No se pudo insertar el horario por defecto para el médico", e);
+                    // No hacemos rollback de la clínica por un error en el horario opcional
+                }
+            }
             
             conn.commit();
             return true;
@@ -253,5 +274,42 @@ public class MedicoDAO {
             LOGGER.log(Level.SEVERE, "Error al cambiar estado activo del médico", e);
             return false;
         }
+    }
+
+    public Medico obtenerMedicoPorId(int idMedico) {
+        String sql = "SELECT m.id_medico, m.id_persona, m.id_especialidad, m.registro_medico, m.precio_consulta, m.activo, "
+                   + "p.nombre, p.apellido, p.documento_identidad, p.fecha_nacimiento, p.telefono, p.email, p.direccion, p.genero, "
+                   + "e.nombre_especialidad "
+                   + "FROM medico m "
+                   + "JOIN persona p ON m.id_persona = p.id_persona "
+                   + "JOIN especialidad e ON m.id_especialidad = e.id_especialidad "
+                   + "WHERE m.id_medico = ?";
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idMedico);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                Medico m = new Medico();
+                m.setIdMedico(rs.getInt("id_medico"));
+                m.setIdPersona(rs.getInt("id_persona"));
+                m.setIdEspecialidad(rs.getInt("id_especialidad"));
+                m.setRegistroMedico(rs.getString("registro_medico"));
+                m.setPrecioConsulta(rs.getDouble("precio_consulta"));
+                m.setActivo(rs.getInt("activo") == 1);
+                m.setNombre(rs.getString("nombre"));
+                m.setApellido(rs.getString("apellido"));
+                m.setDocumentoIdentidad(rs.getString("documento_identidad"));
+                m.setFechaNacimiento(rs.getString("fecha_nacimiento"));
+                m.setTelefono(rs.getString("telefono"));
+                m.setEmail(rs.getString("email"));
+                m.setDireccion(rs.getString("direccion"));
+                m.setGenero(rs.getString("genero"));
+                m.setNombreEspecialidad(rs.getString("nombre_especialidad"));
+                return m;
+            }
+        } catch (SQLException ex) { 
+            LOGGER.log(Level.SEVERE, "Error al obtener médico por ID", ex); 
+        }
+        return null;
     }
 }

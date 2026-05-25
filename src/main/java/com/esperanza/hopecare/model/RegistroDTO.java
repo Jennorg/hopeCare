@@ -16,6 +16,7 @@ public class RegistroDTO {
     private String direccion;
     private String especialidad;
     private String registroMedico;
+    private double tarifa;
 
     public RegistroDTO() {}
 
@@ -58,4 +59,7 @@ public class RegistroDTO {
 
     public String getRegistroMedico() { return registroMedico; }
     public void setRegistroMedico(String registroMedico) { this.registroMedico = registroMedico; }
+
+    public double getTarifa() { return tarifa; }
+    public void setTarifa(double tarifa) { this.tarifa = tarifa; }
 }

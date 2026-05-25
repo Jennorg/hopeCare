@@ -51,6 +51,8 @@ public class CargarDatosPrueba {
                 insertarHorario(connCitas, idMed1, 3, "08:00", "12:00", 30); // Miércoles
                 insertarHorario(connCitas, idMed1, 4, "08:00", "12:00", 30); // Jueves
                 insertarHorario(connCitas, idMed1, 5, "08:00", "12:00", 30); // Viernes
+                insertarHorario(connCitas, idMed1, 6, "08:00", "12:00", 30); // Sábado
+                insertarHorario(connCitas, idMed1, 7, "08:00", "12:00", 30); // Domingo
 
                 connClinica.commit();
                 connAuth.commit();

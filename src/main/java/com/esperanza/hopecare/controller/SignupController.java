@@ -50,6 +50,7 @@ public class SignupController implements Initializable {
 
     @FXML private ComboBox<String> cmbEspecialidad;
     @FXML private TextField        txtRegistroMedico;
+    @FXML private TextField        txtTarifa;
     @FXML private Label            lblMensaje3;
 
     private int pasoActual = 1;
@@ -58,7 +59,7 @@ public class SignupController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         cmbRol.setItems(FXCollections.observableArrayList(
-                "ADMINISTRADOR", "SECRETARIA", "PACIENTE"
+                "ADMIN", "MEDICO", "RECEPCIONISTA"
         ));
         cmbRol.getSelectionModel().selectFirst();
 
@@ -115,28 +116,31 @@ public class SignupController implements Initializable {
     @FXML
     private void irAPaso3OrFinalizar() {
         if (!validarPaso2()) return;
-        finalizarRegistro();
+        
+        if ("MEDICO".equals(getRol())) {
+            mostrarPaso(3);
+        } else {
+            finalizarRegistro();
+        }
     }
 
     private void actualizarVisibilidadPaso3() {
-        lblStep3.setVisible(false);
-        lblStep3.setManaged(false);
+        boolean esMedico = "MEDICO".equals(getRol());
+        lblStep3.setVisible(esMedico);
+        lblStep3.setManaged(esMedico);
     }
 
     private void mostrarPaso(int paso) {
         pasoActual = paso;
 
-        paso1.setVisible(paso == 1);
-        paso1.setManaged(paso == 1);
+        setVisible(paso1, paso == 1);
+        setVisible(paso2, paso == 2);
+        
+        boolean esMedico = "MEDICO".equals(getRol());
+        setVisible(paso3, paso == 3 && esMedico);
 
-        paso2.setVisible(paso == 2);
-        paso2.setManaged(paso == 2);
-
-        paso3.setVisible(false);
-        paso3.setManaged(false);
-
-        lblStep3.setVisible(false);
-        lblStep3.setManaged(false);
+        lblStep3.setVisible(esMedico);
+        lblStep3.setManaged(esMedico);
 
         actualizarStepsBar(paso);
 
@@ -166,8 +170,16 @@ public class SignupController implements Initializable {
         dto.setGenero(getGenero());
         dto.setEmail(getEmail());
         dto.setDireccion(getDireccion());
-        dto.setEspecialidad(null);
-        dto.setRegistroMedico(null);
+        
+        if ("MEDICO".equals(getRol())) {
+            dto.setEspecialidad(cmbEspecialidad.getValue());
+            dto.setRegistroMedico(txtRegistroMedico.getText().trim());
+            dto.setTarifa(getTarifa());
+        } else {
+            dto.setEspecialidad(null);
+            dto.setRegistroMedico(null);
+            dto.setTarifa(0.0);
+        }
 
         String error = authService.registrar(dto);
 
@@ -175,8 +187,12 @@ public class SignupController implements Initializable {
             if (error.contains("usuario ya está en uso")) {
                 setError(lblMensaje1, error);
                 mostrarPaso(1);
-            } else {
+            } else if (error.contains("registro médico")) {
                 setError(lblMensaje3, error);
+                mostrarPaso(3);
+            } else {
+                setError(lblMensaje2, error);
+                mostrarPaso(2);
             }
             return;
         }
@@ -327,7 +343,32 @@ public class SignupController implements Initializable {
     }
 
     private boolean validarPaso3() {
-        return true; // No hay paso 3 para ADMIN, SECRETARIA, o PACIENTE
+        if (cmbEspecialidad.getValue() == null) {
+            setError(lblMensaje3, "Seleccione su especialidad.");
+            return false;
+        }
+        if (txtRegistroMedico.getText().trim().isEmpty()) {
+            setError(lblMensaje3, "Ingrese su número de registro médico.");
+            return false;
+        }
+        
+        String tarifaStr = txtTarifa.getText().trim();
+        if (tarifaStr.isEmpty()) {
+            setError(lblMensaje3, "Ingrese la tarifa de consulta.");
+            return false;
+        }
+        try {
+            double t = Double.parseDouble(tarifaStr);
+            if (t < 0) {
+                setError(lblMensaje3, "La tarifa no puede ser negativa.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            setError(lblMensaje3, "La tarifa debe ser un número válido.");
+            return false;
+        }
+        
+        return true;
     }
 
     private void setError(Label lbl, String mensaje) {
@@ -365,6 +406,13 @@ public class SignupController implements Initializable {
     }
     public String getEmail()          { return txtEmail.getText().trim(); }
     public String getDireccion()      { return txtDireccion.getText().trim(); }
-    public String getEspecialidad()   { return null; }
-    public String getRegistroMedico() { return null; }
+    public String getEspecialidad()   { return cmbEspecialidad.getValue(); }
+    public String getRegistroMedico() { return txtRegistroMedico.getText().trim(); }
+    public double getTarifa() {
+        try {
+            return Double.parseDouble(txtTarifa.getText().trim());
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
 }

@@ -78,13 +78,14 @@ public class MainController {
             lblBreadcrumb.setText("Inicio > Citas");
         } else if (isRecepcionista || isMedico) {
             linkDashboard.setVisible(false); linkDashboard.setManaged(false);
-            linkFacturacion.setVisible(false); linkFacturacion.setManaged(false);
             
             if (isRecepcionista) {
+                // Receptionist can see Billing but not Dashboard
                 mainTabPane.getSelectionModel().select(tabCitas);
                 actualizarEnlacesActivos(linkCitas);
                 lblBreadcrumb.setText("Inicio > Citas");
             } else if (isMedico) {
+                linkFacturacion.setVisible(false); linkFacturacion.setManaged(false);
                 mainTabPane.getSelectionModel().select(tabPacientes);
                 actualizarEnlacesActivos(linkPacientes);
                 lblBreadcrumb.setText("Inicio > Pacientes");
