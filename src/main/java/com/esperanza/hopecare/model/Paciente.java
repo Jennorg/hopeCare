@@ -8,7 +8,7 @@ public class Paciente extends Persona {
     private String alergias;
     private String grupoSanguineo;
     private String contactoEmergencia;
-    private int activo;
+    private int activo = 1;
 
     public Paciente() {}
 
@@ -29,6 +29,8 @@ public class Paciente extends Persona {
 
     public int getActivo() { return activo; }
     public void setActivo(int activo) { this.activo = activo; }
+
+    public String getEstado() { return activo == 1 ? "Activo" : "De alta"; }
 
     @Override
     public String toString() {

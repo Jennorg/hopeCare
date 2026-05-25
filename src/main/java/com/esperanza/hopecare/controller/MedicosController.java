@@ -23,7 +23,7 @@ public class MedicosController {
     @FXML private TableColumn<Medico, Double> colPrecio;
     @FXML private TableColumn<Medico, String> colTelefono;
     @FXML private TableColumn<Medico, String> colEmail;
-    @FXML private TableColumn<Medico, Integer> colEstado;
+    @FXML private TableColumn<Medico, Boolean> colEstado;
     @FXML private TableColumn<Medico, Void> colAcciones;
 
     @FXML private Button btnAgregar;
@@ -48,13 +48,10 @@ public class MedicosController {
      */
     private void aplicarPermisos() {
         SesionManager sesion = SesionManager.getInstance();
-        if (sesion.isMedico()) {
+        if (sesion.isMedico() || sesion.isRecepcionista()) {
             btnAgregar.setVisible(false);
             btnAgregar.setManaged(false);
             colAcciones.setVisible(false);
-        } else if (sesion.isRecepcionista()) {
-            btnAgregar.setVisible(false);
-            btnAgregar.setManaged(false);
         }
     }
 
@@ -83,15 +80,15 @@ public class MedicosController {
 
         // Format state column with Teal and Red colors
         colEstado.setCellValueFactory(new PropertyValueFactory<>("activo"));
-        colEstado.setCellFactory(column -> new TableCell<Medico, Integer>() {
+        colEstado.setCellFactory(column -> new TableCell<Medico, Boolean>() {
             @Override
-            protected void updateItem(Integer item, boolean empty) {
+            protected void updateItem(Boolean item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || getTableRow().getItem() == null) {
                     setText(null);
                     setStyle(null);
                 } else {
-                    boolean activo = getTableRow().getItem().getActivo() == 1;
+                    boolean activo = getTableRow().getItem().isActivo();
 
                     setText(activo ? "ACTIVO" : "INACTIVO");
                     if (activo) {
@@ -141,7 +138,7 @@ public class MedicosController {
                 } else {
                     Medico m = getTableRow().getItem();
                     if (m != null) {
-                        boolean activo = m.getActivo() == 1;
+                        boolean activo = m.isActivo();
                         
                         btnToggleStatus.getStyleClass().removeAll("button-action-delete", "button-action-reactivate");
                         btnToggleStatus.getStyleClass().add(activo ? "button-action-delete" : "button-action-reactivate");
@@ -200,7 +197,7 @@ public class MedicosController {
     }
 
     private void gestionarEstadoMedico(Medico selected) {
-        boolean actualmenteActivo = selected.getActivo() == 1;
+        boolean actualmenteActivo = selected.isActivo();
         String accion = actualmenteActivo ? "desactivar" : "reactivar";
         String titulo = actualmenteActivo ? "Confirmar Baja" : "Confirmar Reactivación";
 

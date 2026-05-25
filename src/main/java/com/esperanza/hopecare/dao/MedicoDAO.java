@@ -29,7 +29,7 @@ public class MedicoDAO {
                 m.setIdEspecialidad(rs.getInt("id_especialidad"));
                 m.setRegistroMedico(rs.getString("registro_medico"));
                 m.setPrecioConsulta(rs.getDouble("precio_consulta"));
-                m.setActivo(rs.getInt("activo"));
+                m.setActivo(rs.getInt("activo") == 1);
                 m.setNombre(rs.getString("nombre"));
                 m.setApellido(rs.getString("apellido"));
                 m.setDocumentoIdentidad(rs.getString("documento_identidad"));
@@ -121,7 +121,7 @@ public class MedicoDAO {
                 psM.setInt(2, m.getIdEspecialidad());
                 psM.setString(3, m.getRegistroMedico().trim());
                 psM.setDouble(4, m.getPrecioConsulta());
-                psM.setInt(5, m.getActivo());
+                psM.setInt(5, m.isActivo() ? 1 : 0);
                 psM.executeUpdate();
                 
                 try (ResultSet rs = psM.getGeneratedKeys()) {
@@ -178,7 +178,7 @@ public class MedicoDAO {
                 psM.setInt(1, m.getIdEspecialidad());
                 psM.setString(2, m.getRegistroMedico().trim());
                 psM.setDouble(3, m.getPrecioConsulta());
-                psM.setInt(4, m.getActivo());
+                psM.setInt(4, m.isActivo() ? 1 : 0);
                 psM.setInt(5, m.getIdMedico());
                 psM.executeUpdate();
             }

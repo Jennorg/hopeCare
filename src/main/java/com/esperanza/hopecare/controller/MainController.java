@@ -63,9 +63,11 @@ public class MainController {
 
     private void aplicarPermisos() {
         SesionManager sesion = SesionManager.getInstance();
-        boolean isAdmin = "ADMIN".equalsIgnoreCase(sesion.getNombreRol());
+        boolean isAdmin = sesion.isAdmin();
+        boolean isRecepcionista = sesion.isRecepcionista();
+        boolean isMedico = sesion.isMedico();
         
-        if (!isAdmin) {
+        if (!isAdmin && !isRecepcionista && !isMedico) {
             linkDashboard.setVisible(false); linkDashboard.setManaged(false);
             linkPacientes.setVisible(false); linkPacientes.setManaged(false);
             linkMedicos.setVisible(false); linkMedicos.setManaged(false);
@@ -74,6 +76,19 @@ public class MainController {
             mainTabPane.getSelectionModel().select(tabCitas);
             actualizarEnlacesActivos(linkCitas);
             lblBreadcrumb.setText("Inicio > Citas");
+        } else if (isRecepcionista || isMedico) {
+            linkDashboard.setVisible(false); linkDashboard.setManaged(false);
+            linkFacturacion.setVisible(false); linkFacturacion.setManaged(false);
+            
+            if (isRecepcionista) {
+                mainTabPane.getSelectionModel().select(tabCitas);
+                actualizarEnlacesActivos(linkCitas);
+                lblBreadcrumb.setText("Inicio > Citas");
+            } else if (isMedico) {
+                mainTabPane.getSelectionModel().select(tabPacientes);
+                actualizarEnlacesActivos(linkPacientes);
+                lblBreadcrumb.setText("Inicio > Pacientes");
+            }
         }
     }
 

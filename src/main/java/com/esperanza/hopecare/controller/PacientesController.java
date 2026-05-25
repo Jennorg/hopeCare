@@ -26,7 +26,7 @@ public class PacientesController {
     @FXML private TableColumn<Paciente, String> colGrupoSangre;
     @FXML private TableColumn<Paciente, String> colAlergias;
     @FXML private TableColumn<Paciente, String> colContacto;
-    @FXML private TableColumn<Paciente, Integer> colEstado;
+    @FXML private TableColumn<Paciente, String> colEstado;
     @FXML private TableColumn<Paciente, Void> colAcciones;
 
     @FXML private Button btnAgregar;
@@ -48,7 +48,7 @@ public class PacientesController {
         if (sesion.isMedico()) {
             btnAgregar.setVisible(false);
             btnAgregar.setManaged(false);
-            colAcciones.setVisible(false);
+            // colAcciones permanece visible para que puedan dar de alta
         }
     }
 
@@ -64,18 +64,17 @@ public class PacientesController {
         colAlergias.setCellValueFactory(new PropertyValueFactory<>("alergias"));
         colContacto.setCellValueFactory(new PropertyValueFactory<>("contactoEmergencia"));
 
-        colEstado.setCellValueFactory(new PropertyValueFactory<>("activo"));
-        colEstado.setCellFactory(column -> new TableCell<Paciente, Integer>() {
+        colEstado.setCellValueFactory(new PropertyValueFactory<>("estado"));
+        colEstado.setCellFactory(column -> new TableCell<Paciente, String>() {
             @Override
-            protected void updateItem(Integer item, boolean empty) {
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
                     setStyle("");
                 } else {
-                    boolean activo = item == 1;
-                    setText(activo ? "Activo" : "Dado de Alta");
-                    if (activo) {
+                    setText(item);
+                    if ("Activo".equals(item)) {
                         setStyle("-fx-text-fill: #0d9488; -fx-font-weight: bold; -fx-alignment: center;");
                     } else {
                         setStyle("-fx-text-fill: #64748b; -fx-font-weight: bold; -fx-alignment: center;");
@@ -110,11 +109,17 @@ public class PacientesController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || SesionManager.getInstance().isMedico()) {
+                if (empty) {
                     setGraphic(null);
                 } else {
                     Paciente p = getTableView().getItems().get(getIndex());
                     if (p != null) {
+                        SesionManager sesion = SesionManager.getInstance();
+                        boolean esMedico = sesion.isMedico();
+                        
+                        btnEdit.setVisible(!esMedico);
+                        btnEdit.setManaged(!esMedico);
+                        
                         btnDelete.getStyleClass().clear();
                         btnDelete.getStyleClass().add("button");
                         
@@ -127,12 +132,16 @@ public class PacientesController {
                             btnDelete.setGraphic(deleteIcon);
                             btnDelete.setTooltip(new Tooltip("Dar de alta a Paciente"));
                             btnDelete.setOnAction(e -> darAltaPaciente(p));
+                            btnDelete.setVisible(true);
+                            btnDelete.setManaged(true);
                         } else {
                             btnDelete.getStyleClass().add("button-action-reactivate");
                             deleteIcon.setContent("M16 11h6m-3-3v6M13 9a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0");
                             btnDelete.setGraphic(deleteIcon);
                             btnDelete.setTooltip(new Tooltip("Reactivar Paciente"));
                             btnDelete.setOnAction(e -> reactivarPaciente(p));
+                            btnDelete.setVisible(true);
+                            btnDelete.setManaged(true);
                         }
                     }
                     setGraphic(container);
