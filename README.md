@@ -69,3 +69,13 @@ En el diálogo de nueva cita, al seleccionar un médico el `DatePicker` restring
 La columna `fecha_hora` de la tabla `cita` almacena los valores como TEXT en formato `"yyyy-MM-dd HH:mm:ss"`. Esto es crítico para el correcto funcionamiento de las funciones de fecha de SQLite (`DATE()`) y la lectura desde Java. El `CitaDAO` usa `parseFechaHora()` que maneja múltiples formatos (espacio, ISO-8601 con 'T', y epoch millis como respaldo). Al insertar, siempre se escribe en el formato canónico `"yyyy-MM-dd HH:mm:ss"`.
 
 **IMPORTANTE**: Si la base de datos fue creada con una versión anterior del código que usaba `setTimestamp()` (que almacenaba epoch millis), las citas NO se mostrarán en la tabla y se debe resetear la BD borrando `sisgeho.db` para que se regenere con el formato correcto.
+
+##Claves
+Para acceder como admin:
+admin/admin123
+Para acceder como recepcionista:
+recep
+recep123
+Para acceder como medico:
+medico
+medico123
