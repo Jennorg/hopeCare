@@ -1,21 +1,12 @@
-# Registrar el Dashboard
+# Dashboard - Ya implementado
 
-## 1. DatabaseConnection.java
-`src/main/java/com/esperanza/hopecare/util/DatabaseConnection.java`
-Registrar la conexión a `hopecare_dashboard.db`.
+El Dashboard está completamente integrado en el sistema:
 
-## 2. HopecareApp.java
-`src/main/java/com/esperanza/hopecare/HopecareApp.java`
-- En el método `inicializarBasesDatos()`, llamar a `inicializarModulo` con el schema `/dashboard_schema.sql`, tabla de control `paciente`, y el connector `DatabaseConnection::getDashboardConnection`
-- Agregar llamado a `verificarYCargarDatosDashboard()`
-
-## 3. main.fxml
-`src/main/resources/com/esperanza/hopecare/view/main.fxml`
-- En `navLinks`, agregar un hyperlink con `fx:id="linkDashboard"` y `onAction="#navigateToDashboard"`
-- En `mainTabPane`, agregar un Tab con `fx:id="tabDashboard"` que haga `fx:include source="dashboard.fxml"`
-
-## 4. MainController.java
-`src/main/java/com/esperanza/hopecare/controller/MainController.java`
-- Agregar campos `@FXML Tab tabDashboard` y `@FXML Hyperlink linkDashboard`
-- En `initialize()`, seleccionar `tabDashboard` por defecto
-- Agregar método `navigateToDashboard()` y enlace en `actualizarEnlacesActivos()`
+- ✅ `DatabaseConnection.java` — conexión `getDashboardConnection()` a `hopecare_dashboard.db`
+- ✅ `HopecareApp.java` — `inicializarModulo("Dashboard", ...)` + `verificarYCargarDatosDashboard()`
+- ✅ `main.fxml` — Tab `tabDashboard` con `fx:include source="dashboard.fxml"`
+- ✅ `MainController.java` — `@FXML Tab tabDashboard`, navegación por defecto al dashboard
+- ✅ `DashboardController.java` — controlador con métricas en tiempo real
+- ✅ `DashboardDAO.java` — consultas de pacientes, citas, ingresos
+- ✅ `CargarDashboard.java` — población inicial de datos desde clinica + citas
+- ✅ Suscripción a `NuevaCitaEvent` y `NuevaFacturaEvent` vía EventBus

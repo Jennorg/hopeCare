@@ -96,11 +96,13 @@ public class CitasController implements ICitaView {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/esperanza/hopecare/view/medico_form.fxml"));
             DialogPane pane = loader.load();
             MedicoFormController formController = loader.getController();
+            formController.setProfileMode(true);
             formController.cargarMedico(m);
             
             Dialog<ButtonType> dialog = new Dialog<>();
             dialog.setDialogPane(pane);
-            dialog.setTitle("Mi Perfil - Actualizar Datos");
+            dialog.setTitle("Mi Perfil");
+            dialog.setHeaderText(m.getNombre() + " " + m.getApellido() + " — " + m.getNombreEspecialidad());
             dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             
             // Re-use existing validation logic if possible or just handle OK

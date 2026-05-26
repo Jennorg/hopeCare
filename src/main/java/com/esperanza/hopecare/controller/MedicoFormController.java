@@ -25,12 +25,30 @@ public class MedicoFormController {
 
     private Medico medicoActual;
     private EspecialidadDAO especialidadDAO;
+    private boolean profileMode;
 
     @FXML
     public void initialize() {
         especialidadDAO = new EspecialidadDAO();
         cbGenero.setItems(FXCollections.observableArrayList("MASCULINO", "FEMENINO", "OTRO"));
         configurarComboEspecialidades();
+    }
+
+    public void setProfileMode(boolean profileMode) {
+        this.profileMode = profileMode;
+        if (profileMode) {
+            txtApellido.setDisable(true);
+            txtDocumento.setDisable(true);
+            dpFechaNac.setDisable(true);
+            cbGenero.setDisable(true);
+            txtTelefono.setDisable(true);
+            txtEmail.setDisable(true);
+            txtDireccion.setDisable(true);
+            cbEspecialidad.setDisable(true);
+            txtRegistro.setDisable(true);
+            txtPrecio.setDisable(true);
+            chkActivo.setDisable(true);
+        }
     }
 
     private void configurarComboEspecialidades() {
@@ -99,33 +117,31 @@ public class MedicoFormController {
             mensajeError = "El nombre es obligatorio.";
             return false;
         }
-        if (txtApellido.getText() == null || txtApellido.getText().trim().isEmpty()) {
-            mensajeError = "El apellido es obligatorio.";
-            return false;
-        }
-        if (txtDocumento.getText() == null || txtDocumento.getText().trim().isEmpty()) {
-            mensajeError = "La cédula (documento de identidad) es obligatoria.";
-            return false;
-        }
-        if (cbEspecialidad.getValue() == null) {
-            mensajeError = "La especialidad es obligatoria.";
-            return false;
-        }
-        if (txtRegistro.getText() == null || txtRegistro.getText().trim().isEmpty()) {
-            mensajeError = "El número de registro médico es obligatorio.";
-            return false;
-        }
-        if (txtPrecio.getText() == null || txtPrecio.getText().trim().isEmpty()) {
-            mensajeError = "El precio de consulta es obligatorio.";
-            return false;
+        if (!profileMode) {
+            if (txtApellido.getText() == null || txtApellido.getText().trim().isEmpty()) {
+                mensajeError = "El apellido es obligatorio.";
+                return false;
+            }
+            if (txtDocumento.getText() == null || txtDocumento.getText().trim().isEmpty()) {
+                mensajeError = "La cédula (documento de identidad) es obligatoria.";
+                return false;
+            }
+            if (cbEspecialidad.getValue() == null) {
+                mensajeError = "La especialidad es obligatoria.";
+                return false;
+            }
+            if (txtRegistro.getText() == null || txtRegistro.getText().trim().isEmpty()) {
+                mensajeError = "El número de registro médico es obligatorio.";
+                return false;
+            }
+            if (txtPrecio.getText() == null || txtPrecio.getText().trim().isEmpty()) {
+                mensajeError = "El precio de consulta es obligatorio.";
+                return false;
+            }
         }
         
         // 2. Validar tipos/formatos y longitud de caracteres
         String nombre = txtNombre.getText().trim();
-        String apellido = txtApellido.getText().trim();
-        String documento = txtDocumento.getText().trim();
-        String registro = txtRegistro.getText().trim();
-        String precioStr = txtPrecio.getText().trim();
         
         if (nombre.length() > 50) {
             mensajeError = "El nombre no puede tener más de 50 caracteres.";
@@ -136,43 +152,50 @@ public class MedicoFormController {
             return false;
         }
         
-        if (apellido.length() > 50) {
-            mensajeError = "El apellido no puede tener más de 50 caracteres.";
-            return false;
-        }
-        if (!apellido.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")) {
-            mensajeError = "El apellido solo puede contener letras y espacios.";
-            return false;
-        }
-        
-        if (documento.length() < 5 || documento.length() > 20) {
-            mensajeError = "La cédula debe tener entre 5 y 20 caracteres.";
-            return false;
-        }
-        if (!documento.matches("^[0-9\\-]+$")) {
-            mensajeError = "La cédula solo puede contener números y guiones.";
-            return false;
-        }
-        
-        if (registro.length() > 50) {
-            mensajeError = "El registro médico no puede superar los 50 caracteres.";
-            return false;
-        }
-        if (!registro.matches("^[a-zA-Z0-9\\-]+$")) {
-            mensajeError = "El registro médico solo puede contener letras, números y guiones.";
-            return false;
-        }
-        
-        double precio;
-        try {
-            precio = Double.parseDouble(precioStr);
-            if (precio <= 0) {
-                mensajeError = "El precio de consulta debe ser un número positivo mayor que cero.";
+        if (!profileMode) {
+            String apellido = txtApellido.getText().trim();
+            String documento = txtDocumento.getText().trim();
+            String registro = txtRegistro.getText().trim();
+            String precioStr = txtPrecio.getText().trim();
+            
+            if (apellido.length() > 50) {
+                mensajeError = "El apellido no puede tener más de 50 caracteres.";
                 return false;
             }
-        } catch (NumberFormatException e) {
-            mensajeError = "El precio de consulta debe ser un número decimal válido.";
-            return false;
+            if (!apellido.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")) {
+                mensajeError = "El apellido solo puede contener letras y espacios.";
+                return false;
+            }
+            
+            if (documento.length() < 5 || documento.length() > 20) {
+                mensajeError = "La cédula debe tener entre 5 y 20 caracteres.";
+                return false;
+            }
+            if (!documento.matches("^[0-9\\-]+$")) {
+                mensajeError = "La cédula solo puede contener números y guiones.";
+                return false;
+            }
+            
+            if (registro.length() > 50) {
+                mensajeError = "El registro médico no puede superar los 50 caracteres.";
+                return false;
+            }
+            if (!registro.matches("^[a-zA-Z0-9\\-]+$")) {
+                mensajeError = "El registro médico solo puede contener letras, números y guiones.";
+                return false;
+            }
+            
+            double precio;
+            try {
+                precio = Double.parseDouble(precioStr);
+                if (precio <= 0) {
+                    mensajeError = "El precio de consulta debe ser un número positivo mayor que cero.";
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                mensajeError = "El precio de consulta debe ser un número decimal válido.";
+                return false;
+            }
         }
         
         // 3. Validaciones de campos opcionales
@@ -223,29 +246,32 @@ public class MedicoFormController {
             m = new Medico();
         }
         m.setNombre(txtNombre.getText().trim());
-        m.setApellido(txtApellido.getText().trim());
-        m.setDocumentoIdentidad(txtDocumento.getText().trim());
-        
-        if (dpFechaNac.getValue() != null) {
-            m.setFechaNacimiento(dpFechaNac.getValue().toString());
-        } else {
-            m.setFechaNacimiento(null);
-        }
 
-        m.setGenero(cbGenero.getValue() != null && !cbGenero.getValue().isEmpty() ? cbGenero.getValue() : null);
-        m.setTelefono(txtTelefono.getText() != null && !txtTelefono.getText().trim().isEmpty() ? txtTelefono.getText().trim() : null);
-        m.setEmail(txtEmail.getText() != null && !txtEmail.getText().trim().isEmpty() ? txtEmail.getText().trim() : null);
-        m.setDireccion(txtDireccion.getText() != null && !txtDireccion.getText().trim().isEmpty() ? txtDireccion.getText().trim() : null);
-        
-        Especialidad esp = cbEspecialidad.getValue();
-        if (esp != null) {
-            m.setIdEspecialidad(esp.getIdEspecialidad());
-            m.setNombreEspecialidad(esp.getNombre());
-        }
+        if (!profileMode) {
+            m.setApellido(txtApellido.getText().trim());
+            m.setDocumentoIdentidad(txtDocumento.getText().trim());
 
-        m.setRegistroMedico(txtRegistro.getText().trim());
-        m.setPrecioConsulta(Double.parseDouble(txtPrecio.getText().trim()));
-        m.setActivo(chkActivo.isSelected());
+            if (dpFechaNac.getValue() != null) {
+                m.setFechaNacimiento(dpFechaNac.getValue().toString());
+            } else {
+                m.setFechaNacimiento(null);
+            }
+
+            m.setGenero(cbGenero.getValue() != null && !cbGenero.getValue().isEmpty() ? cbGenero.getValue() : null);
+            m.setTelefono(txtTelefono.getText() != null && !txtTelefono.getText().trim().isEmpty() ? txtTelefono.getText().trim() : null);
+            m.setEmail(txtEmail.getText() != null && !txtEmail.getText().trim().isEmpty() ? txtEmail.getText().trim() : null);
+            m.setDireccion(txtDireccion.getText() != null && !txtDireccion.getText().trim().isEmpty() ? txtDireccion.getText().trim() : null);
+
+            Especialidad esp = cbEspecialidad.getValue();
+            if (esp != null) {
+                m.setIdEspecialidad(esp.getIdEspecialidad());
+                m.setNombreEspecialidad(esp.getNombre());
+            }
+
+            m.setRegistroMedico(txtRegistro.getText().trim());
+            m.setPrecioConsulta(Double.parseDouble(txtPrecio.getText().trim()));
+            m.setActivo(chkActivo.isSelected());
+        }
         return m;
     }
 }

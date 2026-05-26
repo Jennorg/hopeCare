@@ -25,55 +25,52 @@
 hopeCare/
 ├── pom.xml
 ├── module-info.java
+├── hopecare_auth.db              → Auth (usuarios, roles)
+├── hopecare_clinica.db           → Clinica (personas, pacientes, médicos)
+├── hopecare_citas.db             → Citas (citas, consultas, horarios)
+├── hopecare_facturacion.db       → Facturación
+├── hopecare_dashboard.db         → Dashboard (métricas, pacientes registrados)
 └── src/main/java/com/esperanza/hopecare/
-    ├── main/
-    │   ├── HopecareApp.java          → Punto de entrada, inicializa BD y lanza JavaFX
-    │   ├── MainController.java       → Controlador del layout principal (header + tabs)
-    │   └── main.fxml                 → Layout principal con TabPane y header
-    │
-    ├── common/
-    │   ├── db/
-    │   │   ├── DatabaseConnection.java   → Singleton de conexión SQLite
-    │   │   ├── CrearBaseDatos.java       → Ejecuta sisgeho_schema.sql
-    │   │   └── CargarDatosPrueba.java    → Inserta datos de prueba
-    │   ├── model/Persona.java            → Clase base: nombre, apellido, documento
-    │   ├── session/SesionManager.java    → Singleton: usuario logueado, nombre del médico
-    │   └── events/NuevaCitaEvent.java    → Evento publicado al agendar cita
-    │
-    ├── modules/
-    │   ├── Auth/            → Login plano (sin roles)
-    │   │   ├── model/Usuario.java
-    │   │   ├── DAO/AuthDAO.java
-    │   │   ├── service/AuthService.java
-    │   │   └── view/
-    │   │       ├── LoginController.java
-    │   │       └── login.fxml
-    │   │
-    │   ├── pacientes_medicos/   → Modelos y DAOs de soporte
-    │   │   ├── model/  (Persona usada via common, Medico, Paciente, Especialidad)
-    │   │   ├── dao/    (MedicoDAO, PacienteDAO, EspecialidadDAO)
-    │   │   └── view/
-    │   │       ├── PacienteFormController.java
-    │   │       └── paciente_form.fxml
-    │   │
-    │   └── citas_consultas/     → Núcleo del módulo
-    │       ├── model/  (Cita, Consulta, HorarioAtencion)
-    │       ├── dao/    (CitaDAO, ConsultaDAO, HorarioAtencionDAO)
-    │       ├── presenter/
-    │       │   ├── CitaPresenter.java      → Lógica de agendar citas
-    │       │   └── ConsultaPresenter.java  → Lógica de registrar consultas
-    │       └── view/
-    │           ├── ICitaView.java          → Interfaz que el Presenter usa
-    │           ├── IConsultaView.java      → Interfaz que el ConsultaPresenter usa
-    │           ├── CitasController.java    → Controlador de agendar citas
-    │           ├── citas.fxml
-    │           ├── ConsultaController.java → Controlador de consultas
-    │           └── consulta.fxml
-    │
+    ├── HopecareApp.java               → Punto de entrada, inicializa BD y lanza JavaFX
+    ├── controller/                     → Todos los controladores JavaFX
+    │   ├── LoginController.java        → Login UI
+    │   ├── MainController.java         → Layout principal (header + tabs)
+    │   ├── CitasController.java        → Tabla de citas + botón "Mi Perfil" para médicos
+    │   ├── ConsultaController.java     → Consultas
+    │   ├── MedicosController.java      → CRUD médicos (solo ADMIN)
+    │   ├── PacientesController.java    → CRUD pacientes (MEDICO no puede agregar/editar)
+    │   ├── FacturacionController.java  → Facturación
+    │   ├── DashboardController.java    → Dashboard
+    │   ├── MedicoFormController.java   → Formulario médico (con modo perfil para médicos)
+    │   ├── PacienteFormController.java → Formulario paciente
+    │   └── SignupController.java       → Registro
+    ├── dao/                            → Data Access Objects
+    │   ├── AuthDAO.java
+    │   ├── CitaDAO.java, ConsultaDAO.java, HorarioAtencionDAO.java
+    │   ├── MedicoDAO.java, PacienteDAO.java, EspecialidadDAO.java
+    │   ├── FacturacionDAO.java
+    │   └── DashboardDAO.java
+    ├── model/                          → Modelos/DTOs
+    │   ├── LoginDTO.java, UsuarioModel.java
+    │   ├── Cita.java, Consulta.java, HorarioAtencion.java
+    │   ├── Medico.java, Paciente.java, Especialidad.java, Persona.java
+    │   └── FacturaDTO.java
+    ├── service/                        → Lógica de negocio
+    │   ├── AuthService.java
+    │   └── FacturacionService.java
+    ├── util/                           → Utilidades
+    │   ├── DatabaseConnection.java     → Conexiones a 5 bases SQLite
+    │   ├── InicializarBD.java          → Ejecuta schemas
+    │   ├── CargarDatosPrueba.java      → Datos de prueba
+    │   ├── SesionManager.java          → Singleton: usuario logueado, rol, isMedico/isAdmin
+    │   ├── Hasher.java                 → Hash SHA-256
+    │   ├── EventBus.java, NuevaCitaEvent.java, NuevaFacturaEvent.java
+    │   └── CargarDashboard.java
     └── resources/
-        ├── sisgeho_schema.sql
-        ├── hopecare.css
-        └── ... (fxml resources)
+        ├── auth_schema.sql, clinica_schema.sql, citas_schema.sql
+        ├── facturacion_schema.sql, dashboard_schema.sql
+        ├── com/esperanza/hopecare/view/  → FXML files
+        └── css/hopecare.css
 ```
 
 ### Flujo de Arquitectura (MVP)
@@ -91,25 +88,26 @@ hopeCare/
 ## Paquetes Clave
 | Ruta | Propósito |
 |------|-----------|
-| `modules/citas_consultas/` | Models, DAOs, Presenters (MVP) para citas y consultas |
-| `modules/pacientes_medicos/` | Models (Persona, Medico, Paciente, Especialidad) y DAOs (MedicoDAO, PacienteDAO, EspecialidadDAO) |
-| `modules/Auth/` | Login con autenticación SHA-256 (sin roles, un solo médico) |
-| `common/db/` | DatabaseConnection, CrearBaseDatos, CargarDatosPrueba |
-| `common/session/` | SesionManager (singleton con nombreUsuario, nombreRol) |
+| `controller/` | Todos los controladores JavaFX (Citas, Consultas, Médicos, Pacientes, Facturación, Dashboard) |
+| `dao/` | DAOs para cada módulo (Auth, Cita, Consulta, Medico, Paciente, Facturación, Dashboard) |
+| `model/` | Modelos de dominio (Cita, Medico, Paciente, Consulta, FacturaDTO, etc.) |
+| `service/` | AuthService (login con roles), FacturacionService |
+| `util/` | DatabaseConnection (5 DBs), SesionManager (isAdmin/isMedico/isRecepcionista), Hasher, EventBus |
 
 ## Módulos del Sistema
 
-### Login (autenticación plana)
-- **LoginController.java**: Controlador JavaFX que autentica contra `usuario` + `persona` vía AuthService
-- **AuthDAO.java**: `autenticar(String usuario, String password)` con JOIN a persona
-- **Usuario.java**: Modelo simple (idUsuario, nombreUsuario, contrasenaHash, idPersona)
-- **SesionManager.java**: Singleton que guarda `nombreUsuario` y `nombreRol` (nombre completo del médico)
-- Usuario único de prueba: `amedico` / `medico123`
+### Login (autenticación con roles)
+- **LoginController.java**: Controlador JavaFX que autentica contra `usuario JOIN clinica.persona` vía AuthService
+- **AuthDAO.java**: `autenticar(String usuario, String password)` con JOIN a persona y rol
+- **LoginDTO.java**: Modelo con idUsuario, nombreUsuario, rol, nombreRol, idPersona
+- **SesionManager.java**: Singleton con `isAdmin()`, `isMedico()`, `isRecepcionista()`, `getIdUsuario()`, `getIdPersona()`, `getRol()`
+- Roles: ADMIN, RECEPCIONISTA, MEDICO (+ PACIENTE desde registro)
+- Usuarios de prueba: `medico/medico123` (Carlos López, MEDICO), `admin/admin123` (ADMIN), `recep/recep123` (RECEPCIONISTA)
 
 ### Citas (MVP - ICitaView + CitaPresenter)
 - **ICitaView.java**: Interfaz con `mostrarHorariosDisponibles()`, `mostrarCitasExistentes()`, `mostrarDiasDisponibles()` y getters de selección
 - **CitaPresenter.java**: Genera bloques desde HorarioAtencion (intervalo_minutos), filtra ocupados vía CitaDAO, reserva y publica NuevaCitaEvent
-- **CitasController.java**: Tabla principal de citas existentes + botón "Agendar Nueva Cita" que abre `Dialog<>` modal. El diálogo contiene: buscador de pacientes (con botón "Registrar Paciente"), filtro por especialidad + buscador de médicos (con botón "Registrar Médico"), selector de días disponibles, auto-asignación de fecha y horarios, botón de reserva
+- **CitasController.java**: Tabla principal de citas existentes + botón "Agendar Nueva Cita" (visible solo para ADMIN/RECEPCIONISTA/PACIENTE, NO para MEDICO) + botón "Mi Perfil" (solo visible para MEDICO) que abre el perfil del médico con solo el nombre editable vía `MedicoFormController.setProfileMode(true)`. El diálogo de nueva cita contiene: buscador de pacientes (con botón "Registrar Paciente"), filtro por especialidad + buscador de médicos (con botón "Registrar Médico"), selector de días disponibles, auto-asignación de fecha y horarios, botón de reserva
 - **DAOs**: `CitaDAO.java` (CRUD + `listarTodasConNombres()` + `obtenerCitasPorEstadoConNombres()`), `HorarioAtencionDAO.java` (obtener por médico+día + `obtenerHorariosPorMedico()`)
 
 ### Consultas (MVP - IConsultaView + ConsultaPresenter)
@@ -128,59 +126,82 @@ hopeCare/
 - **Medico.java**: Modelo con `nombreEspecialidad` para display
 - **EspecialidadDAO.java**: `listarTodas()`
 
-## Base de Datos
+## Bases de Datos (5 archivos SQLite)
 
-- Archivo: `sisgeho.db` en raíz del proyecto
-- Script DDL: `src/main/resources/sisgeho_schema.sql`
-- Driver: SQLite v3.45.1.0 (xerial sqlite-jdbc)
-- **No modificar el schema**
+| Archivo | Propósito | Schema |
+|---------|-----------|--------|
+| `hopecare_auth.db` | Usuarios, roles, autenticación | `auth_schema.sql` |
+| `hopecare_clinica.db` | Personas, pacientes, médicos, especialidades | `clinica_schema.sql` |
+| `hopecare_citas.db` | Citas, consultas, horarios de atención | `citas_schema.sql` |
+| `hopecare_facturacion.db` | Facturación | `facturacion_schema.sql` |
+| `hopecare_dashboard.db` | Dashboard con métricas y pacientes registrados | `dashboard_schema.sql` |
+
+Driver: SQLite v3.45.1.0 (xerial sqlite-jdbc)
 
 ### Visión de las Tablas y sus Relaciones
 
+Base **clinica**:
 ```
-persona (datos personales de cualquier persona física)
-  ├── usuario   (1 a 1: una persona puede tener 0 o 1 cuenta)
+persona (datos personales)
+  ├── usuario   (1 a 1: auth.usuario via id_persona)
   ├── medico    (1 a 1: una persona puede ser 0 o 1 médico)
   └── paciente  (1 a 1: una persona puede ser 0 o 1 paciente)
-
-especialidad (catálogo de especialidades médicas)
-  └── medico   (N a 1: muchos médicos pertenecen a una especialidad)
-
-medico (médicos registrados)
-  ├── horario_atencion (1 a N: un médico tiene muchos horarios)
-  └── cita             (1 a N: un médico atiende muchas citas)
-
-paciente (pacientes registrados)
-  └── cita             (1 a N: un paciente tiene muchas citas)
-
-cita (citas agendadas)
-  └── consulta (1 a 0..1: una cita puede tener 0 o 1 consulta asociada)
+especialidad ── medico (N a 1)
 ```
 
-### Esquema (9 tablas)
+Base **citas**:
 ```
-persona           (id_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero)
-usuario           (id_usuario, nombre_usuario, contrasena_hash, id_persona → persona, fecha_creacion)
-especialidad      (id_especialidad, nombre_especialidad)
-paciente          (id_paciente, id_persona → persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, fecha_registro)
-medico            (id_medico, id_persona → persona, id_especialidad → especialidad, registro_medico, precio_consulta, activo)
-horario_atencion  (id_horario, id_medico → medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo)
+medico (id_medico referenciado desde clinica)
+  ├── horario_atencion (1 a N)
+  └── cita             (1 a N)
+paciente (id_paciente referenciado desde clinica)
+  └── cita (1 a N)
+cita ── consulta (1 a 0..1)
+```
+
+Base **auth**:
+```
+rol ── usuario (N a 1)
+usuario ── persona (N a 1, via id_persona a clinica.persona)
+```
+
+### Esquemas
+
+**auth** (`usuario`, `rol`):
+```
+rol      (id_rol, nombre_rol)
+usuario  (id_usuario, nombre_usuario, contrasena_hash, contrasena, id_rol → rol, id_persona, rol, fecha_creacion)
+```
+
+**clinica** (`persona`, `especialidad`, `paciente`, `medico`):
+```
+persona         (id_persona, nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero)
+especialidad    (id_especialidad, nombre_especialidad)
+paciente        (id_paciente, id_persona → persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia, fecha_registro, activo)
+medico          (id_medico, id_persona → persona, id_especialidad → especialidad, registro_medico, precio_consulta, fecha_contratacion, activo)
+```
+
+**citas** (`cita`, `consulta`, `horario_atencion`):
+```
 cita              (id_cita, id_paciente → paciente, id_medico → medico, fecha_hora, estado, motivo, creada_por, fecha_creacion)
 consulta          (id_consulta, id_cita → cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta)
+horario_atencion  (id_horario, id_medico → medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo)
 ```
 
 ## Inicialización Automática de BD
-La app crea y puebla la base de datos automáticamente al iniciar (`HopecareApp.init()`):
-1. Verifica si la tabla `persona` existe
-2. Si no existe → ejecuta `sisgeho_schema.sql` para crear todas las tablas
-3. Si `persona` está vacía → inserta datos de prueba (1 médico, 5 pacientes, 10 citas, horarios del médico)
-4. Si ya hay datos → no hace nada
-Para resetear la BD: borrar `sisgeho.db` de la raíz y reiniciar la app.
+La app crea y puebla las bases de datos automáticamente al iniciar (`HopecareApp.start()`):
+1. Para cada módulo (Auth, Clinica, Citas, Facturacion, Dashboard): verifica si la tabla de control existe
+2. Si no existe → ejecuta su schema correspondiente
+3. Si las tablas Auth o Clinica están vacías → inserta datos de prueba (3 roles, 3 usuarios, 2 médicos con horarios, 1 paciente)
+4. Si el Dashboard está vacío → lo puebla desde Clinica + Citas
+Para resetear: borrar los 5 archivos `.db` de la raíz y reiniciar.
 
-## Usuario de Prueba
-| Usuario | Contraseña | Descripción |
-|---------|------------|-------------|
-| amedico | medico123 | Médico de prueba (asociado a la persona del primer médico) |
+## Usuarios de Prueba
+| Usuario | Contraseña | Rol | Persona asociada |
+|---------|------------|-----|------------------|
+| admin | admin123 | ADMIN | Admin Sistema |
+| recep | recep123 | RECEPCIONISTA | Recep Sistema |
+| medico | medico123 | MEDICO | Carlos López (id_medico=2, Medicina General) |
 
 ## Comandos Útiles
 ```bash
@@ -205,23 +226,22 @@ $mvn = "$env:USERPROFILE\.m2\wrapper\dists\apache-maven-3.9.12-bin\5nmfsn99br87k
 - Paquetes model abiertos a `javafx.base`: `citas_consultas.model`, `pacientes_medicos.model`
 
 ## Pendientes Conocidos
-- Login con roles (actualmente un solo médico)
-- Filtrar citas por médico logueado (actualmente muestra todas)
-- Pruebas unitarias JUnit 5
+- Pruebas unitarias adicionales
 - Reportes (JasperReports)
 - JAR ejecutable con Maven Assembly Plugin
+- Permitir que MEDICO cree citas (actualmente oculto el botón "Nueva Cita")
 
 ## Últimos Cambios
-- Rama `modulo-citasMedicas` creada desde `miguel/modulo-facturas`
-- Eliminados módulos completos: facturacion, dashboard, medicamentos_lab, test, Swing
-- Schema simplificado a 9 tablas (sin rol, sin facturado, sin receta/detalle_receta)
-- Login sin roles, credenciales fijas para un médico
-- Navegación con solo 2 tabs: Agendar Cita y Registrar Consulta
-- Diálogo "Nueva Cita" con 900px de ancho, buscador de pacientes con "Registrar Paciente", filtro especialidad + buscador médicos con "Registrar Médico"
-- Botón "Cerrar Sesión" en verde teal en el header
+- Sistema multi-rol (ADMIN, RECEPCIONISTA, MEDICO, PACIENTE) con permisos por UI
+- 5 bases de datos separadas (auth, clinica, citas, facturacion, dashboard)
+- Usuario `medico/medico123` asociado a un médico real (Carlos López, id_medico=2) con horarios L-D
+- Botón "Mi Perfil" para médicos con solo nombre editable vía `MedicoFormController.setProfileMode(true)`
+- Dashboard funcional con métricas en tiempo real vía EventBus
+- Facturación integrada
+- 27 tests unitarios (FlujoCompleto, FlujoMedico, PersistenciaIntegridad, ValidacionLogica)
 
 ---
 
 ## Párrafo Didáctico — El Sistema Explicado entre Compas
 
-Mira, el sistema es más sencillo de lo que parece. Todo arranca en `HopecareApp.java`, que es como el botón de encendido: prende la base de datos (si no existe, la crea solita con el `sisgeho_schema.sql` y mete datos de prueba), y luego abre la ventana de login. Ahí escribes `amedico` / `medico123` y entras. Una vez dentro, el `MainController` te muestra el panel principal con dos pestañas: "Agendar Cita" y "Registrar Consulta". La magia está en cómo separamos las cosas: las pantallas (los controladores JavaFX como `CitasController` y `ConsultaController`) solo se encargan de mostrar botones, tablas y formularios, pero no tienen lógica pesada. Esa lógica vive en los **Presenters** (`CitaPresenter` y `ConsultaPresenter`), que son como los gerentes: ellos deciden qué hacer cuando clicks "Reservar" o "Guardar Consulta". ¿Cómo se comunican? A través de interfaces: `ICitaView` e `IConsultaView`, que son como contratos que dicen "el Presenter puede pedirle a la Vista que muestre esto o aquello, pero no sabe ni le importa si es JavaFX, Swing o lo que sea". Los datos los guardan los **DAOs** (`CitaDAO`, `ConsultaDAO`, `MedicoDAO`, `PacienteDAO`, etc.), que son los que realmente hablan con SQLite. Cada DAO recibe una conexión, hace sus consultas SQL y devuelve modelos como `Cita`, `Medico` o `Paciente`. Y ojo al detalle: cuando registras un médico desde el diálogo, `MedicoDAO.insertarMedico()` hace una transacción que crea primero la persona y luego el médico, todo en una sola operación atómica —si falla algo, no se queda a medias. Lo mismo con las consultas: `ConsultaDAO.insertarConsultaYActualizarEstado()` mete la consulta y cambia el estado de la cita a "ATENDIDA" en un solo bloque, con commit y rollback explícito. En resumen: la app es un flujo **login → ver citas → agendar nueva (con registro rápido de paciente/médico) → atender cita → registrar consulta**, todo con una base de datos chiquita de 9 tablas bien relacionadas.
+Mira, el sistema es más sencillo de lo que parece. Todo arranca en `HopecareApp.java`, que es como el botón de encendido: prende las bases de datos (si no existen, las crea solitas con sus schemas y mete datos de prueba), y luego abre la ventana de login. Ahí escribes `medico` / `medico123` y entras como médico, o `admin/admin123` como administrador. Una vez dentro, el `MainController` te muestra el panel principal con dos pestañas: "Agendar Cita" y "Registrar Consulta". La magia está en cómo separamos las cosas: las pantallas (los controladores JavaFX como `CitasController` y `ConsultaController`) solo se encargan de mostrar botones, tablas y formularios, pero no tienen lógica pesada. Esa lógica vive en los **Presenters** (`CitaPresenter` y `ConsultaPresenter`), que son como los gerentes: ellos deciden qué hacer cuando clicks "Reservar" o "Guardar Consulta". ¿Cómo se comunican? A través de interfaces: `ICitaView` e `IConsultaView`, que son como contratos que dicen "el Presenter puede pedirle a la Vista que muestre esto o aquello, pero no sabe ni le importa si es JavaFX, Swing o lo que sea". Los datos los guardan los **DAOs** (`CitaDAO`, `ConsultaDAO`, `MedicoDAO`, `PacienteDAO`, etc.), que son los que realmente hablan con SQLite. Cada DAO recibe una conexión, hace sus consultas SQL y devuelve modelos como `Cita`, `Medico` o `Paciente`. Y ojo al detalle: cuando registras un médico desde el diálogo, `MedicoDAO.insertarMedico()` hace una transacción que crea primero la persona y luego el médico, todo en una sola operación atómica —si falla algo, no se queda a medias. Lo mismo con las consultas: `ConsultaDAO.insertarConsultaYActualizarEstado()` mete la consulta y cambia el estado de la cita a "ATENDIDA" en un solo bloque, con commit y rollback explícito. En resumen: la app es un flujo **login → ver citas → agendar nueva (con registro rápido de paciente/médico) → atender cita → registrar consulta**, todo con una base de datos chiquita de 9 tablas bien relacionadas.

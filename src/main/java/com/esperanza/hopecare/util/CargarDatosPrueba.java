@@ -30,7 +30,7 @@ public class CargarDatosPrueba {
                 // 3. Insertar Personas para Usuarios (Clinica)
                 int pAdmin = insertarPersona(connClinica, "Admin", "Sistema", "00000001", null, null, "admin@hopecare.com", null, null);
                 int pRecep = insertarPersona(connClinica, "Recep", "Sistema", "00000002", null, null, "recep@hopecare.com", null, null);
-                int pMed = insertarPersona(connClinica, "Medico", "Sistema", "00000003", null, null, "medico@hopecare.com", null, null);
+                int pMed = insertarPersona(connClinica, "Carlos", "López", "00000003", "1985-03-15", "5551234567", "carlos.lopez@hopecare.com", "Av. Siempre Viva 742", "M");
 
                 // 4. Insertar Usuarios (Auth)
                 insertarUsuario(connAuth, "admin", "admin123", 1, pAdmin, "ADMIN");
@@ -45,7 +45,11 @@ public class CargarDatosPrueba {
                 int pm1 = insertarPersona(connClinica, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
                 int idMed1 = insertarMedico(connClinica, pm1, 1, "RM12345", 50000.0);
 
-                // 7. Insertar Horarios para el médico (Citas)
+                // 7. Crear médico real para el usuario 'medico/medico123' (id_persona=3)
+                //    para que pueda tener citas asignadas y hacer consultas
+                int idMed2 = insertarMedico(connClinica, pMed, 1, "RM99998", 55000.0);
+
+                // 8. Insertar Horarios para el médico 1 - Ana Martínez (Citas)
                 insertarHorario(connCitas, idMed1, 1, "08:00", "12:00", 30); // Lunes
                 insertarHorario(connCitas, idMed1, 2, "08:00", "12:00", 30); // Martes
                 insertarHorario(connCitas, idMed1, 3, "08:00", "12:00", 30); // Miércoles
@@ -53,6 +57,15 @@ public class CargarDatosPrueba {
                 insertarHorario(connCitas, idMed1, 5, "08:00", "12:00", 30); // Viernes
                 insertarHorario(connCitas, idMed1, 6, "08:00", "12:00", 30); // Sábado
                 insertarHorario(connCitas, idMed1, 7, "08:00", "12:00", 30); // Domingo
+
+                // 9. Insertar Horarios para el médico 2 - Medico Sistema (usuario medico/medico123)
+                insertarHorario(connCitas, idMed2, 1, "08:00", "12:00", 30);
+                insertarHorario(connCitas, idMed2, 2, "08:00", "12:00", 30);
+                insertarHorario(connCitas, idMed2, 3, "08:00", "12:00", 30);
+                insertarHorario(connCitas, idMed2, 4, "08:00", "12:00", 30);
+                insertarHorario(connCitas, idMed2, 5, "08:00", "12:00", 30);
+                insertarHorario(connCitas, idMed2, 6, "08:00", "12:00", 30);
+                insertarHorario(connCitas, idMed2, 7, "08:00", "12:00", 30);
 
                 connClinica.commit();
                 connAuth.commit();
