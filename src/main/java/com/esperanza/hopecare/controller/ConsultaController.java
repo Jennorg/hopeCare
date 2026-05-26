@@ -1,6 +1,9 @@
 package com.esperanza.hopecare.controller;
 
 import com.esperanza.hopecare.util.SesionManager;
+import com.esperanza.hopecare.util.EventBus;
+import com.esperanza.hopecare.util.DatosFacturablesActualizadosEvent;
+import com.esperanza.hopecare.util.NuevaCitaEvent;
 import com.esperanza.hopecare.dao.CitaDAO;
 import com.esperanza.hopecare.dao.ConsultaDAO;
 import com.esperanza.hopecare.model.Cita;
@@ -66,6 +69,8 @@ public class ConsultaController implements IConsultaView {
         cargarHistorial();
         cargarCitasProgramadas();
         cargarFiltros();
+
+        EventBus.getInstance().register(NuevaCitaEvent.class, e -> cargarCitasProgramadas());
     }
 
     private void configurarTablaHistorial() {
@@ -256,10 +261,15 @@ public class ConsultaController implements IConsultaView {
         txtTratamiento.setDisable(true);
 
         cbCitas.setOnAction(e -> {
-            boolean seleccionada = cbCitas.getValue() != null;
-            txtSintomas.setDisable(!seleccionada);
-            txtDiagnostico.setDisable(!seleccionada);
-            txtTratamiento.setDisable(!seleccionada);
+            Cita seleccionada = cbCitas.getValue();
+            boolean hay = seleccionada != null;
+            txtSintomas.setDisable(!hay);
+            txtDiagnostico.setDisable(!hay);
+            txtTratamiento.setDisable(!hay);
+            if (hay) {
+                double precio = new MedicoDAO().obtenerPrecioConsulta(seleccionada.getIdMedico());
+                txtPrecio.setText(String.format("%.0f", precio));
+            }
         });
 
         GridPane grid = new GridPane();
@@ -296,11 +306,12 @@ public class ConsultaController implements IConsultaView {
                     mostrarError("Síntomas y diagnóstico son obligatorios.");
                     return null;
                 }
-                double precio = precioMedico;
+                double precio = Double.parseDouble(txtPrecio.getText());
                 Consulta consulta = new Consulta(seleccionada.getIdCita(), diagnostico, sintomas, tratamiento, precio);
                 consulta.setFechaConsulta(LocalDateTime.now());
                 int idConsulta = consultaDAO.insertarConsultaYActualizarEstado(consulta);
                 if (idConsulta > 0) {
+                    EventBus.getInstance().post(new DatosFacturablesActualizadosEvent());
                     mostrarExito("Consulta registrada correctamente.");
                     dialog.close();
                     cargarHistorial();

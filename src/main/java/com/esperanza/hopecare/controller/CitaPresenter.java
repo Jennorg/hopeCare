@@ -1,6 +1,5 @@
 package com.esperanza.hopecare.controller;
 
-import com.esperanza.hopecare.dao.ConsultaDAO;
 import com.esperanza.hopecare.dao.HorarioAtencionDAO;
 import com.esperanza.hopecare.dao.CitaDAO;
 import com.esperanza.hopecare.model.Cita;
@@ -99,9 +98,6 @@ public class CitaPresenter {
         Cita nuevaCita = new Cita(idPaciente, idMedico, fecha.atTime(hora), "PROGRAMADA");
         boolean exito = citaDAO.insertarCita(nuevaCita);
         if (exito) {
-            if (precio > 0) {
-                new ConsultaDAO().insertarSiNoExiste(nuevaCita.getIdCita(), precio);
-            }
             EventBus.getInstance().post(new NuevaCitaEvent(nuevaCita.getIdCita(), nuevaCita.getFechaHora()));
             view.mostrarMensajeExito("Cita reservada exitosamente.");
             view.limpiarCampos();

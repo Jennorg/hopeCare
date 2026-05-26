@@ -13,7 +13,7 @@ public class ConsultaDAO {
         PreparedStatement pstmtInsert = null;
         PreparedStatement pstmtUpdate = null;
         try {
-            conn = DatabaseConnection.getCitasConnection();
+            conn = DatabaseConnection.getCitasUnifiedConnection();
             conn.setAutoCommit(false);
 
             pstmtInsert = conn.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS);
@@ -22,7 +22,7 @@ public class ConsultaDAO {
             pstmtInsert.setString(3, consulta.getSintomas());
             pstmtInsert.setString(4, consulta.getTratamiento());
             pstmtInsert.setString(5, consulta.getNotasMedicas());
-            pstmtInsert.setTimestamp(6, Timestamp.valueOf(consulta.getFechaConsulta()));
+            pstmtInsert.setString(6, consulta.getFechaConsulta().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             pstmtInsert.setDouble(7, consulta.getPrecio());
             int affectedInsert = pstmtInsert.executeUpdate();
 
@@ -59,7 +59,7 @@ public class ConsultaDAO {
 
     public Consulta obtenerConsultaPorId(int idConsulta) {
         String sql = "SELECT id_consulta, id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio FROM consulta WHERE id_consulta = ?";
-        try (Connection conn = DatabaseConnection.getCitasConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idConsulta);
             ResultSet rs = ps.executeQuery();
@@ -88,7 +88,7 @@ public class ConsultaDAO {
 
     public boolean actualizarConsulta(Consulta consulta) {
         String sql = "UPDATE consulta SET diagnostico = ?, sintomas = ?, tratamiento = ?, notas_medicas = ?, precio = ? WHERE id_consulta = ?";
-        try (Connection conn = DatabaseConnection.getCitasConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, consulta.getDiagnostico());
             ps.setString(2, consulta.getSintomas());
@@ -104,7 +104,7 @@ public class ConsultaDAO {
     public void insertarSiNoExiste(int idCita, double precio) {
         String sqlCheck = "SELECT COUNT(*) FROM consulta WHERE id_cita = ?";
         String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, '', '', '', '', datetime('now', 'localtime'), ?)";
-        try (Connection conn = DatabaseConnection.getCitasConnection()) {
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(sqlCheck)) {
                 ps.setInt(1, idCita);
                 ResultSet rs = ps.executeQuery();

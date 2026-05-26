@@ -2,6 +2,7 @@ package com.esperanza.hopecare.controller;
 import com.esperanza.hopecare.util.DatabaseConnection;
 import com.esperanza.hopecare.util.EventBus;
 import com.esperanza.hopecare.util.NuevaConsultaEvent;
+import com.esperanza.hopecare.util.DatosFacturablesActualizadosEvent;
 
 import com.esperanza.hopecare.dao.CitaDAO;
 import com.esperanza.hopecare.dao.ConsultaDAO;
@@ -93,6 +94,7 @@ public class ConsultaPresenter {
         if (idConsulta > 0) {
             idConsultaActual = idConsulta;
             EventBus.getInstance().post(new NuevaConsultaEvent(idConsulta, idCita));
+            EventBus.getInstance().post(new DatosFacturablesActualizadosEvent());
             view.actualizarEstadoAcciones(true);
             view.mostrarExito("Consulta registrada correctamente.");
             cargarCitasPendientes();

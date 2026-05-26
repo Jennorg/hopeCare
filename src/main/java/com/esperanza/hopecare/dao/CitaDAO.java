@@ -178,7 +178,7 @@ public class CitaDAO {
         String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
                    + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, pp.documento_identidad AS p_documento, "
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
-                   + "COALESCE(cs.precio, 0.0) AS precio "
+                   + "COALESCE(cs.precio, me.precio_consulta, 0.0) AS precio "
                    + "FROM cita c "
                    + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
                    + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
@@ -251,7 +251,7 @@ public class CitaDAO {
         String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
                    + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, pp.documento_identidad AS p_documento, "
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
-                   + "COALESCE(cs.precio, 0.0) AS precio "
+                   + "COALESCE(cs.precio, me.precio_consulta, 0.0) AS precio "
                    + "FROM cita c "
                    + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
                    + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
@@ -292,7 +292,7 @@ public class CitaDAO {
         String sql = "SELECT c.id_cita, c.id_paciente, c.id_medico, c.fecha_hora, c.estado, c.motivo, c.creada_por, c.fecha_creacion, "
                    + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, pp.documento_identidad AS p_documento, "
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
-                   + "COALESCE(cs.precio, 0.0) AS precio "
+                   + "COALESCE(cs.precio, me.precio_consulta, 0.0) AS precio "
                    + "FROM cita c "
                    + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
                    + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
@@ -442,7 +442,7 @@ public class CitaDAO {
                    + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
                    + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
                    + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
-                   + "WHERE c.estado = ?";
+                    + "WHERE c.estado = ? AND c.id_cita NOT IN (SELECT id_cita FROM consulta)";
         try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, estado);
