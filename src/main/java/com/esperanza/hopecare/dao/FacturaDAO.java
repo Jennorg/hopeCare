@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class FacturaDAO {
     public int insertarFactura(int idPaciente, double subtotal, double impuesto, double total, String estadoPago, Connection conn) throws SQLException {
-        String sql = "INSERT INTO factura (id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago) VALUES (?, datetime('now', 'localtime'), ?, ?, ?, ?)";
+        String sql = "INSERT INTO factura (id_paciente, fecha_emision, subtotal, impuesto, total, estado_pago) VALUES (?, NOW(), ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, idPaciente);
             ps.setDouble(2, subtotal);
@@ -34,8 +34,8 @@ public class FacturaDAO {
         String sql = "SELECT f.id_factura, f.fecha_emision, f.subtotal, f.impuesto, f.total, f.estado_pago, "
                    + "per.nombre, per.apellido "
                    + "FROM factura f "
-                   + "JOIN clinica.paciente p ON f.id_paciente = p.id_paciente "
-                   + "JOIN clinica.persona per ON p.id_persona = per.id_persona "
+                   + "JOIN hopecare_clinica.paciente p ON f.id_paciente = p.id_paciente "
+                   + "JOIN hopecare_clinica.persona per ON p.id_persona = per.id_persona "
                    + "ORDER BY f.fecha_emision DESC";
         try (Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -76,8 +76,8 @@ public class FacturaDAO {
         String sql = "SELECT f.id_factura, f.fecha_emision, f.subtotal, f.impuesto, f.total, f.estado_pago, "
                    + "per.nombre, per.apellido "
                    + "FROM factura f "
-                   + "JOIN clinica.paciente p ON f.id_paciente = p.id_paciente "
-                   + "JOIN clinica.persona per ON p.id_persona = per.id_persona "
+                   + "JOIN hopecare_clinica.paciente p ON f.id_paciente = p.id_paciente "
+                   + "JOIN hopecare_clinica.persona per ON p.id_persona = per.id_persona "
                    + "WHERE f.id_paciente = ? "
                    + "ORDER BY f.fecha_emision DESC";
         try (Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
@@ -109,7 +109,7 @@ public class FacturaDAO {
             conn.setAutoCommit(false);
 
             try (PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE citas.consulta SET facturado = 0 WHERE id_consulta IN ("
+                    "UPDATE hopecare_citas.consulta SET facturado = 0 WHERE id_consulta IN ("
                     + "SELECT id_referencia FROM detalle_factura WHERE id_factura = ? AND tipo_referencia = 'CONSULTA')")) {
                 ps.setInt(1, idFactura);
                 ps.executeUpdate();
@@ -137,7 +137,7 @@ public class FacturaDAO {
 
     public Set<Integer> obtenerIdsPacientesConPendientes() {
         Set<Integer> ids = new HashSet<>();
-        String sql = "SELECT DISTINCT ci.id_paciente FROM citas.consulta c JOIN citas.cita ci ON c.id_cita = ci.id_cita WHERE ci.estado = 'ATENDIDA' AND c.facturado = 0";
+        String sql = "SELECT DISTINCT ci.id_paciente FROM hopecare_citas.consulta c JOIN hopecare_citas.cita ci ON c.id_cita = ci.id_cita WHERE ci.estado = 'ATENDIDA' AND c.facturado = 0";
         try (Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();

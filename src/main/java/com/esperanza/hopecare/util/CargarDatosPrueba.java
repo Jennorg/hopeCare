@@ -87,7 +87,7 @@ public class CargarDatosPrueba {
     }
 
     private static void insertarRol(Connection conn, String nombre) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO rol (nombre_rol) VALUES (?)";
+        String sql = "INSERT IGNORE INTO rol (nombre_rol) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ps.executeUpdate();
@@ -95,7 +95,7 @@ public class CargarDatosPrueba {
     }
 
     private static void insertarUsuario(Connection conn, String user, String pass, int idRol, int idPersona, String nombreRol) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user);
             ps.setString(2, pass);
@@ -108,7 +108,7 @@ public class CargarDatosPrueba {
     }
 
     private static void insertarEspecialidad(Connection conn, String nombre) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
+        String sql = "INSERT IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ps.executeUpdate();

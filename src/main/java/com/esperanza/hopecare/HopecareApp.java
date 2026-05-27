@@ -50,9 +50,11 @@ public class HopecareApp extends Application {
     private void inicializarBasesDatos() {
         // 1. Inicializar Clínica (Base para todos)
         inicializarModulo("Clínica", "/clinica_schema.sql", "persona", DatabaseConnection::getClinicaConnection);
+        migrarClinicaDatabase();
         
         // 2. Inicializar Autenticación
         inicializarModulo("Autenticación", "/auth_schema.sql", "usuario", DatabaseConnection::getAuthConnection);
+        migrarAuthDatabase();
         
         // 3. Inicializar Citas
         inicializarModulo("Citas", "/citas_schema.sql", "cita", DatabaseConnection::getCitasConnection);
@@ -69,50 +71,94 @@ public class HopecareApp extends Application {
         verificarYCargarDatosPrueba();
     }
 
+    private void migrarClinicaDatabase() {
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            boolean tieneFechaContratacion = false;
+            try (ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM medico LIKE 'fecha_contratacion'")) {
+                if (rs.next()) tieneFechaContratacion = true;
+            }
+            if (!tieneFechaContratacion) {
+                System.out.println("Migrando tabla medico: agregando columna fecha_contratacion...");
+                stmt.execute("ALTER TABLE medico ADD COLUMN fecha_contratacion DATE");
+            }
+        } catch (Exception e) {
+            System.err.println("Error durante la migración de Clínica: " + e.getMessage());
+        }
+    }
+
+    private void migrarAuthDatabase() {
+        try (Connection conn = DatabaseConnection.getAuthConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            boolean tieneContrasena = false;
+            boolean tieneRolStr = false;
+            
+            try (ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM usuario")) {
+                while (rs.next()) {
+                    String col = rs.getString("Field");
+                    if ("contrasena".equalsIgnoreCase(col)) tieneContrasena = true;
+                    if ("rol".equalsIgnoreCase(col)) tieneRolStr = true;
+                }
+            }
+            
+            if (!tieneContrasena) {
+                System.out.println("Migrando tabla usuario: agregando columna contrasena...");
+                stmt.execute("ALTER TABLE usuario ADD COLUMN contrasena VARCHAR(255) AFTER nombre_usuario");
+            }
+            if (!tieneRolStr) {
+                System.out.println("Migrando tabla usuario: agregando columna rol...");
+                stmt.execute("ALTER TABLE usuario ADD COLUMN rol VARCHAR(50) NOT NULL DEFAULT 'MEDICO'");
+                stmt.execute("UPDATE usuario SET rol = 'ADMIN' WHERE nombre_usuario = 'admin'");
+            }
+        } catch (Exception e) {
+            System.err.println("Error durante la migración de Autenticación: " + e.getMessage());
+        }
+    }
+
     private void migrarCitasDatabase() {
         try (Connection conn = DatabaseConnection.getCitasConnection();
              Statement stmt = conn.createStatement()) {
             
             // Asegurar que todas las tablas existan (por si el script inicial se saltó)
             stmt.execute("CREATE TABLE IF NOT EXISTS horario_atencion (" +
-                         "id_horario INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "id_medico INTEGER NOT NULL, " +
-                         "dia_semana INTEGER NOT NULL, " +
-                         "hora_inicio TEXT NOT NULL, " +
-                         "hora_fin TEXT NOT NULL, " +
-                         "activo INTEGER DEFAULT 1)");
+                         "id_horario INT AUTO_INCREMENT PRIMARY KEY, " +
+                         "id_medico INT NOT NULL, " +
+                         "dia_semana INT NOT NULL, " +
+                         "hora_inicio TIME NOT NULL, " +
+                         "hora_fin TIME NOT NULL, " +
+                         "intervalo_minutos INT DEFAULT 30, " +
+                         "activo TINYINT(1) DEFAULT 1) ENGINE=InnoDB");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS cita (" +
-                         "id_cita INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "id_paciente INTEGER NOT NULL, " +
-                         "id_medico INTEGER NOT NULL, " +
+                         "id_cita INT AUTO_INCREMENT PRIMARY KEY, " +
+                         "id_paciente INT NOT NULL, " +
+                         "id_medico INT NOT NULL, " +
                          "fecha_hora DATETIME NOT NULL, " +
-                         "estado TEXT NOT NULL, " +
+                         "estado VARCHAR(20) NOT NULL, " +
                          "motivo TEXT, " +
-                         "creada_por INTEGER NOT NULL, " +
-                         "fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP)");
+                         "creada_por INT NOT NULL, " +
+                         "fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS consulta (" +
-                         "id_consulta INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "id_cita INTEGER NOT NULL UNIQUE, " +
+                         "id_consulta INT AUTO_INCREMENT PRIMARY KEY, " +
+                         "id_cita INT NOT NULL UNIQUE, " +
                          "diagnostico TEXT, sintomas TEXT, tratamiento TEXT, notas_medicas TEXT, " +
                          "fecha_consulta DATETIME DEFAULT CURRENT_TIMESTAMP, " +
-                         "precio REAL NOT NULL DEFAULT 0.0, facturado INTEGER DEFAULT 0)");
+                         "precio DECIMAL(10,2) NOT NULL DEFAULT 0.0, facturado TINYINT(1) DEFAULT 0) ENGINE=InnoDB");
 
             // Verificar y agregar columna intervalo_minutos
             boolean tieneIntervalo = false;
-            try (ResultSet rs = stmt.executeQuery("PRAGMA table_info(horario_atencion)")) {
-                while (rs.next()) {
-                    if ("intervalo_minutos".equalsIgnoreCase(rs.getString("name"))) {
-                        tieneIntervalo = true;
-                        break;
-                    }
+            try (ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM horario_atencion LIKE 'intervalo_minutos'")) {
+                if (rs.next()) {
+                    tieneIntervalo = true;
                 }
             }
             
             if (!tieneIntervalo) {
                 System.out.println("Migrando tabla horario_atencion: agregando columna intervalo_minutos...");
-                stmt.execute("ALTER TABLE horario_atencion ADD COLUMN intervalo_minutos INTEGER DEFAULT 30");
+                stmt.execute("ALTER TABLE horario_atencion ADD COLUMN intervalo_minutos INT DEFAULT 30");
             }
 
             // Asegurar que existan horarios si la tabla está vacía
@@ -139,8 +185,8 @@ public class HopecareApp extends Application {
                                     if (rsC.next() && rsC.getInt(1) == 0) {
                                         psIns.setInt(1, idMed);
                                         psIns.setInt(2, dia);
-                                        psIns.setString(3, "08:00");
-                                        psIns.setString(4, "12:00");
+                                        psIns.setString(3, "08:00:00");
+                                        psIns.setString(4, "12:00:00");
                                         psIns.setInt(5, 30);
                                         psIns.addBatch();
                                     }
@@ -210,7 +256,7 @@ public class HopecareApp extends Application {
             if (necesitaPoblar) {
                 conn.setAutoCommit(false);
                 try {
-                    stmt.execute("PRAGMA foreign_keys = OFF");
+                    stmt.execute("SET FOREIGN_KEY_CHECKS = 0");
                     stmt.execute("DELETE FROM detalle_factura");
                     stmt.execute("DELETE FROM factura");
                     stmt.execute("DELETE FROM consulta");
@@ -222,8 +268,7 @@ public class HopecareApp extends Application {
                     stmt.execute("DELETE FROM persona");
                     stmt.execute("DELETE FROM especialidad");
                     stmt.execute("DELETE FROM rol");
-                    stmt.execute("DELETE FROM sqlite_sequence");
-                    stmt.execute("PRAGMA foreign_keys = ON");
+                    stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
                     insertarDatosDashboard(conn);
                     conn.commit();
                 } catch (Exception e) {
@@ -259,25 +304,28 @@ public class HopecareApp extends Application {
         int idMed = insertarPersona(conn, "Ana", "Martínez", "87654321", "678901234", "ana@email.com");
 
         try (Statement stmt = conn.createStatement()) {
-            stmt.execute("INSERT OR IGNORE INTO rol (nombre_rol) VALUES ('ADMIN')");
-            stmt.execute("INSERT OR IGNORE INTO rol (nombre_rol) VALUES ('RECEPCIONISTA')");
-            stmt.execute("INSERT OR IGNORE INTO rol (nombre_rol) VALUES ('MEDICO')");
-            stmt.execute("INSERT OR IGNORE INTO especialidad (nombre_especialidad) VALUES ('Medicina General')");
-            stmt.execute("INSERT INTO usuario (nombre_usuario, contrasena_hash, id_rol, id_persona) " +
-                         "VALUES ('admin', 'admin123', 1, " + idAdmin + ")");
+            stmt.execute("INSERT IGNORE INTO rol (id_rol, nombre_rol) VALUES (1, 'ADMIN')");
+            stmt.execute("INSERT IGNORE INTO rol (id_rol, nombre_rol) VALUES (2, 'RECEPCIONISTA')");
+            stmt.execute("INSERT IGNORE INTO rol (id_rol, nombre_rol) VALUES (3, 'MEDICO')");
+            stmt.execute("INSERT IGNORE INTO especialidad (id_especialidad, nombre_especialidad) VALUES (1, 'Medicina General')");
+            
+            String hashedAdmin = com.esperanza.hopecare.util.Hasher.hash("admin123");
+            stmt.execute("INSERT INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol) " +
+                         "VALUES ('admin', 'admin123', '" + hashedAdmin + "', 1, " + idAdmin + ", 'ADMIN')");
+            
             stmt.execute("INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) " +
                          "VALUES (" + idPac + ", 'HC001', 'Ninguna', 'O+', 'María Pérez - 987654321')");
             stmt.execute("INSERT INTO medico (id_persona, id_especialidad, registro_medico, activo) " +
                          "VALUES (" + idMed + ", 1, 'RM12345', 1)");
             stmt.execute("INSERT INTO cita (id_paciente, id_medico, fecha_hora, estado, motivo, creada_por) " +
-                         "VALUES (1, 1, datetime('now', '+1 hour'), 'PROGRAMADA', 'Control general', 1)");
+                         "VALUES (1, 1, DATE_ADD(NOW(), INTERVAL 1 HOUR), 'PROGRAMADA', 'Control general', 1)");
         }
     }
 
     private boolean tablaExiste(Statement stmt, String nombre) throws Exception {
         try (ResultSet rs = stmt.executeQuery(
-                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + nombre + "'")) {
-            return rs.next() && rs.getInt(1) > 0;
+                "SHOW TABLES LIKE '" + nombre + "'")) {
+            return rs.next();
         }
     }
 

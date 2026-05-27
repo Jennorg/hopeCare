@@ -54,7 +54,7 @@ public class DashboardDAO {
     }
 
     private int obtenerCitasDelDia(Connection conn) {
-        String sql = "SELECT COUNT(*) FROM cita WHERE DATE(fecha_hora) = DATE('now')";
+        String sql = "SELECT COUNT(*) FROM cita WHERE DATE(fecha_hora) = CURDATE()";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) return rs.getInt(1);
@@ -65,7 +65,7 @@ public class DashboardDAO {
     private int obtenerPacientesAtendidosHoy(Connection conn) {
         String sql = "SELECT COUNT(DISTINCT c.id_paciente) FROM consulta co " +
                      "JOIN cita c ON co.id_cita = c.id_cita " +
-                     "WHERE DATE(co.fecha_consulta) = DATE('now')";
+                     "WHERE DATE(co.fecha_consulta) = CURDATE()";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) return rs.getInt(1);
@@ -75,7 +75,7 @@ public class DashboardDAO {
 
     private double obtenerIngresosDelMes(Connection conn) {
         String sql = "SELECT COALESCE(SUM(total), 0) FROM factura " +
-                     "WHERE strftime('%Y-%m', fecha_emision) = strftime('%Y-%m', 'now') " +
+                     "WHERE DATE_FORMAT(fecha_emision, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m') " +
                      "AND estado_pago = 'PAGADO'";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -87,7 +87,7 @@ public class DashboardDAO {
     private double obtenerPorcentajeAsistencia(Connection conn) {
         String sql = "SELECT COUNT(*) as total, " +
                      "COALESCE(SUM(CASE WHEN estado = 'ATENDIDA' THEN 1 ELSE 0 END), 0) as atendidas " +
-                     "FROM cita WHERE strftime('%Y-%m', fecha_hora) = strftime('%Y-%m', 'now')";
+                     "FROM cita WHERE DATE_FORMAT(fecha_hora, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
@@ -102,7 +102,7 @@ public class DashboardDAO {
     private Map<String, Integer> obtenerConteoPorEstado(Connection conn) {
         Map<String, Integer> mapa = new LinkedHashMap<>();
         String sql = "SELECT estado, COUNT(*) as cantidad FROM cita " +
-                     "WHERE strftime('%Y-%m', fecha_hora) = strftime('%Y-%m', 'now') " +
+                     "WHERE DATE_FORMAT(fecha_hora, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m') " +
                      "GROUP BY estado ORDER BY estado";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -143,7 +143,7 @@ public class DashboardDAO {
     private double obtenerIngresosPorTipo(Connection conn, String tipoReferencia) {
         String sql = "SELECT COALESCE(SUM(df.monto), 0) FROM detalle_factura df " +
                      "JOIN factura f ON df.id_factura = f.id_factura " +
-                     "WHERE strftime('%Y-%m', f.fecha_emision) = strftime('%Y-%m', 'now') " +
+                     "WHERE DATE_FORMAT(f.fecha_emision, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m') " +
                      "AND f.estado_pago = 'PAGADO' AND df.tipo_referencia = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipoReferencia);
@@ -157,19 +157,19 @@ public class DashboardDAO {
     private List<RegistroItem> obtenerRegistrosRecientes(Connection conn) {
         List<RegistroItem> lista = new ArrayList<>();
         String sql = "SELECT fecha, descripcion, tipo, id FROM (" +
-                     "SELECT c.fecha_hora as fecha, 'Nueva cita: ' || p.nombre || ' ' || p.apellido || ' con ' || m2.nombre || ' ' || m2.apellido as descripcion, 'CITA' as tipo, c.id_cita as id FROM cita c " +
+                     "SELECT c.fecha_hora as fecha, CONCAT('Nueva cita: ', p.nombre, ' ', p.apellido, ' con ', m2.nombre, ' ', m2.apellido) as descripcion, 'CITA' as tipo, c.id_cita as id FROM cita c " +
                      "JOIN paciente pac ON c.id_paciente = pac.id_paciente " +
                      "JOIN persona p ON pac.id_persona = p.id_persona " +
                      "JOIN medico m ON c.id_medico = m.id_medico " +
                      "JOIN persona m2 ON m.id_persona = m2.id_persona " +
                      "UNION ALL " +
-                     "SELECT co.fecha_consulta, 'Consulta: ' || p.nombre || ' ' || p.apellido, 'CONSULTA' as tipo, co.id_consulta FROM consulta co " +
+                     "SELECT co.fecha_consulta, CONCAT('Consulta: ', p.nombre, ' ', p.apellido), 'CONSULTA' as tipo, co.id_consulta FROM consulta co " +
                      "JOIN cita c ON co.id_cita = c.id_cita " +
                      "JOIN paciente pac ON c.id_paciente = pac.id_paciente " +
                      "JOIN persona p ON pac.id_persona = p.id_persona " +
                      "UNION ALL " +
-                     "SELECT f.fecha_emision, 'Factura #' || f.id_factura || ': $' || f.total || ' (' || f.estado_pago || ')', 'FACTURA' as tipo, f.id_factura FROM factura f " +
-                     ") ORDER BY fecha DESC LIMIT 10";
+                     "SELECT f.fecha_emision, CONCAT('Factura #', f.id_factura, ': $', f.total, ' (', f.estado_pago, ')'), 'FACTURA' as tipo, f.id_factura FROM factura f " +
+                     ") AS t ORDER BY fecha DESC LIMIT 10";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
@@ -206,7 +206,7 @@ public class DashboardDAO {
                      "JOIN persona p ON pac.id_persona = p.id_persona " +
                      "JOIN medico m ON c.id_medico = m.id_medico " +
                      "JOIN persona m2 ON m.id_persona = m2.id_persona " +
-                     "WHERE DATE(c.fecha_hora) = DATE('now') ORDER BY c.fecha_hora";
+                     "WHERE DATE(c.fecha_hora) = CURDATE() ORDER BY c.fecha_hora";
         try (Connection conn = DatabaseConnection.getDashboardConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -230,7 +230,7 @@ public class DashboardDAO {
                      "JOIN cita c ON co.id_cita = c.id_cita " +
                      "JOIN paciente pac ON c.id_paciente = pac.id_paciente " +
                      "JOIN persona p ON pac.id_persona = p.id_persona " +
-                     "WHERE DATE(co.fecha_consulta) = DATE('now') ORDER BY c.fecha_hora";
+                     "WHERE DATE(co.fecha_consulta) = CURDATE() ORDER BY c.fecha_hora";
         try (Connection conn = DatabaseConnection.getDashboardConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {

@@ -180,10 +180,10 @@ public class CitaDAO {
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
                    + "COALESCE(cs.precio, me.precio_consulta, 0.0) AS precio "
                    + "FROM cita c "
-                   + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
-                   + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
-                   + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
-                   + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
+                   + "JOIN hopecare_clinica.paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN hopecare_clinica.persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN hopecare_clinica.medico me ON c.id_medico = me.id_medico "
+                   + "JOIN hopecare_clinica.persona pm ON me.id_persona = pm.id_persona "
                    + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
                    + "ORDER BY c.fecha_hora DESC";
         try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
@@ -253,10 +253,10 @@ public class CitaDAO {
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
                    + "COALESCE(cs.precio, me.precio_consulta, 0.0) AS precio "
                    + "FROM cita c "
-                   + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
-                   + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
-                   + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
-                   + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
+                   + "JOIN hopecare_clinica.paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN hopecare_clinica.persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN hopecare_clinica.medico me ON c.id_medico = me.id_medico "
+                   + "JOIN hopecare_clinica.persona pm ON me.id_persona = pm.id_persona "
                    + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
                    + "WHERE c.id_medico = ? "
                    + "ORDER BY c.fecha_hora DESC";
@@ -294,10 +294,10 @@ public class CitaDAO {
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido, "
                    + "COALESCE(cs.precio, me.precio_consulta, 0.0) AS precio "
                    + "FROM cita c "
-                   + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
-                   + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
-                   + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
-                   + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
+                   + "JOIN hopecare_clinica.paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN hopecare_clinica.persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN hopecare_clinica.medico me ON c.id_medico = me.id_medico "
+                   + "JOIN hopecare_clinica.persona pm ON me.id_persona = pm.id_persona "
                    + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
                    + "WHERE c.id_paciente = ? "
                    + "ORDER BY c.fecha_hora DESC";
@@ -336,10 +336,10 @@ public class CitaDAO {
                    + "cs.id_consulta, cs.diagnostico, cs.fecha_consulta, cs.precio "
                    + "FROM consulta cs "
                    + "JOIN cita c ON cs.id_cita = c.id_cita "
-                   + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
-                   + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
-                   + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
-                   + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
+                   + "JOIN hopecare_clinica.paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN hopecare_clinica.persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN hopecare_clinica.medico me ON c.id_medico = me.id_medico "
+                   + "JOIN hopecare_clinica.persona pm ON me.id_persona = pm.id_persona "
                    + "ORDER BY cs.fecha_consulta DESC";
         try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -387,10 +387,10 @@ public class CitaDAO {
                    + "cs.id_consulta, cs.diagnostico, cs.fecha_consulta, cs.precio "
                    + "FROM consulta cs "
                    + "JOIN cita c ON cs.id_cita = c.id_cita "
-                   + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
-                   + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
-                   + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
-                   + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
+                   + "JOIN hopecare_clinica.paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN hopecare_clinica.persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN hopecare_clinica.medico me ON c.id_medico = me.id_medico "
+                   + "JOIN hopecare_clinica.persona pm ON me.id_persona = pm.id_persona "
                    + "WHERE c.id_medico = ? "
                    + "ORDER BY cs.fecha_consulta DESC";
         try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
@@ -438,10 +438,10 @@ public class CitaDAO {
                    + "pp.nombre AS p_nombre, pp.apellido AS p_apellido, "
                    + "pm.nombre AS m_nombre, pm.apellido AS m_apellido "
                    + "FROM cita c "
-                   + "JOIN clinica.paciente pa ON c.id_paciente = pa.id_paciente "
-                   + "JOIN clinica.persona pp ON pa.id_persona = pp.id_persona "
-                   + "JOIN clinica.medico me ON c.id_medico = me.id_medico "
-                   + "JOIN clinica.persona pm ON me.id_persona = pm.id_persona "
+                   + "JOIN hopecare_clinica.paciente pa ON c.id_paciente = pa.id_paciente "
+                   + "JOIN hopecare_clinica.persona pp ON pa.id_persona = pp.id_persona "
+                   + "JOIN hopecare_clinica.medico me ON c.id_medico = me.id_medico "
+                   + "JOIN hopecare_clinica.persona pm ON me.id_persona = pm.id_persona "
                     + "WHERE c.estado = ? AND c.id_cita NOT IN (SELECT id_cita FROM consulta)";
         try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

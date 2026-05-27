@@ -46,38 +46,37 @@ public class InicializarBD {
     private static void migrarCitas() throws SQLException {
         try (Connection conn = DatabaseConnection.getCitasConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS horario_atencion (" +
-                         "id_horario INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "id_medico INTEGER NOT NULL, " +
-                         "dia_semana INTEGER NOT NULL, " +
-                         "hora_inicio TEXT NOT NULL, " +
-                         "hora_fin TEXT NOT NULL, " +
-                         "activo INTEGER DEFAULT 1)");
+                         "id_horario INT AUTO_INCREMENT PRIMARY KEY, " +
+                         "id_medico INT NOT NULL, " +
+                         "dia_semana INT NOT NULL, " +
+                         "hora_inicio TIME NOT NULL, " +
+                         "hora_fin TIME NOT NULL, " +
+                         "intervalo_minutos INT DEFAULT 30, " +
+                         "activo TINYINT(1) DEFAULT 1) ENGINE=InnoDB");
             stmt.execute("CREATE TABLE IF NOT EXISTS cita (" +
-                         "id_cita INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "id_paciente INTEGER NOT NULL, " +
-                         "id_medico INTEGER NOT NULL, " +
+                         "id_cita INT AUTO_INCREMENT PRIMARY KEY, " +
+                         "id_paciente INT NOT NULL, " +
+                         "id_medico INT NOT NULL, " +
                          "fecha_hora DATETIME NOT NULL, " +
-                         "estado TEXT NOT NULL, " +
+                         "estado VARCHAR(20) NOT NULL, " +
                          "motivo TEXT, " +
-                         "creada_por INTEGER NOT NULL, " +
-                         "fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP)");
+                         "creada_por INT NOT NULL, " +
+                         "fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB");
             stmt.execute("CREATE TABLE IF NOT EXISTS consulta (" +
-                         "id_consulta INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                         "id_cita INTEGER NOT NULL UNIQUE, " +
+                         "id_consulta INT AUTO_INCREMENT PRIMARY KEY, " +
+                         "id_cita INT NOT NULL UNIQUE, " +
                          "diagnostico TEXT, sintomas TEXT, tratamiento TEXT, notas_medicas TEXT, " +
                          "fecha_consulta DATETIME DEFAULT CURRENT_TIMESTAMP, " +
-                         "precio REAL NOT NULL DEFAULT 0.0, facturado INTEGER DEFAULT 0)");
+                         "precio DECIMAL(10,2) NOT NULL DEFAULT 0.0, facturado TINYINT(1) DEFAULT 0) ENGINE=InnoDB");
+            
             boolean tieneIntervalo = false;
-            try (ResultSet rs = stmt.executeQuery("PRAGMA table_info(horario_atencion)")) {
-                while (rs.next()) {
-                    if ("intervalo_minutos".equalsIgnoreCase(rs.getString("name"))) {
-                        tieneIntervalo = true;
-                        break;
-                    }
+            try (ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM horario_atencion LIKE 'intervalo_minutos'")) {
+                if (rs.next()) {
+                    tieneIntervalo = true;
                 }
             }
             if (!tieneIntervalo) {
-                stmt.execute("ALTER TABLE horario_atencion ADD COLUMN intervalo_minutos INTEGER DEFAULT 30");
+                stmt.execute("ALTER TABLE horario_atencion ADD COLUMN intervalo_minutos INT DEFAULT 30");
             }
         }
     }

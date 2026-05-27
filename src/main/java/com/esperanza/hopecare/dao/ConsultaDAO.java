@@ -103,7 +103,7 @@ public class ConsultaDAO {
 
     public void insertarSiNoExiste(int idCita, double precio) {
         String sqlCheck = "SELECT COUNT(*) FROM consulta WHERE id_cita = ?";
-        String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, '', '', '', '', datetime('now', 'localtime'), ?)";
+        String sqlInsert = "INSERT INTO consulta (id_cita, diagnostico, sintomas, tratamiento, notas_medicas, fecha_consulta, precio) VALUES (?, '', '', '', '', NOW(), ?)";
         try (Connection conn = DatabaseConnection.getCitasUnifiedConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(sqlCheck)) {
                 ps.setInt(1, idCita);

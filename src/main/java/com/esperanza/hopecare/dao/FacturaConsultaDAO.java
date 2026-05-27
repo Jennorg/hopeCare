@@ -15,8 +15,8 @@ public class FacturaConsultaDAO {
         // o si es una conexión a citas directamente.
         // Pero FacturacionService usa la conexión de facturación.
         String sql = "SELECT c.id_consulta, c.precio "
-                   + "FROM citas.consulta c "
-                   + "JOIN citas.cita ci ON c.id_cita = ci.id_cita "
+                   + "FROM hopecare_citas.consulta c "
+                   + "JOIN hopecare_citas.cita ci ON c.id_cita = ci.id_cita "
                    + "WHERE ci.id_paciente = ? AND ci.estado = 'ATENDIDA' AND c.facturado = 0";
         List<Object[]> resultados = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -30,7 +30,7 @@ public class FacturaConsultaDAO {
     }
 
     public boolean marcarFacturado(int idReferencia, Connection conn) throws SQLException {
-        String sql = "UPDATE citas.consulta SET facturado = 1 WHERE id_consulta = ?";
+        String sql = "UPDATE hopecare_citas.consulta SET facturado = 1 WHERE id_consulta = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idReferencia);
             return ps.executeUpdate() == 1;
@@ -38,7 +38,7 @@ public class FacturaConsultaDAO {
     }
 
     public boolean marcarFacturado(int idReferencia) {
-        String sql = "UPDATE citas.consulta SET facturado = 1 WHERE id_consulta = ?";
+        String sql = "UPDATE hopecare_citas.consulta SET facturado = 1 WHERE id_consulta = ?";
         try (Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idReferencia);
@@ -52,12 +52,12 @@ public class FacturaConsultaDAO {
     public List<PendienteDTO> listarPendientesConPaciente() {
         List<PendienteDTO> lista = new ArrayList<>();
         String sql = "SELECT c.id_consulta, ci.id_paciente, "
-                   + "per.nombre || ' ' || per.apellido, "
+                   + "CONCAT(per.nombre, ' ', per.apellido), "
                    + "c.precio, ci.fecha_hora "
-                   + "FROM citas.consulta c "
-                   + "JOIN citas.cita ci ON c.id_cita = ci.id_cita "
-                   + "JOIN clinica.paciente p ON ci.id_paciente = p.id_paciente "
-                   + "JOIN clinica.persona per ON p.id_persona = per.id_persona "
+                   + "FROM hopecare_citas.consulta c "
+                   + "JOIN hopecare_citas.cita ci ON c.id_cita = ci.id_cita "
+                   + "JOIN hopecare_clinica.paciente p ON ci.id_paciente = p.id_paciente "
+                   + "JOIN hopecare_clinica.persona per ON p.id_persona = per.id_persona "
                    + "WHERE ci.estado = 'ATENDIDA' AND c.facturado = 0 "
                    + "ORDER BY ci.fecha_hora DESC";
         try (Connection conn = DatabaseConnection.getFacturacionUnifiedConnection();

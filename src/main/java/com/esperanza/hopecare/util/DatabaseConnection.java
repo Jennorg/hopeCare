@@ -6,88 +6,52 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DatabaseConnection {
-    private static final String AUTH_DB = "jdbc:sqlite:hopecare_auth.db";
-    private static final String CLINICA_DB = "jdbc:sqlite:hopecare_clinica.db";
-    private static final String CITAS_DB = "jdbc:sqlite:hopecare_citas.db";
-    private static final String FACTURACION_DB = "jdbc:sqlite:hopecare_facturacion.db";
-    private static final String DASHBOARD_DB = "jdbc:sqlite:hopecare_dashboard.db";
+    private static final String BASE_URL = "jdbc:mysql://localhost:3306/";
+    private static final String PARAMS = "?serverTimezone=UTC";
+    private static final String USER = "root";
+    private static final String PASSWORD = ""; 
 
-    /**
-     * Obtiene una conexión a la base de datos de Autenticación.
-     */
+    private static Connection getConnection(String dbName) throws SQLException {
+        return DriverManager.getConnection(BASE_URL + dbName + PARAMS, USER, PASSWORD);
+    }
+
     public static Connection getAuthConnection() throws SQLException {
-        return DriverManager.getConnection(AUTH_DB);
+        return getConnection("hopecare_auth");
     }
 
-    /**
-     * Obtiene una conexión a la base de datos de Clínica.
-     */
     public static Connection getClinicaConnection() throws SQLException {
-        return DriverManager.getConnection(CLINICA_DB);
+        return getConnection("hopecare_clinica");
     }
 
-    /**
-     * Obtiene una conexión a la base de datos de Citas.
-     */
     public static Connection getCitasConnection() throws SQLException {
-        return DriverManager.getConnection(CITAS_DB);
+        return getConnection("hopecare_citas");
     }
 
-    /**
-     * Obtiene una conexión a la base de datos de Facturación.
-     */
     public static Connection getFacturacionConnection() throws SQLException {
-        return DriverManager.getConnection(FACTURACION_DB);
+        return getConnection("hopecare_facturacion");
     }
 
     /**
-     * Obtiene una conexión a la base de datos de Facturación con acceso a Clínica y Citas.
+     * En MySQL, para hacer joins entre DBs, basta con usar una conexión a cualquiera
+     * y referenciar las tablas como 'nombre_db.nombre_tabla'.
+     * Por simplicidad, devolvemos una conexión general.
      */
     public static Connection getFacturacionUnifiedConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection(FACTURACION_DB);
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("ATTACH DATABASE 'hopecare_clinica.db' AS clinica");
-            stmt.execute("ATTACH DATABASE 'hopecare_citas.db' AS citas");
-        }
-        return conn;
+        return getFacturacionConnection();
     }
 
-    /**
-     * Obtiene una conexión a la base de datos de Autenticación con la de Clínica ADJUNTA (ATTACH).
-     * Útil para consultas que requieren unir datos de Usuario y Persona.
-     */
     public static Connection getAuthWithClinicaConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection(AUTH_DB);
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("ATTACH DATABASE 'hopecare_clinica.db' AS clinica");
-        }
-        return conn;
+        return getAuthConnection();
     }
 
-    /**
-     * Obtiene una conexión a la base de datos de Citas con las otras ADJUNTAS.
-     * Útil para listados complejos de citas con nombres de médicos y pacientes.
-     */
     public static Connection getCitasUnifiedConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection(CITAS_DB);
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute("ATTACH DATABASE 'hopecare_clinica.db' AS clinica");
-            stmt.execute("ATTACH DATABASE 'hopecare_auth.db' AS auth");
-        }
-        return conn;
+        return getCitasConnection();
     }
 
-    /**
-     * Obtiene una conexión a la base de datos del Dashboard (schema completo unificado).
-     */
     public static Connection getDashboardConnection() throws SQLException {
-        return DriverManager.getConnection(DASHBOARD_DB);
+        return getConnection("hopecare_dashboard");
     }
 
-    /**
-     * Compatibilidad hacia atrás (apunta a auth por defecto).
-     * @deprecated Usar métodos específicos por módulo.
-     */
     @Deprecated
     public static Connection getConnection() throws SQLException {
         return getAuthConnection();
