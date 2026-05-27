@@ -52,6 +52,10 @@ public class DatabaseConnection {
         return getConnection("hopecare_dashboard");
     }
 
+    public static Connection getRootConnection() throws SQLException {
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/?serverTimezone=UTC", USER, PASSWORD);
+    }
+
     @Deprecated
     public static Connection getConnection() throws SQLException {
         return getAuthConnection();

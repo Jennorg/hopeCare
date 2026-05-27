@@ -171,9 +171,11 @@ CREATE TABLE rol (
 CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre_usuario VARCHAR(50) UNIQUE NOT NULL,
+    contrasena VARCHAR(255) NOT NULL,
     contrasena_hash VARCHAR(255) NOT NULL,
     id_rol INT NOT NULL,
     id_persona INT NOT NULL,
+    rol VARCHAR(50) NOT NULL DEFAULT 'MEDICO',
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona)

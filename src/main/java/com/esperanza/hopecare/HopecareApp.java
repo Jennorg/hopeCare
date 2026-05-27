@@ -48,27 +48,32 @@ public class HopecareApp extends Application {
     }
 
     private void inicializarBasesDatos() {
-        // 1. Inicializar Clínica (Base para todos)
-        inicializarModulo("Clínica", "/clinica_schema.sql", "persona", DatabaseConnection::getClinicaConnection);
+        inicializarTodo();
+
         migrarClinicaDatabase();
-        
-        // 2. Inicializar Autenticación
-        inicializarModulo("Autenticación", "/auth_schema.sql", "usuario", DatabaseConnection::getAuthConnection);
         migrarAuthDatabase();
-        
-        // 3. Inicializar Citas
-        inicializarModulo("Citas", "/citas_schema.sql", "cita", DatabaseConnection::getCitasConnection);
         migrarCitasDatabase();
 
-        // 4. Inicializar Facturación
-        inicializarModulo("Facturación", "/facturacion_schema.sql", "factura", DatabaseConnection::getFacturacionConnection);
-
-        // 5. Inicializar Dashboard (schema completo unificado)
-        inicializarModulo("Dashboard", "/dashboard_schema.sql", "paciente", DatabaseConnection::getDashboardConnection);
         verificarYCargarDatosDashboard();
-
-        // Cargar datos de prueba si están vacías
         verificarYCargarDatosPrueba();
+    }
+
+    private void inicializarTodo() {
+        try (Connection conn = DatabaseConnection.getRootConnection();
+             Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery(
+                "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'hopecare_clinica'");
+            if (rs.next() && rs.getInt(1) == 0) {
+                System.out.println("Inicializando todas las bases de datos desde hopecare_mysql_complete.sql...");
+                ejecutarScriptSQL(conn, "/hopecare_mysql_complete.sql");
+                System.out.println("Bases de datos inicializadas correctamente.");
+            } else {
+                System.out.println("Las bases de datos ya existen, se omite la creación.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar bases de datos: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void migrarClinicaDatabase() {
@@ -203,19 +208,6 @@ public class HopecareApp extends Application {
         }
     }
 
-    private void inicializarModulo(String nombre, String schemaPath, String tablaControl, ConnectionSupplier connSupplier) {
-        try (Connection conn = connSupplier.get();
-             Statement stmt = conn.createStatement()) {
-
-            if (!tablaExiste(stmt, tablaControl)) {
-                ejecutarScriptSQL(conn, schemaPath);
-            }
-        } catch (Exception e) {
-            System.err.println("Error al inicializar el módulo [" + nombre + "]: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     private void verificarYCargarDatosPrueba() {
         try (Connection conn = DatabaseConnection.getAuthConnection();
              Statement stmt = conn.createStatement()) {
@@ -322,13 +314,6 @@ public class HopecareApp extends Application {
         }
     }
 
-    private boolean tablaExiste(Statement stmt, String nombre) throws Exception {
-        try (ResultSet rs = stmt.executeQuery(
-                "SHOW TABLES LIKE '" + nombre + "'")) {
-            return rs.next();
-        }
-    }
-
     private boolean baseDatosVacia(Statement stmt) throws Exception {
         try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM usuario")) {
             return rs.next() && rs.getInt(1) == 0;
@@ -350,11 +335,6 @@ public class HopecareApp extends Application {
                 }
             }
         }
-    }
-
-    @FunctionalInterface
-    private interface ConnectionSupplier {
-        Connection get() throws Exception;
     }
 
     public static void main(String[] args) {
