@@ -12,116 +12,139 @@ public class CargarDatosPrueba {
     private static final DateTimeFormatter DT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) {
-        Connection conn = null;
-        try {
-            conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
+            try {
+                insertarRol(conn, "ADMIN");
+                insertarRol(conn, "RECEPCIONISTA");
+                insertarRol(conn, "MEDICO");
 
-            insertarEspecialidades(conn);
-            insertarPersonas(conn);
-            insertarMedicos(conn);
-            insertarPacientes(conn);
-            insertarHorarios(conn);
-            insertarUsuarios(conn);
-            insertarCitas(conn);
-            insertarConsultas(conn);
+                insertarEspecialidad(conn, "Medicina General");
+                insertarEspecialidad(conn, "Pediatría");
+                insertarEspecialidad(conn, "Cardiología");
 
-            conn.commit();
-            System.out.println("Datos de prueba insertados correctamente.");
-        } catch (SQLException e) {
-            if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
-            }
-            e.printStackTrace();
-        } finally {
-            if (conn != null) {
-                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException e) { e.printStackTrace(); }
-            }
-        }
-    }
+                int pAdmin = insertarPersona(conn, "Admin", "Sistema", "00000001", null, null, "admin@hopecare.com", null, null);
+                int pRecep = insertarPersona(conn, "Recep", "Sistema", "00000002", null, null, "recep@hopecare.com", null, null);
+                int pMed = insertarPersona(conn, "Carlos", "López", "00000003", "1985-03-15", "5551234567", "carlos.lopez@hopecare.com", "Av. Siempre Viva 742", "M");
 
-    private static void insertarEspecialidades(Connection conn) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (String esp : new String[]{"Medicina General", "Pediatria", "Cardiologia"}) {
-                ps.setString(1, esp);
-                ps.executeUpdate();
-            }
-        }
-    }
+                insertarUsuario(conn, "admin", "admin123", 1, pAdmin, "ADMIN");
+                insertarUsuario(conn, "recep", "recep123", 2, pRecep, "RECEPCIONISTA");
+                insertarUsuario(conn, "medico", "medico123", 3, pMed, "MEDICO");
 
-    private static void insertarPersonas(Connection conn) throws SQLException {
-        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad) VALUES (?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, "Ana"); ps.setString(2, "Martinez"); ps.setString(3, "11111111"); ps.executeUpdate();
-            ps.setString(1, "Pedro"); ps.setString(2, "Ramirez"); ps.setString(3, "22222222"); ps.executeUpdate();
-            ps.setString(1, "Sofia"); ps.setString(2, "Torres"); ps.setString(3, "33333333"); ps.executeUpdate();
-            ps.setString(1, "Juan"); ps.setString(2, "Perez"); ps.setString(3, "12345678"); ps.executeUpdate();
-            ps.setString(1, "Maria"); ps.setString(2, "Gonzalez"); ps.setString(3, "23456789"); ps.executeUpdate();
-            ps.setString(1, "Carlos"); ps.setString(2, "Lopez"); ps.setString(3, "34567890"); ps.executeUpdate();
-            ps.setString(1, "Laura"); ps.setString(2, "Fernandez"); ps.setString(3, "45678901"); ps.executeUpdate();
-            ps.setString(1, "Roberto"); ps.setString(2, "Diaz"); ps.setString(3, "56789012"); ps.executeUpdate();
-            ps.setString(1, "Admin"); ps.setString(2, "Sistema"); ps.setString(3, "99999999"); ps.executeUpdate();
-            ps.setString(1, "Paciente"); ps.setString(2, "Demo"); ps.setString(3, "00000001"); ps.executeUpdate();
-        }
-    }
+                int pp1 = insertarPersona(conn, "Juan", "Pérez", "12345678", "1980-01-15", "123456789", "juan.perez@email.com", "Calle 123 #45-67", "M");
+                insertarPaciente(conn, pp1, "HC001", "Ninguna", "O+", "María Pérez - 987654321");
 
-    private static void insertarMedicos(Connection conn) throws SQLException {
-        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, 1); ps.setInt(2, 1); ps.setString(3, "RM12345"); ps.setDouble(4, 50000.0); ps.executeUpdate();
-            ps.setInt(1, 2); ps.setInt(2, 2); ps.setString(3, "RM12346"); ps.setDouble(4, 60000.0); ps.executeUpdate();
-            ps.setInt(1, 3); ps.setInt(2, 3); ps.setString(3, "RM12347"); ps.setDouble(4, 80000.0); ps.executeUpdate();
-        }
-    }
+                int pm1 = insertarPersona(conn, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
+                int idMed1 = insertarMedico(conn, pm1, 1, "RM12345", 50000.0);
 
-    private static void insertarPacientes(Connection conn) throws SQLException {
-        String sql = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, 4); ps.setString(2, "HC001"); ps.setString(3, "Ninguna"); ps.setString(4, "O+"); ps.executeUpdate();
-            ps.setInt(1, 5); ps.setString(2, "HC002"); ps.setString(3, "Penicilina"); ps.setString(4, "A+"); ps.executeUpdate();
-            ps.setInt(1, 6); ps.setString(2, "HC003"); ps.setString(3, "Ninguna"); ps.setString(4, "B+"); ps.executeUpdate();
-            ps.setInt(1, 7); ps.setString(2, "HC004"); ps.setString(3, "Aspirina"); ps.setString(4, "AB+"); ps.executeUpdate();
-            ps.setInt(1, 8); ps.setString(2, "HC005"); ps.setString(3, "Ninguna"); ps.setString(4, "O-"); ps.executeUpdate();
-            ps.setInt(1, 10); ps.setString(2, "HC006"); ps.setString(3, "Ninguna"); ps.setString(4, "A+"); ps.executeUpdate();
-        }
-    }
+                int idMed2 = insertarMedico(conn, pMed, 1, "RM99998", 55000.0);
 
-    private static void insertarHorarios(Connection conn) throws SQLException {
-        String sql = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            for (int med = 1; med <= 3; med++) {
-                for (int dia = 1; dia <= 5; dia++) {
-                    ps.setInt(1, med);
-                    ps.setInt(2, dia);
-                    ps.setString(3, med == 2 ? "14:00" : (med == 3 ? "09:00" : "08:00"));
-                    ps.setString(4, med == 2 ? "18:00" : (med == 3 ? "13:00" : "12:00"));
-                    ps.setInt(5, 30);
-                    ps.executeUpdate();
+                for (int medId : new int[]{idMed1, idMed2}) {
+                    for (int dia = 1; dia <= 5; dia++) {
+                        insertarHorario(conn, medId, dia, "08:00", "12:00", 30);
+                    }
                 }
+
+                insertarCitas(conn);
+                insertarConsultas(conn);
+
+                conn.commit();
+                System.out.println("Datos de prueba insertados correctamente.");
+            } catch (SQLException e) {
+                conn.rollback();
+                e.printStackTrace();
+            } finally {
+                conn.setAutoCommit(true);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void insertarUsuarios(Connection conn) throws SQLException {
-        String sql = "INSERT INTO usuario (nombre_usuario, contrasena_hash, id_persona, rol) VALUES (?, ?, ?, ?)";
+    private static void insertarRol(Connection conn, String nombre) throws SQLException {
+        String sql = "INSERT IGNORE INTO rol (nombre_rol) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, "amedico");
-            ps.setString(2, Hasher.hash("medico123"));
-            ps.setInt(3, 1);
-            ps.setString(4, "MEDICO");
+            ps.setString(1, nombre);
             ps.executeUpdate();
+        }
+    }
 
-            ps.setString(1, "aadmin");
-            ps.setString(2, Hasher.hash("admin123"));
-            ps.setInt(3, 9);
-            ps.setString(4, "ADMIN");
+    private static void insertarUsuario(Connection conn, String user, String pass, int idRol, int idPersona, String nombreRol) throws SQLException {
+        String sql = "INSERT IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user);
+            ps.setString(2, pass);
+            ps.setString(3, Hasher.hash(pass));
+            ps.setInt(4, idRol);
+            ps.setInt(5, idPersona);
+            ps.setString(6, nombreRol);
             ps.executeUpdate();
+        }
+    }
 
-            ps.setString(1, "apaciente");
-            ps.setString(2, Hasher.hash("paciente123"));
-            ps.setInt(3, 10);
-            ps.setString(4, "PACIENTE");
+    private static void insertarEspecialidad(Connection conn, String nombre) throws SQLException {
+        String sql = "INSERT IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, nombre);
+            ps.executeUpdate();
+        }
+    }
+
+    private static int insertarPersona(Connection conn, String nombre, String apellido, String documento,
+                                  String fechaNacimiento, String telefono, String email, String direccion, String genero) throws SQLException {
+        String sql = "INSERT INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, nombre);
+            ps.setString(2, apellido);
+            ps.setString(3, documento);
+            ps.setString(4, fechaNacimiento);
+            ps.setString(5, telefono);
+            ps.setString(6, email);
+            ps.setString(7, direccion);
+            ps.setString(8, genero);
+            ps.executeUpdate();
+            var rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+            throw new SQLException("No se pudo obtener id_persona");
+        }
+    }
+
+    private static void insertarPaciente(Connection conn, int idPersona, String historiaClinica, String alergias, String grupoSanguineo, String contactoEmergencia) throws SQLException {
+        String sql = "INSERT INTO paciente (id_persona, historia_clinica, alergias, grupo_sanguineo, contacto_emergencia) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idPersona);
+            ps.setString(2, historiaClinica);
+            ps.setString(3, alergias);
+            ps.setString(4, grupoSanguineo);
+            ps.setString(5, contactoEmergencia);
+            ps.executeUpdate();
+        }
+    }
+
+    private static int insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico, double precioConsulta) throws SQLException {
+        String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, idPersona);
+            ps.setInt(2, idEspecialidad);
+            ps.setString(3, registroMedico);
+            ps.setDouble(4, precioConsulta);
+            ps.setInt(5, 1);
+            ps.executeUpdate();
+            var rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+            throw new SQLException("No se pudo obtener id_medico");
+        }
+    }
+
+    private static void insertarHorario(Connection conn, int idMedico, int diaSemana, String inicio, String fin, int intervalo) throws SQLException {
+        String sql = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMedico);
+            ps.setInt(2, diaSemana);
+            ps.setString(3, inicio);
+            ps.setString(4, fin);
+            ps.setInt(5, intervalo);
+            ps.setInt(6, 1);
             ps.executeUpdate();
         }
     }
@@ -130,17 +153,12 @@ public class CargarDatosPrueba {
         String sql = "INSERT INTO cita (id_paciente, id_medico, fecha_hora, estado, creada_por) VALUES (?, ?, ?, ?, ?)";
         LocalDate today = LocalDate.now();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            LocalDate[][] fechas = {
-                {today.minusDays(1), today.minusDays(1), today.minusDays(1)},
-                {today.minusDays(1), today.minusDays(1)},
-                {today.plusDays(1), today.plusDays(1)},
-                {today.plusDays(2), today.plusDays(2), today.plusDays(2)}
-            };
             String[] estados = {"ATENDIDA", "ATENDIDA", "ATENDIDA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA"};
             int idx = 0;
-            for (int g = 0; g < fechas.length; g++) {
-                for (int i = 0; i < fechas[g].length; i++) {
-                    LocalDateTime dt = LocalDateTime.of(fechas[g][i], LocalTime.of(8 + (idx % 3) * 2, 0));
+            for (int g = 0; g < 4; g++) {
+                for (int i = 0; i < (g < 2 ? 3 : g < 3 ? 2 : 3); i++) {
+                    LocalDate d = g < 2 ? today.minusDays(1) : g < 3 ? today.plusDays(1) : today.plusDays(2);
+                    LocalDateTime dt = LocalDateTime.of(d, LocalTime.of(8 + (idx % 3) * 2, 0));
                     ps.setInt(1, (idx % 5) + 1);
                     ps.setInt(2, (idx % 3) + 1);
                     ps.setString(3, dt.format(DT_FMT));

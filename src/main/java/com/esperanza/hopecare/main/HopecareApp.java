@@ -47,19 +47,19 @@ public class HopecareApp extends Application {
     }
 
     private void inicializarBaseDatos() {
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getRootConnection();
              Statement stmt = conn.createStatement()) {
-
-            if (!tablaExiste(stmt, "persona")) {
-                System.out.println("Base de datos vacía. Creando esquema...");
-                ejecutarScriptSQL(conn, "/sisgeho_schema.sql");
-                System.out.println("Esquema creado. Insertando datos de prueba...");
+            ResultSet rs = stmt.executeQuery(
+                "SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = 'hopecare_clinica'");
+            if (rs.next() && rs.getInt(1) == 0) {
+                System.out.println("Inicializando todas las bases de datos desde hopecare_mysql_complete.sql...");
+                ejecutarScriptSQL(conn, "/hopecare_mysql_complete.sql");
+                System.out.println("Bases de datos inicializadas correctamente.");
+                System.out.println("Insertando datos de prueba...");
                 com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
             } else {
-                if (baseDatosVacia(stmt)) {
-                    System.out.println("Insertando datos de prueba...");
-                    com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
-                }
+                System.out.println("Las bases de datos ya existen, se omite la creación.");
+                verificarYCargarDatosPrueba();
             }
         } catch (Exception e) {
             System.err.println("Error al inicializar la base de datos: " + e.getMessage());
@@ -67,16 +67,16 @@ public class HopecareApp extends Application {
         }
     }
 
-    private boolean tablaExiste(Statement stmt, String nombre) throws Exception {
-        try (ResultSet rs = stmt.executeQuery(
-                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + nombre + "'")) {
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    private boolean baseDatosVacia(Statement stmt) throws Exception {
-        try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM persona")) {
-            return rs.next() && rs.getInt(1) == 0;
+    private void verificarYCargarDatosPrueba() {
+        try (Connection conn = DatabaseConnection.getClinicaConnection();
+             Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT count(*) FROM persona");
+            if (rs.next() && rs.getInt(1) == 0) {
+                System.out.println("Insertando datos de prueba...");
+                com.esperanza.hopecare.common.db.CargarDatosPrueba.main(new String[]{});
+            }
+        } catch (Exception e) {
+            System.err.println("Error al verificar datos de prueba: " + e.getMessage());
         }
     }
 

@@ -43,7 +43,7 @@ public class CitaDAO {
         List<Cita> citas = new ArrayList<>();
         String sql = "SELECT id_cita, id_paciente, id_medico, fecha_hora, estado, motivo, creada_por, fecha_creacion " +
                      "FROM cita WHERE id_medico = ? AND DATE(fecha_hora) = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idMedico);
             pstmt.setString(2, fecha.toString());
@@ -69,7 +69,7 @@ public class CitaDAO {
     
     public boolean insertarCita(Cita cita) {
         String sql = "INSERT INTO cita (id_paciente, id_medico, fecha_hora, estado, motivo, creada_por, fecha_creacion) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setInt(1, cita.getIdPaciente());
             pstmt.setInt(2, cita.getIdMedico());
@@ -106,7 +106,7 @@ public class CitaDAO {
     
     public boolean actualizarCita(Cita cita) {
         String sql = "UPDATE cita SET id_medico = ?, fecha_hora = ?, estado = ?, motivo = ?, creada_por = ?, fecha_creacion = ? WHERE id_cita = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, cita.getIdMedico());
             
@@ -134,7 +134,7 @@ public class CitaDAO {
 
     public boolean actualizarEstado(int idCita, String nuevoEstado) {
         String sql = "UPDATE cita SET estado = ? WHERE id_cita = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nuevoEstado);
             pstmt.setInt(2, idCita);
@@ -150,7 +150,7 @@ public class CitaDAO {
         List<Cita> citas = new ArrayList<>();
         String sql = "SELECT id_cita, id_paciente, id_medico, fecha_hora, estado, motivo, creada_por, fecha_creacion " +
                      "FROM cita WHERE estado = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, estado);
             ResultSet rs = pstmt.executeQuery();
@@ -186,7 +186,7 @@ public class CitaDAO {
                    + "JOIN persona pm ON me.id_persona = pm.id_persona "
                    + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
                    + "ORDER BY c.fecha_hora DESC";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -215,7 +215,7 @@ public class CitaDAO {
     public boolean eliminarCita(int idCita) {
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getConnection();
+            conn = DatabaseConnection.getCitasUnifiedConnection();
             conn.setAutoCommit(false);
 
             try (PreparedStatement delConsulta = conn.prepareStatement("DELETE FROM consulta WHERE id_cita = ?")) {
@@ -260,7 +260,7 @@ public class CitaDAO {
                    + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
                    + "WHERE c.id_medico = ? "
                    + "ORDER BY c.fecha_hora DESC";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idMedico);
             ResultSet rs = pstmt.executeQuery();
@@ -301,7 +301,7 @@ public class CitaDAO {
                    + "LEFT JOIN consulta cs ON c.id_cita = cs.id_cita "
                    + "WHERE c.id_paciente = ? "
                    + "ORDER BY c.fecha_hora DESC";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idPaciente);
             ResultSet rs = pstmt.executeQuery();
@@ -341,7 +341,7 @@ public class CitaDAO {
                    + "JOIN medico me ON c.id_medico = me.id_medico "
                    + "JOIN persona pm ON me.id_persona = pm.id_persona "
                    + "ORDER BY cs.fecha_consulta DESC";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
@@ -393,7 +393,7 @@ public class CitaDAO {
                    + "JOIN persona pm ON me.id_persona = pm.id_persona "
                    + "WHERE c.id_medico = ? "
                    + "ORDER BY cs.fecha_consulta DESC";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idMedico);
             ResultSet rs = pstmt.executeQuery();
@@ -443,7 +443,7 @@ public class CitaDAO {
                    + "JOIN medico me ON c.id_medico = me.id_medico "
                    + "JOIN persona pm ON me.id_persona = pm.id_persona "
                    + "WHERE c.estado = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getCitasUnifiedConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, estado);
             ResultSet rs = pstmt.executeQuery();

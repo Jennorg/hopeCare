@@ -10,19 +10,17 @@ import java.util.stream.Collectors;
 public class CrearBaseDatos {
 
     public static void main(String[] args) {
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = DatabaseConnection.getRootConnection();
              Statement stmt = conn.createStatement()) {
 
-            // Leer el script SQL desde resources
-            InputStream is = CrearBaseDatos.class.getResourceAsStream("/sisgeho_schema.sql");
+            InputStream is = CrearBaseDatos.class.getResourceAsStream("/hopecare_mysql_complete.sql");
             if (is == null) {
-                System.err.println("No se encontró el archivo sisgeho_schema.sql en resources");
+                System.err.println("No se encontró el archivo hopecare_mysql_complete.sql en resources");
                 return;
             }
             String sqlScript = new BufferedReader(new InputStreamReader(is))
                     .lines().collect(Collectors.joining("\n"));
 
-            // Ejecutar cada sentencia separada por ';'
             for (String sentencia : sqlScript.split(";")) {
                 String sql = sentencia.trim();
                 if (!sql.isEmpty()) {
@@ -31,7 +29,7 @@ public class CrearBaseDatos {
                 }
             }
 
-            System.out.println("\n*** Base de datos Sisgeho creada/actualizada correctamente ***");
+            System.out.println("\n*** Base de datos MySQL creada/actualizada correctamente ***");
 
         } catch (Exception e) {
             e.printStackTrace();
