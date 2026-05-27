@@ -49,7 +49,7 @@ public class ConsultaDAO {
     public List<PendienteDTO> listarPendientesConPaciente() {
         List<PendienteDTO> lista = new ArrayList<>();
         String sql = "SELECT c.id_consulta, ci.id_paciente, "
-                   + "per.nombre || ' ' || per.apellido, "
+                   + "CONCAT(per.nombre, ' ', per.apellido), "
                    + "c.precio, ci.fecha_hora "
                    + "FROM consulta c "
                    + "JOIN cita ci ON c.id_cita = ci.id_cita "

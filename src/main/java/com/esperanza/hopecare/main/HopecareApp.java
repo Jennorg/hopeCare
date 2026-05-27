@@ -71,7 +71,7 @@ public class HopecareApp extends Application {
 
     private boolean tablaExiste(Statement stmt, String nombre) throws Exception {
         try (ResultSet rs = stmt.executeQuery(
-                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='" + nombre + "'")) {
+                "SELECT count(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='hopecare' AND TABLE_NAME='" + nombre + "'")) {
             return rs.next() && rs.getInt(1) > 0;
         }
     }
