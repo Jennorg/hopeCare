@@ -45,7 +45,7 @@ Ubicada en `src/main/java/com/esperanza/hopecare/modules`. Cada módulo implemen
 *   **JavaFX 21** (Interfaces de usuario modernas)
 *   **Swing** (Panel de citas alternativo)
 *   **Maven** (Gestión de dependencias y construcción)
-*   **SQLite** (Base de datos local embebida)
+*   **MySQL** (Base de datos relacional vía XAMPP)
 *   **SLF4J** (Logging opcional)
 
 ### Edición de citas (doble clic)
@@ -58,14 +58,13 @@ Haciendo doble clic en una fila de la tabla de citas se abre un diálogo que mue
 
 ## Base de Datos
 
-El sistema utiliza SQLite. El archivo de base de datos se genera como `sisgeho.db` en la raíz del proyecto. Para inicializar las tablas, ejecutar el script `schema.sql` sobre la base generada.
+El sistema utiliza **MySQL** (vía XAMPP). La base de datos `hopecare_clinica` se crea automáticamente al iniciar la aplicación ejecutando `hopecare_mysql_complete.sql`, que contiene todo el esquema DDL. Los datos de prueba se insertan mediante `CargarDatosPrueba.java`.
 
-La aplicación crea las tablas automáticamente al ejecutar `CrearBaseDatos` e inserta datos de prueba con `CargarDatosPrueba`.
+**Requisitos:**
+- Tener XAMPP instalado con MySQL corriendo en `localhost:3306`
+- Usuario `root` sin contraseña (configuración por defecto de XAMPP)
+- El conector JDBC (`mysql-connector-j`) se descarga automáticamente vía Maven
+
+**Resetear la BD:** Ejecutar la aplicación con `DROP DATABASE IF EXISTS hopecare_clinica` o borrar manualmente la base desde MySQL Workbench.
 
 En el diálogo de nueva cita, al seleccionar un médico el `DatePicker` restringe los días seleccionables a aquellos en los que el médico atiende (según la tabla `horario_atencion`). Los días no laborables aparecen deshabilitados visualmente.
-
-### Formato de fechas en SQLite
-
-La columna `fecha_hora` de la tabla `cita` almacena los valores como TEXT en formato `"yyyy-MM-dd HH:mm:ss"`. Esto es crítico para el correcto funcionamiento de las funciones de fecha de SQLite (`DATE()`) y la lectura desde Java. El `CitaDAO` usa `parseFechaHora()` que maneja múltiples formatos (espacio, ISO-8601 con 'T', y epoch millis como respaldo). Al insertar, siempre se escribe en el formato canónico `"yyyy-MM-dd HH:mm:ss"`.
-
-**IMPORTANTE**: Si la base de datos fue creada con una versión anterior del código que usaba `setTimestamp()` (que almacenaba epoch millis), las citas NO se mostrarán en la tabla y se debe resetear la BD borrando `sisgeho.db` para que se regenere con el formato correcto.

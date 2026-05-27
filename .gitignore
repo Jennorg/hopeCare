@@ -36,3 +36,6 @@ Desktop.ini
 
 # Visual Studio Code
 .vscode/
+
+# Agentes IA
+*_AGENTS.md
