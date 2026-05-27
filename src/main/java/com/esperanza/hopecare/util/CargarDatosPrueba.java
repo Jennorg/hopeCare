@@ -55,30 +55,28 @@ public class CargarDatosPrueba {
     }
 
     private static void insertarRol(Connection conn, String nombre) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO rol (nombre_rol) VALUES (?)";
+        String sql = "INSERT IGNORE INTO rol (nombre_rol) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ps.executeUpdate();
         }
     }
 
-    /**
-     * Inserta un usuario en la base de datos vinculándolo a un rol y una persona.
-     * La contraseña se guarda de forma plana para facilitar pruebas de desarrollo.
-     */
     private static void insertarUsuario(Connection conn, String user, String pass, int idRol, int idPersona) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO usuario (nombre_usuario, contrasena, id_rol, id_persona) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT IGNORE INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, user);
             ps.setString(2, pass);
-            ps.setInt(3, idRol);
-            ps.setInt(4, idPersona);
+            ps.setString(3, Hasher.hash(pass));
+            ps.setInt(4, idRol);
+            ps.setInt(5, idPersona);
+            ps.setString(6, idRol == 1 ? "ADMIN" : (idRol == 2 ? "RECEPCIONISTA" : "MEDICO"));
             ps.executeUpdate();
         }
     }
 
     private static void insertarEspecialidad(Connection conn, String nombre) throws SQLException {
-        String sql = "INSERT OR IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
+        String sql = "INSERT IGNORE INTO especialidad (nombre_especialidad) VALUES (?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, nombre);
             ps.executeUpdate();
@@ -87,8 +85,7 @@ public class CargarDatosPrueba {
 
     private static int insertarPersona(Connection conn, String nombre, String apellido, String documento,
                                   String fechaNacimiento, String telefono, String email, String direccion, String genero) throws SQLException {
-        // Primero intentamos insertar ignorando si ya existe el documento_identidad
-        String sqlIns = "INSERT OR IGNORE INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlIns = "INSERT IGNORE INTO persona (nombre, apellido, documento_identidad, fecha_nacimiento, telefono, email, direccion, genero) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sqlIns)) {
             ps.setString(1, nombre);
             ps.setString(2, apellido);
@@ -101,7 +98,6 @@ public class CargarDatosPrueba {
             ps.executeUpdate();
         }
 
-        // Luego buscamos el ID (ya sea el recién insertado o el existente)
         String sqlSel = "SELECT id_persona FROM persona WHERE documento_identidad = ?";
         try (PreparedStatement ps = conn.prepareStatement(sqlSel)) {
             ps.setString(1, documento);
@@ -124,7 +120,7 @@ public class CargarDatosPrueba {
         }
     }
 
-    private static void insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico, double precioConsulta) throws SQLException {
+    private static int insertarMedico(Connection conn, int idPersona, int idEspecialidad, String registroMedico, double precioConsulta) throws SQLException {
         String sql = "INSERT INTO medico (id_persona, id_especialidad, registro_medico, precio_consulta, activo) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idPersona);
@@ -134,5 +130,14 @@ public class CargarDatosPrueba {
             ps.setInt(5, 1);
             ps.executeUpdate();
         }
+        
+        String sqlSel = "SELECT id_medico FROM medico WHERE registro_medico = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sqlSel)) {
+            ps.setString(1, registroMedico);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return -1;
     }
 }

@@ -1,0 +1,274 @@
+# Guía Manual Exhaustiva: Integración del Sistema HopeCare
+
+Este documento es una guía paso a paso y completamente manual para transformar el código del módulo "Aislado" (Pacientes y Médicos) en el sistema "Integrado" completo. **No se utilizarán comandos de Git.** Debes seguir cada paso, copiando y reemplazando el código exactamente como se indica.
+
+---
+
+## PASO 1: Preparación del Servidor MySQL
+
+El sistema integrado no usa una sola base de datos, sino cinco. Abre tu gestor de base de datos MySQL (como Workbench, DBeaver o la consola) y ejecuta el siguiente script para crear los espacios necesarios:
+
+```sql
+CREATE DATABASE IF NOT EXISTS hopecare_clinica;
+CREATE DATABASE IF NOT EXISTS hopecare_auth;
+CREATE DATABASE IF NOT EXISTS hopecare_citas;
+CREATE DATABASE IF NOT EXISTS hopecare_facturacion;
+CREATE DATABASE IF NOT EXISTS hopecare_dashboard;
+```
+
+---
+
+## PASO 2: Separación de los Esquemas SQL
+
+Actualmente, tienes un archivo llamado `sisgeho_schema.sql` con todo mezclado. En el sistema integrado, cada módulo tiene su propio archivo.
+
+Ve a la carpeta: `src/main/resources/`
+
+### 2.1. Crear archivo: `clinica_schema.sql`
+Crea este nuevo archivo y pega exactamente este contenido:
+
+```sql
+CREATE TABLE IF NOT EXISTS persona (
+    id_persona INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    documento_identidad VARCHAR(20) UNIQUE,
+    fecha_nacimiento DATE,
+    telefono VARCHAR(20),
+    email VARCHAR(100),
+    direccion TEXT,
+    genero VARCHAR(20)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS paciente (
+    id_paciente INT AUTO_INCREMENT PRIMARY KEY,
+    id_persona INT NOT NULL,
+    historia_clinica VARCHAR(50) UNIQUE NOT NULL,
+    alergias TEXT,
+    grupo_sanguineo VARCHAR(10),
+    contacto_emergencia TEXT,
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    activo TINYINT(1) DEFAULT 1,
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS especialidad (
+    id_especialidad INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_especialidad VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS medico (
+    id_medico INT AUTO_INCREMENT PRIMARY KEY,
+    id_persona INT NOT NULL,
+    id_especialidad INT NOT NULL,
+    registro_medico VARCHAR(50) UNIQUE NOT NULL,
+    precio_consulta DECIMAL(10,2) DEFAULT 0.0,
+    fecha_contratacion DATE,
+    activo TINYINT(1) DEFAULT 1,
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
+    FOREIGN KEY (id_especialidad) REFERENCES especialidad(id_especialidad)
+) ENGINE=InnoDB;
+```
+
+### 2.2. Crear archivo: `auth_schema.sql`
+Crea este nuevo archivo y pega exactamente este contenido:
+
+```sql
+CREATE TABLE IF NOT EXISTS rol (
+    id_rol INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_rol VARCHAR(100) UNIQUE NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_usuario VARCHAR(100) UNIQUE NOT NULL,
+    contrasena VARCHAR(255) NOT NULL,
+    contrasena_hash VARCHAR(255),
+    id_rol INT NOT NULL,
+    id_persona INT NOT NULL,
+    rol VARCHAR(50) DEFAULT 'MEDICO',
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
+) ENGINE=InnoDB;
+```
+
+### 2.3. Crear archivo: `citas_schema.sql`
+Crea este nuevo archivo y pega exactamente este contenido:
+
+```sql
+CREATE TABLE IF NOT EXISTS horario_atencion (
+    id_horario INT AUTO_INCREMENT PRIMARY KEY,
+    id_medico INT NOT NULL,
+    dia_semana INT NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fin TIME NOT NULL,
+    intervalo_minutos INT DEFAULT 30,
+    activo TINYINT(1) DEFAULT 1
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS cita (
+    id_cita INT AUTO_INCREMENT PRIMARY KEY,
+    id_paciente INT NOT NULL,
+    id_medico INT NOT NULL,
+    fecha_hora DATETIME NOT NULL,
+    estado VARCHAR(20) NOT NULL,
+    motivo TEXT,
+    creada_por INT NOT NULL,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS consulta (
+    id_consulta INT AUTO_INCREMENT PRIMARY KEY,
+    id_cita INT NOT NULL UNIQUE,
+    diagnostico TEXT,
+    sintomas TEXT,
+    tratamiento TEXT,
+    notas_medicas TEXT,
+    fecha_consulta DATETIME DEFAULT CURRENT_TIMESTAMP,
+    precio DECIMAL(10,2) NOT NULL DEFAULT 0.0,
+    facturado TINYINT(1) DEFAULT 0
+) ENGINE=InnoDB;
+```
+
+### 2.4. Borrar el archivo viejo
+Puedes eliminar o renombrar el archivo `sisgeho_schema.sql`, ya que el sistema integrado no lo utilizará.
+
+---
+
+## PASO 3: Actualizar la Clase de Conexión
+
+Abre el archivo: `src/main/java/com/esperanza/hopecare/util/DatabaseConnection.java`
+
+Debes reemplazar TODO el contenido del archivo con este nuevo código, el cual asigna cada conexión a su base de datos específica en lugar de agrupar todo en una sola:
+
+```java
+package com.esperanza.hopecare.util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DatabaseConnection {
+    private static final String BASE_URL = "jdbc:mysql://localhost:3306/";
+    private static final String USER = "root";
+    private static final String PASSWORD = ""; // Asegúrate de que esta contraseña sea la tuya
+
+    public static Connection getConnection(String dbName) throws SQLException {
+        return DriverManager.getConnection(BASE_URL + dbName + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", USER, PASSWORD);
+    }
+
+    public static Connection getClinicaConnection() throws SQLException {
+        return getConnection("hopecare_clinica");
+    }
+
+    public static Connection getAuthConnection() throws SQLException {
+        return getConnection("hopecare_auth");
+    }
+
+    public static Connection getCitasConnection() throws SQLException {
+        return getConnection("hopecare_citas");
+    }
+
+    public static Connection getFacturacionConnection() throws SQLException {
+        return getConnection("hopecare_facturacion");
+    }
+
+    public static Connection getDashboardConnection() throws SQLException {
+        return getConnection("hopecare_dashboard");
+    }
+
+    @Deprecated
+    public static Connection getConnection() throws SQLException {
+        return getClinicaConnection();
+    }
+}
+```
+
+---
+
+## PASO 4: Habilitar todos los Módulos en el Inicializador
+
+Abre el archivo: `src/main/java/com/esperanza/hopecare/HopecareApp.java`
+
+Busca el método `inicializarBasesDatos()`. En el estado aislado, algunos módulos estaban comentados o apuntaban a un archivo incorrecto. Reemplaza el método completo por este:
+
+```java
+    private void inicializarBasesDatos() {
+        // 1. Inicializar Clínica (Base para todos)
+        inicializarModulo("Clínica", "/clinica_schema.sql", "persona", DatabaseConnection::getClinicaConnection);
+        migrarClinicaDatabase();
+        
+        // 2. Inicializar Autenticación
+        inicializarModulo("Autenticación", "/auth_schema.sql", "usuario", DatabaseConnection::getAuthConnection);
+        migrarAuthDatabase();
+        
+        // 3. Inicializar Citas (Descomentado)
+        inicializarModulo("Citas", "/citas_schema.sql", "cita", DatabaseConnection::getCitasConnection);
+        migrarCitasDatabase();
+
+        // 4. Inicializar Facturación (Ignorado temporalmente si no existe el archivo)
+        // inicializarModulo("Facturación", "/facturacion_schema.sql", "factura", DatabaseConnection::getFacturacionConnection);
+
+        // Cargar datos de prueba si están vacías
+        verificarYCargarDatosPrueba();
+    }
+```
+
+---
+
+## PASO 5: Integración Lógica (La magia entre módulos)
+
+Este es el cambio más importante. Cuando registramos un Médico en la Clínica, el sistema debe crearle automáticamente un horario en el módulo de Citas.
+
+Abre el archivo: `src/main/java/com/esperanza/hopecare/dao/MedicoDAO.java`
+
+Busca el método `public boolean insertarMedico(Medico m)`.  Justo antes de la línea `conn.commit();`, debes agregar el siguiente bloque de código. 
+
+Tu método debería verse parecido a esto al final del bloque try principal:
+
+```java
+            // ... (código existente que inserta la persona y el médico) ...
+            
+            try (ResultSet rs = psM.getGeneratedKeys()) {
+                if (rs.next()) {
+                    m.setIdMedico(rs.getInt(1));
+                }
+            }
+            
+            // --- INICIO DEL NUEVO BLOQUE DE INTEGRACIÓN ---
+            // Integración con el módulo de CITAS: Generar horario por defecto (Lunes a Domingo, 08:00 a 12:00)
+            if (m.getIdMedico() > 0) {
+                try (Connection connCitas = DatabaseConnection.getCitasConnection()) {
+                    String sqlHorario = "INSERT INTO horario_atencion (id_medico, dia_semana, hora_inicio, hora_fin, intervalo_minutos, activo) VALUES (?, ?, ?, ?, ?, ?)";
+                    try (java.sql.PreparedStatement psHorario = connCitas.prepareStatement(sqlHorario)) {
+                        for (int dia = 1; dia <= 7; dia++) {
+                            psHorario.setInt(1, m.getIdMedico());
+                            psHorario.setInt(2, dia);
+                            psHorario.setString(3, "08:00:00");
+                            psHorario.setString(4, "12:00:00");
+                            psHorario.setInt(5, 30); // 30 minutos de intervalo
+                            psHorario.setInt(6, 1);
+                            psHorario.addBatch();
+                        }
+                        psHorario.executeBatch();
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(java.util.logging.Level.SEVERE, "Error al generar horario por defecto para el médico", ex);
+                    // Decisión de diseño: ¿Frenamos la creación del médico si falla el horario? 
+                    // En este caso, continuamos y dejamos el error en el log.
+                }
+            }
+            // --- FIN DEL NUEVO BLOQUE DE INTEGRACIÓN ---
+
+            conn.commit();
+            return true;
+```
+
+---
+
+## PASO 6: Limpieza Final y Arranque
+
+1. Elimina cualquier dato residual en tu base de datos MySQL (opcional pero recomendado) ejecutando:
+   `DROP DATABASE hopecare_clinica; DROP DATABASE hopecare_auth; DROP DATABASE hopecare_citas;`
+2. Ejecuta el programa. Al iniciar, `HopecareApp` detectará que faltan las tablas, leerá los nuevos archivos separados (`clinica_schema.sql`, `auth_schema.sql`, etc.) y las creará en las 5 bases de datos diferentes.
+3. Intenta crear un médico nuevo desde la interfaz. Si todo salió bien, el médico se guardará en `hopecare_clinica`, y su horario base aparecerá automáticamente en la tabla `horario_atencion` de `hopecare_citas`.

@@ -32,10 +32,10 @@ public class LoginController {
                      "SELECT u.id_usuario, u.nombre_usuario, r.nombre_rol " +
                      "FROM usuario u " +
                      "JOIN rol r ON u.id_rol = r.id_rol " +
-                     "WHERE u.nombre_usuario = ? AND u.contrasena = ?")) {
+                     "WHERE u.nombre_usuario = ? AND u.contrasena_hash = ?")) {
             
             ps.setString(1, user);
-            ps.setString(2, pass);
+            ps.setString(2, com.esperanza.hopecare.util.Hasher.hash(pass));
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

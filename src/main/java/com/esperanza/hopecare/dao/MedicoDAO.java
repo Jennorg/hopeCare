@@ -137,7 +137,7 @@ public class MedicoDAO {
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de inserción de médico", ex); }
             }
-            if (e.getMessage().contains("UNIQUE constraint failed")) {
+            if (e.getErrorCode() == 1062 || "23000".equals(e.getSQLState()) || e.getMessage().contains("UNIQUE constraint failed")) {
                 LOGGER.log(Level.INFO, "Intento de inserción de médico con datos duplicados: {0}", e.getMessage());
             } else {
                 LOGGER.log(Level.SEVERE, "Error al insertar médico", e);
@@ -189,7 +189,7 @@ public class MedicoDAO {
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de actualización de médico", ex); }
             }
-            if (e.getMessage().contains("UNIQUE constraint failed")) {
+            if (e.getErrorCode() == 1062 || "23000".equals(e.getSQLState()) || e.getMessage().contains("UNIQUE constraint failed")) {
                 LOGGER.log(Level.INFO, "Intento de actualización de médico con datos duplicados: {0}", e.getMessage());
             } else {
                 LOGGER.log(Level.SEVERE, "Error al actualizar médico", e);

@@ -179,7 +179,7 @@ public class PacienteDAO {
                 try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de inserción", ex); }
             }
             // Logueamos a nivel INFO si es un error de restricción único para no ensuciar el log de errores graves
-            if (e.getMessage().contains("UNIQUE constraint failed")) {
+            if (e.getErrorCode() == 1062 || "23000".equals(e.getSQLState()) || e.getMessage().contains("UNIQUE constraint failed")) {
                 LOGGER.log(Level.INFO, "Intento de inserción con datos duplicados: {0}", e.getMessage());
             } else {
                 LOGGER.log(Level.SEVERE, "Error al insertar paciente", e);
@@ -231,7 +231,7 @@ public class PacienteDAO {
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Error en rollback de actualización", ex); }
             }
-            if (e.getMessage().contains("UNIQUE constraint failed")) {
+            if (e.getErrorCode() == 1062 || "23000".equals(e.getSQLState()) || e.getMessage().contains("UNIQUE constraint failed")) {
                 LOGGER.log(Level.INFO, "Intento de actualización con datos duplicados: {0}", e.getMessage());
             } else {
                 LOGGER.log(Level.SEVERE, "Error al actualizar paciente", e);
