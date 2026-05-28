@@ -39,3 +39,7 @@ Desktop.ini
 
 # Agentes IA
 *_AGENTS.md
+AGENTS.md
+
+# Schema SQLite huerfano (ya no se usa, se migró a MySQL)
+src/main/resources/sisgeho_schema.sql
