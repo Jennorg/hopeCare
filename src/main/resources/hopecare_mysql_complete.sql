@@ -1,8 +1,3 @@
--- ==========================================================
--- SCRIPT DE MIGRACIÓN: MULTI-DATABASE (MySQL)
--- Simula la estructura original de SQLite con 5 bases de datos
--- ==========================================================
-
 -- ----------------------------------------------------------
 -- 1. BASE DE DATOS: hopecare_clinica (Datos maestros)
 -- ----------------------------------------------------------
