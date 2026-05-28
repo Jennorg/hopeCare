@@ -32,14 +32,24 @@ public class CargarDatosPrueba {
                 insertarUsuario(conn, "medico", "medico123", 3, pMed, "MEDICO");
 
                 int pp1 = insertarPersona(conn, "Juan", "Pérez", "12345678", "1980-01-15", "123456789", "juan.perez@email.com", "Calle 123 #45-67", "M");
+                int pp2 = insertarPersona(conn, "María", "González", "23456789", "1985-05-20", "234567890", "maria.gonzalez@email.com", "Carrera 45 #67-89", "F");
+                int pp3 = insertarPersona(conn, "Pedro", "Ramírez", "34567890", "1978-11-10", "345678901", "pedro.ramirez@email.com", "Av. Principal #12-34", "M");
+                int pp4 = insertarPersona(conn, "Laura", "Fernández", "45678901", "1990-03-25", "456789012", "laura.fernandez@email.com", "Calle 8 #90-12", "F");
+                int pp5 = insertarPersona(conn, "Roberto", "Díaz", "56789012", "1975-09-08", "567890123", "roberto.diaz@email.com", "Calle 10 #11-22", "M");
                 insertarPaciente(conn, pp1, "HC001", "Ninguna", "O+", "María Pérez - 987654321");
+                insertarPaciente(conn, pp2, "HC002", "Penicilina", "A+", "Pedro González - 234567891");
+                insertarPaciente(conn, pp3, "HC003", "Ninguna", "B+", "Ana Ramírez - 345678902");
+                insertarPaciente(conn, pp4, "HC004", "Ibuprofeno", "AB+", "Carlos Fernández - 456789013");
+                insertarPaciente(conn, pp5, "HC005", "Ninguna", "O-", "Sofía Díaz - 567890124");
 
                 int pm1 = insertarPersona(conn, "Ana", "Martínez", "87654321", "1970-07-15", "678901234", "ana.martinez@email.com", "Calle 789 #12-34", "F");
                 int idMed1 = insertarMedico(conn, pm1, 1, "RM12345", 50000.0);
 
                 int idMed2 = insertarMedico(conn, pMed, 1, "RM99998", 55000.0);
+                int pm3 = insertarPersona(conn, "Sofía", "Torres", "11111111", "1982-04-18", "1112223333", "sofia.torres@email.com", "Calle 50 #20-30", "F");
+                int idMed3 = insertarMedico(conn, pm3, 2, "RM77777", 60000.0);
 
-                for (int medId : new int[]{idMed1, idMed2}) {
+                for (int medId : new int[]{idMed1, idMed2, idMed3}) {
                     for (int dia = 1; dia <= 5; dia++) {
                         insertarHorario(conn, medId, dia, "08:00", "12:00", 30);
                     }
@@ -152,13 +162,18 @@ public class CargarDatosPrueba {
     private static void insertarCitas(Connection conn) throws SQLException {
         String sql = "INSERT INTO cita (id_paciente, id_medico, fecha_hora, estado, creada_por) VALUES (?, ?, ?, ?, ?)";
         LocalDate today = LocalDate.now();
+        LocalDate[][] fechas = {
+            {today.minusDays(1), today.minusDays(1), today.minusDays(1)},
+            {today.minusDays(1), today.minusDays(1)},
+            {today.plusDays(1), today.plusDays(1)},
+            {today.plusDays(2), today.plusDays(2), today.plusDays(2)}
+        };
+        String[] estados = {"ATENDIDA", "ATENDIDA", "ATENDIDA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA"};
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            String[] estados = {"ATENDIDA", "ATENDIDA", "ATENDIDA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA", "PROGRAMADA"};
             int idx = 0;
-            for (int g = 0; g < 4; g++) {
-                for (int i = 0; i < (g < 2 ? 3 : g < 3 ? 2 : 3); i++) {
-                    LocalDate d = g < 2 ? today.minusDays(1) : g < 3 ? today.plusDays(1) : today.plusDays(2);
-                    LocalDateTime dt = LocalDateTime.of(d, LocalTime.of(8 + (idx % 3) * 2, 0));
+            for (int g = 0; g < fechas.length; g++) {
+                for (int i = 0; i < fechas[g].length; i++) {
+                    LocalDateTime dt = LocalDateTime.of(fechas[g][i], LocalTime.of(8 + (idx % 3) * 2, 0));
                     ps.setInt(1, (idx % 5) + 1);
                     ps.setInt(2, (idx % 3) + 1);
                     ps.setString(3, dt.format(DT_FMT));

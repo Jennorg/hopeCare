@@ -8,6 +8,7 @@ public class LoginDTO {
     private String rol;
     private String mensaje;
     private int idPersona;
+    private int idUsuario;
 
     public LoginDTO() {}
     public LoginDTO(String nombreUsuario, String contrasena) {
@@ -28,4 +29,6 @@ public class LoginDTO {
     public void setMensaje(String v) { this.mensaje = v; }
     public int getIdPersona() { return idPersona; }
     public void setIdPersona(int v) { this.idPersona = v; }
+    public int getIdUsuario() { return idUsuario; }
+    public void setIdUsuario(int v) { this.idUsuario = v; }
 }

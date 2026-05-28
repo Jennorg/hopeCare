@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import com.esperanza.hopecare.common.events.EventBus;
 import com.esperanza.hopecare.common.events.NuevaCitaEvent;
+import com.esperanza.hopecare.common.session.SesionManager;
 
 public class CitaPresenter {
     private ICitaView view;
@@ -97,6 +98,7 @@ public class CitaPresenter {
         }
 
         Cita nuevaCita = new Cita(idPaciente, idMedico, fecha.atTime(hora), "PROGRAMADA");
+        nuevaCita.setCreadaPor(SesionManager.getInstance().getIdUsuario());
         boolean exito = citaDAO.insertarCita(nuevaCita);
         if (exito) {
             if (precio > 0) {

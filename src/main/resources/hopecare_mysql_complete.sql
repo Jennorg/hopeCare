@@ -105,14 +105,4 @@ CREATE TABLE consulta (
     FOREIGN KEY (id_cita) REFERENCES cita(id_cita)
 ) ENGINE=InnoDB;
 
--- ----------------------------------------------------------
--- DATOS INICIALES
--- ----------------------------------------------------------
-INSERT INTO rol (nombre_rol) VALUES ('ADMIN'), ('MEDICO'), ('RECEPCION');
-INSERT INTO persona (nombre, apellido, documento_identidad, email)
-VALUES ('Admin', 'Sistema', '00000000', 'admin@hopecare.com');
-INSERT INTO especialidad (nombre_especialidad) VALUES
-('Medicina General'), ('Pediatría'), ('Ginecología'), ('Cardiología'), ('Dermatología');
--- admin/admin123
-INSERT INTO usuario (nombre_usuario, contrasena, contrasena_hash, id_rol, id_persona, rol)
-VALUES ('admin', 'admin123', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 1, 1, 'ADMIN');
+-- NOTA: Los datos iniciales se cargan desde CargarDatosPrueba.java
